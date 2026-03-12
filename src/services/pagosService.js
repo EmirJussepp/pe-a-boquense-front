@@ -1,6 +1,11 @@
-import api from "./api"
+import { http } from "./http"
 
-export async function pagarCuotasMasivo(payload) {
-  const { data } = await api.post("/pagos/masivo", payload)
-  return data
+export const pagosService = {
+  pagarMasivo(payload) {
+    return http.post("/pagos/masivo", payload)
+  },
+
+  pagarUno(payload) {
+    return http.post("/pagos", payload)
+  },
 }

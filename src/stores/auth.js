@@ -1,61 +1,53 @@
 import { defineStore } from "pinia"
-import { jwtDecode } from "jwt-decode"
 import { authService } from "../services/authService"
-import { saveSession, clearSession, getToken, getUser } from "../auth/session"
-
-function mapTokenToUser(token) {
-  const decoded = jwtDecode(token)
-
-  return {
-    id: decoded.id ?? null,
-    email: decoded.email ?? "",
-    nombre: decoded.nombre ?? "",
-    admin: decoded.admin ?? false,
-    cobrador: decoded.cobrador ?? false,
-    perms: decoded.perms ?? [],
-    raw: decoded,
-  }
-}
+import {
+  saveToken,
+  saveUser,
+  clearSession,
+  getUser,
+} from "../auth/session"
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: getToken(),
-    user: getUser(),
     loading: false,
+    user: getUser(),
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => !!state.user?.admin,
+    isCobrador: (state) => !!state.user?.cobrador,
+    cobradorId: (state) => state.user?.cobradorId ?? null,
+    nombre: (state) => state.user?.nombre ?? "",
   },
 
   actions: {
-    async login(form) {
+    async login(credentials) {
       this.loading = true
 
       try {
-        const { data } = await authService.login(form)
-        const token = data.token
-        const user = mapTokenToUser(token)
+        const { data } = await authService.login(credentials)
+        saveToken(data.token)
 
-        this.token = token
-        this.user = user
+        const me = await authService.me()
+        this.user = me.data
+        saveUser(me.data)
 
-        saveSession(token, user)
-        return user
+        return me.data
       } finally {
         this.loading = false
       }
     },
 
-    logout() {
-      this.token = ""
-      this.user = null
-      clearSession()
+    async fetchMe() {
+      const { data } = await authService.me()
+      this.user = data
+      saveUser(data)
+      return data
     },
 
-    restore() {
-      this.token = getToken()
-      this.user = getUser()
+    logout() {
+      this.user = null
+      clearSession()
     },
   },
 })

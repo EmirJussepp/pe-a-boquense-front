@@ -1,13 +1,16 @@
-const TOKEN_KEY = "pena_token"
-const USER_KEY = "pena_user"
+const TOKEN_KEY = "token"
+const USER_KEY = "auth_user"
 
-export function saveSession(token, user) {
+export function saveToken(token) {
   localStorage.setItem(TOKEN_KEY, token)
-  localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || ""
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function saveUser(user) {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
 export function getUser() {

@@ -287,13 +287,21 @@
 </template>
 
 <script setup>
+import { useAuthStore } from "../../stores/auth"
 import { computed, nextTick, onMounted, ref } from "vue"
-import { getCuotasPendientesByDni } from "../../services/cuotasService"
-import { getMetodosPago } from "../../services/metodosPagoService"
-import { pagarCuotasMasivo } from "../../services/pagosService"
+import { cuotasService } from "../../services/cuotasService"
+import { metodosPagoService } from "../../services/metodosPagoService"
+import { pagosService } from "../../services/pagosService"
 
 const dni = ref("")
 const dniInput = ref(null)
+
+
+
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.isAdmin)
+const isCobrador = computed(() => auth.isCobrador)
+const cobradorId = computed(() => auth.cobradorId)
 
 const loading = ref(false)
 const paying = ref(false)
@@ -404,7 +412,8 @@ function selectAllPendientes() {
 
 async function cargarMetodosPago() {
   try {
-    metodosPago.value = await getMetodosPago()
+    const { data } = await metodosPagoService.listar()
+    metodosPago.value = data || []
   } catch (error) {
     console.error("Error al cargar métodos de pago:", error)
     metodosPago.value = []
@@ -429,7 +438,7 @@ async function buscarCuotas() {
   selectedIds.value = []
 
   try {
-    const data = await getCuotasPendientesByDni(dni.value.trim())
+    const { data } = await cuotasService.pendientesPorDni(dni.value.trim())
 
     socio.value = data?.socio || null
     cuotas.value = (data?.cuotas || []).map((cuota) => ({
@@ -469,7 +478,7 @@ async function pagarSeleccionadas() {
   successMessage.value = ""
 
   try {
-    await pagarCuotasMasivo({
+    await pagosService.pagarMasivo({
       cuotaIds: selectedCuotas.value.map((c) => c.cuotaId),
       metodoPagoId: Number(metodoPagoId.value),
     })

@@ -1,8 +1,9 @@
-import api from "./api"
+import { http } from "./http"
 
-export async function getCuotasPendientesByDni(dni) {
-  const { data } = await api.get("/cuotas/pendientes", {
-    params: { dni },
-  })
-  return data
+export const cuotasService = {
+  pendientesPorDni(dni) {
+    return http.get("/cuotas/pendientes", {
+      params: { dni },
+    })
+  },
 }

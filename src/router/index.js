@@ -51,6 +51,10 @@ const routes = [
         path: "cuotas/pendientes",
         component: CuotasPendientesView,
       },
+      {
+      path: "cuotas/cobrador",
+      component: () => import("../views/cuotas/CuotasPorCobradorView.vue"),
+      },
     ],
   },
 ]
