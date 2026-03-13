@@ -7,7 +7,7 @@ import InicioView from "../views/InicioView.vue"
 import SociosActivosView from "../views/socios/SociosActivosView.vue"
 import SociosBajaView from "../views/socios/SociosBajaView.vue"
 import SocioFormView from "../views/socios/SocioFormView.vue"
-import CuotasPendientesView from "../views/cuotas/CuotasPendientesView.vue"
+import CobranzasView from "../views/cuotas/CobranzasView.vue"
 
 const routes = [
   {
@@ -48,12 +48,8 @@ const routes = [
         component: () => import("../views/socios/ImportarSociosExcelView.vue"),
       },
       {
-        path: "cuotas/pendientes",
-        component: CuotasPendientesView,
-      },
-      {
-      path: "cuotas/cobrador",
-      component: () => import("../views/cuotas/CuotasPorCobradorView.vue"),
+      path: "cuotas/cobranzas",
+        component: CobranzasView,
       },
     ],
   },

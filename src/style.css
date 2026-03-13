@@ -1,137 +1,124 @@
 :root {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  --bg: #0b1020;
-  --bg-soft: #0f172a;
-  --surface: #111827;
-  --surface-2: #162033;
-  --surface-3: #1b2640;
-
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.1);
-
-  --text: #f8fafc;
-  --text-soft: #cbd5e1;
-  --text-muted: #94a3b8;
-
-  --primary: #8b5cf6;
-  --primary-soft: rgba(139, 92, 246, 0.14);
+  /* --- COLORES BOCA JUNIORS LIGHT --- */
+  --bg: #f0f2f5;             /* Gris claro institucional */
+  --bg-soft: #e2e8f0;
+  --surface: #ffffff;        /* Blanco para las tarjetas */
+  
+  /* Azul y Oro Oficial */
+  --primary: #003b7a;        /* Azul Boca (Ahora es el primario) */
+  --accent: #f1b44c;         /* Oro Boca */
+  --primary-soft: rgba(0, 59, 122, 0.1);
+  
+  /* Colores de estado */
+  --border: rgba(0, 59, 122, 0.1);
+  --border-strong: rgba(0, 59, 122, 0.2);
   --danger: #ef4444;
   --success: #22c55e;
 
-  --radius: 16px;
+  /* Tipografía (Ahora textos oscuros sobre fondo claro) */
+  --text: #0a122a;           /* Azul muy oscuro */
+  --text-soft: #334155;
+  --text-muted: #64748b;
+
+  /* Efectos */
+  --radius: 24px;
   --radius-sm: 12px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+  --shadow: 0 10px 30px rgba(0, 59, 122, 0.08);
 }
 
 * {
   box-sizing: border-box;
 }
 
-html,
-body,
-#app {
+html, body, #app {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
+  background-color: var(--bg); /* Asegura el fondo claro */
 }
 
 body {
   min-width: 320px;
-  background:
-    radial-gradient(circle at top, rgba(139, 92, 246, 0.08), transparent 28%),
-    #0b1020;
+  background-color: var(--bg);
   color: var(--text);
+  overflow-x: hidden;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-.page-shell {
-  padding: 24px;
-}
-
-.card {
-  background: rgba(17, 24, 39, 0.88);
+/* --- CLASE GLASS (Versión Light) --- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  transition: all 0.3s ease;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
+/* --- FORMULARIOS --- */
+.field label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary); /* Labels en azul */
+  margin-left: 4px;
+}
+
+.field input, .field select, .field textarea {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.field input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+/* --- BOTONES --- */
+.btn-primary {
+  height: 46px;
+  border-radius: var(--radius-sm);
+  padding: 0 24px;
+  border: none;
+  cursor: pointer;
+  background: var(--primary); /* Azul */
+  color: #ffffff;             /* Texto blanco */
+  font-weight: 700;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
-.field label {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text-soft);
-}
-
-.field input,
-.field select {
-  height: 46px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #0b1222;
-  color: var(--text);
-  outline: none;
-}
-
-.field input:focus,
-.field select:focus {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-danger {
-  height: 42px;
-  border-radius: 12px;
-  padding: 0 14px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  width: auto;
-  transition: 0.18s ease;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: white;
-}
-
 .btn-primary:hover {
-  filter: brightness(1.05);
+  transform: translateY(-2px);
+  background: #002a57;
+  box-shadow: 0 8px 20px rgba(0, 59, 122, 0.2);
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: var(--border);
-  color: var(--text);
+.brand-badge {
+  display: inline-flex;
+  padding: 6px 14px;
+  background: var(--primary); /* Azul */
+  color: var(--accent);       /* Texto Oro */
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.18);
-  color: #fca5a5;
-}
-
-.muted {
-  color: var(--text-muted);
+/* Utilidad para degradados de texto Boca */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

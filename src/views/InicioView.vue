@@ -1,99 +1,58 @@
 <template>
-  <div class="inicio-page">
-    <section class="welcome card">
-      <div class="welcome-copy">
-        <p class="eyebrow">Panel administrativo</p>
-        <h1>Bienvenido al sistema Peña Boquense</h1>
-        <p class="welcome-text">
-          Gestioná socios, cuotas, cobranzas, viajes y alquileres desde una
-          única plataforma moderna, clara y ordenada.
-        </p>
+  <div class="dashboard-page">
+    
+    <header class="welcome-section">
+    
+      <h1 class="welcome-title">
+        ¡Bienvenido, <span>{{ auth.nombre.split(' ')[0] || 'Usuario' }}</span>!
+      </h1>
+      <p class="welcome-subtitle">
+        Gestiona socios, cuotas, viajes y alquileres de la <span class="brand-text">Peña Boquense</span> desde este panel centralizado.
+      </p>
+    </header>
 
-        <div class="welcome-actions">
-          <button class="btn-primary" @click="goTo('/socios/activos')">
-            Ver socios
-          </button>
-          <button class="btn-secondary" @click="goTo('/cuotas/pendientes')">
-            Ir a cuotas
-          </button>
+    <section class="modules-section">
+      <h2 class="section-label">Accesos Directos</h2>
+      
+      <div class="modules-grid">
+        <div 
+          v-for="mod in modulos" 
+          :key="mod.title" 
+          class="module-card glass-card"
+          @click="goTo(mod.path)"
+        >
+          <div class="card-image-bg" :style="{ backgroundImage: `url(${mod.img})` }"></div>
+          
+          <div class="card-overlay"></div>
+
+          <div class="module-content">
+            <div class="text-info">
+              <h3>{{ mod.title }}</h3>
+              <p>{{ mod.desc }}</p>
+            </div>
+          </div>
+          
+          <div class="hover-indicator"></div>
         </div>
       </div>
-
-      <div class="welcome-side">
-        <div class="mini-stat">
-          <span class="mini-stat-label">Módulos</span>
-          <strong>6</strong>
-          <p>Socios, cuotas, viajes, alquileres y más.</p>
-        </div>
-      </div>
     </section>
 
-    <section class="quick-grid">
-      <article class="card quick-card" @click="goTo('/socios/activos')">
-        <div class="quick-card-top">
-          <span class="quick-badge">Socios</span>
-        </div>
-        <strong>Activos</strong>
-        <p>Listado, edición, baja y reactivación de socios.</p>
-      </article>
-
-      <article class="card quick-card" @click="goTo('/cuotas/pendientes')">
-        <div class="quick-card-top">
-          <span class="quick-badge">Cuotas</span>
-        </div>
-        <strong>Pendientes</strong>
-        <p>Control de cobranzas, pendientes y reportes.</p>
-      </article>
-
-      <article class="card quick-card" @click="goTo('/viajes')">
-        <div class="quick-card-top">
-          <span class="quick-badge">Viajes</span>
-        </div>
-        <strong>Organización</strong>
-        <p>Creación, visualización y gestión de viajes.</p>
-      </article>
-
-      <article class="card quick-card" @click="goTo('/alquileres/calendario')">
-        <div class="quick-card-top">
-          <span class="quick-badge">Alquileres</span>
-        </div>
-        <strong>Calendario</strong>
-        <p>Reservas, fechas y administración del salón.</p>
-      </article>
-    </section>
-
-    <section class="summary-grid">
-      <article class="card info-card">
-        <p class="info-title">Socios</p>
-        <strong>Gestión centralizada</strong>
-        <span>
-          Consultá activos, dados de baja y administrá sus datos desde un solo lugar.
-        </span>
-      </article>
-
-      <article class="card info-card">
-        <p class="info-title">Cuotas</p>
-        <strong>Seguimiento de cobranzas</strong>
-        <span>
-          Visualizá pendientes, controlá cobradores y prepará futuros reportes.
-        </span>
-      </article>
-
-      <article class="card info-card">
-        <p class="info-title">Operación</p>
-        <strong>Viajes y alquileres</strong>
-        <span>
-          Mantené organizadas las actividades y reservas con una interfaz clara.
-        </span>
-      </article>
-    </section>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from "vue-router"
+import { useAuthStore } from "../stores/auth"
 
 const router = useRouter()
+const auth = useAuthStore()
+
+const modulos = [
+  { title: 'Socios', path: '/socios/activos', desc: 'Gestión miembros', img: 'src/assets/sociospeña.jpg' },
+  { title: 'Cuotas', path: '/cuotas/cobranzas', desc: 'Control pagos', img: 'src/assets/cuotaspeña.jpg' },
+  { title: 'Viajes', path: '/viajes', desc: 'Organizar traslados', img: 'src/assets/viajespeña.jpg' },
+  { title: 'Alquileres', path: '/alquileres/calendario', desc: 'Reservas predio', img: 'src/assets/peñaalquiler.jpg' },
+]
 
 function goTo(path) {
   router.push(path)
@@ -101,207 +60,154 @@ function goTo(path) {
 </script>
 
 <style scoped>
-.inicio-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.welcome {
-  padding: 24px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
-  gap: 18px;
-  align-items: stretch;
-}
-
-.welcome-copy {
-  min-width: 0;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.welcome h1 {
-  margin: 0 0 10px;
-  font-size: clamp(1.9rem, 4vw, 2.7rem);
-  line-height: 1.08;
-}
-
-.welcome-text {
-  margin: 0;
-  max-width: 760px;
-  color: var(--text-muted);
-  line-height: 1.65;
-  font-size: 1rem;
-}
-
-.welcome-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
-
-.welcome-side {
-  display: flex;
-  align-items: stretch;
-}
-
-.mini-stat {
+.dashboard-page {
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.025);
-  padding: 18px;
+  max-width: 1400px;
+  margin: 0 auto;
+  /* CAMBIO: Reducimos el padding superior al mínimo */
+  padding: 0px 20px 20px 20px; 
+}
+
+/* --- SOLO CENTRALIZAMOS ESTA PARTE --- */
+.welcome-section {
+  /* CAMBIO: Reducimos margen inferior y nos aseguramos que no tenga margen superior */
+  margin-top: 0;
+  margin-bottom: 30px;
+  padding-top: 10px; /* Ajusta este valor si quieres que suba aún más */
+  text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-}
-
-.mini-stat-label {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.mini-stat strong {
-  font-size: 2rem;
-  line-height: 1;
-  margin-bottom: 10px;
-}
-
-.mini-stat p {
-  margin: 0;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.quick-card {
-  padding: 20px;
-  cursor: pointer;
-  transition: 0.18s ease;
-}
-
-.quick-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(139, 92, 246, 0.16);
-}
-
-.quick-card-top {
-  margin-bottom: 14px;
-}
-
-.quick-badge {
-  display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(139, 92, 246, 0.1);
-  color: #ddd6fe;
-  font-size: 0.78rem;
-  font-weight: 700;
 }
 
-.quick-card strong {
-  display: block;
-  font-size: 1.15rem;
-  margin-bottom: 8px;
+.welcome-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900;
+  /* CAMBIO: Quitamos margen superior para que pegue arriba */
+  margin-top: 0; 
+  margin-bottom: 5px;
+  letter-spacing: -0.03em;
+  color: var(--primary);
 }
 
-.quick-card p {
-  margin: 0;
-  color: var(--text-muted);
-  line-height: 1.55;
+.welcome-subtitle {
+  color: var(--text-soft);
+  font-size: 1.25rem;
+  max-width: 800px;
+  line-height: 1.4; /* Un poco más compacto */
+  margin-top: 0;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.info-card {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-title {
-  margin: 0;
-  font-size: 0.8rem;
+/* --- EL RESTO SE MANTIENE IGUAL PARA NO ROMPER NADA --- */
+.section-label {
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.15em;
+  margin-bottom: 30px;
   color: var(--text-muted);
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.info-card strong {
-  font-size: 1.05rem;
+.section-label::after {
+  content: "";
+  height: 1px;
+  flex-grow: 1;
+  background: var(--border-strong);
 }
 
-.info-card span {
-  color: var(--text-muted);
-  line-height: 1.55;
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 20px;
 }
 
-@media (max-width: 1200px) {
-  .quick-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.module-card {
+  position: relative;
+  height: 280px; 
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  cursor: pointer;
+}
+
+.card-image-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s ease;
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom, 
+    rgba(0, 59, 122, 0.1) 0%, 
+    rgba(0, 59, 122, 0.85) 200%
+  );
+}
+
+.module-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent);
+  box-shadow: 0 15px 35px rgba(0, 59, 122, 0.2);
+}
+
+.module-card:hover .card-image-bg {
+  transform: scale(1.1);
+}
+
+.module-content {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.text-info h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.text-info p {
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.hover-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 6px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.module-card:hover .hover-indicator {
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .modules-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .summary-grid {
+@media (max-width: 600px) {
+  .modules-grid {
     grid-template-columns: 1fr;
   }
-}
-
-@media (max-width: 900px) {
-  .welcome {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-side {
-    min-width: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .quick-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome {
-    padding: 20px;
-  }
-
-  .quick-card,
-  .info-card {
-    padding: 18px;
-  }
-
-  .welcome-actions {
-    flex-direction: column;
-  }
-
-  .welcome-actions .btn-primary,
-  .welcome-actions .btn-secondary {
-    width: 100%;
-  }
+  .welcome-title { font-size: 2rem; }
 }
 </style>

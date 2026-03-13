@@ -6,4 +6,10 @@ export const cuotasService = {
       params: { dni },
     })
   },
+
+    listarCobranzas(params = {}) {
+    return http.get("/cuotas/cobranzas", {
+      params,
+    })
+  },
 }
