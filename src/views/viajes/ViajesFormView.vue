@@ -1,6 +1,5 @@
 <template>
   <div class="page">
-
     <section class="page-head card">
       <div class="page-head-copy">
         <p class="eyebrow">Bombonera</p>
@@ -9,6 +8,7 @@
           {{ esEdicion ? "Modificá los datos del viaje." : "Registrá un nuevo viaje a la Bombonera." }}
         </p>
       </div>
+
       <div class="head-actions">
         <button class="btn-secondary" @click="volver">Volver</button>
       </div>
@@ -16,15 +16,22 @@
 
     <section class="card" style="padding: 28px;">
       <div v-if="loadingData" class="empty-state">Cargando...</div>
-      <form v-else @submit.prevent="guardar">
 
+      <form v-else @submit.prevent="guardar">
         <div class="form-section">
           <h3 class="form-section-title">Datos del Viaje</h3>
+
           <div class="field-row">
             <div class="field field-grow">
               <label>Destino <span class="required">*</span></label>
-              <input v-model="form.destino" type="text" placeholder="Ej. Boca vs River — Fecha TBD" required />
+              <input
+                v-model="form.destino"
+                type="text"
+                placeholder="Ej. Boca vs River — Fecha 10"
+                required
+              />
             </div>
+
             <div class="field">
               <label>Fecha y Hora <span class="required">*</span></label>
               <input v-model="form.fechaViaje" type="datetime-local" required />
@@ -35,20 +42,18 @@
         <div class="form-actions">
           <button type="button" class="btn-secondary" @click="volver">Cancelar</button>
           <button type="submit" class="btn-primary" :disabled="saving">
-            {{ saving ? "Guardando..." : (esEdicion ? "Guardar cambios" : "Registrar viaje") }}
+            {{ saving ? "Guardando..." : esEdicion ? "Guardar cambios" : "Registrar viaje" }}
           </button>
         </div>
-
       </form>
     </section>
-
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { http } from "../../services/http"
+import { viajesBomboneraService } from "../../services/viajesBomboneraService"
 import { useToast } from "../../composables/useToast"
 
 const route = useRoute()
@@ -59,34 +64,74 @@ const esEdicion = computed(() => !!route.params.id)
 const loadingData = ref(false)
 const saving = ref(false)
 
-const ahora = () => {
+const form = reactive({
+  destino: "",
+  fechaViaje: nowDatetimeLocal(),
+})
+
+function nowDatetimeLocal() {
   const d = new Date()
-  const pad = n => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  const hours = String(d.getHours()).padStart(2, "0")
+  const minutes = String(d.getMinutes()).padStart(2, "0")
+  return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
-const form = ref({ destino: "", fechaViaje: ahora() })
+function toDatetimeLocal(value) {
+  if (!value) return nowDatetimeLocal()
 
-function volver() { router.push("/viajes") }
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return nowDatetimeLocal()
 
-function toDatetimeLocal(iso) {
-  if (!iso) return ahora()
-  const d = new Date(iso)
-  const pad = n => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  const hours = String(d.getHours()).padStart(2, "0")
+  const minutes = String(d.getMinutes()).padStart(2, "0")
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+function volver() {
+  router.push("/viajes")
+}
+
+function validarFormulario() {
+  const destino = String(form.destino ?? "").trim()
+
+  if (!destino) return "El destino es obligatorio."
+  if (destino.length < 3 || destino.length > 100) {
+    return "El destino debe tener entre 3 y 100 caracteres."
+  }
+  if (!form.fechaViaje) return "La fecha del viaje es obligatoria."
+
+  return ""
 }
 
 async function guardar() {
+  const error = validarFormulario()
+  if (error) {
+    toast.error(error)
+    return
+  }
+
   saving.value = true
   try {
-    const payload = { destino: form.value.destino, fechaViaje: form.value.fechaViaje }
+    const payload = {
+      destino: String(form.destino).trim(),
+      fechaViaje: form.fechaViaje,
+    }
+
     if (esEdicion.value) {
-      await http.put(`/viajes-bombonera/${route.params.id}`, payload)
+      await viajesBomboneraService.actualizar(route.params.id, payload)
       toast.success("Viaje actualizado correctamente.")
     } else {
-      await http.post("/viajes-bombonera", payload)
+      await viajesBomboneraService.crear(payload)
       toast.success("Viaje registrado correctamente.")
     }
+
     router.push("/viajes")
   } catch {
     toast.error("No se pudo guardar el viaje.")
@@ -97,10 +142,12 @@ async function guardar() {
 
 onMounted(async () => {
   if (!esEdicion.value) return
+
   loadingData.value = true
   try {
-    const { data } = await http.get(`/viajes-bombonera/${route.params.id}`)
-    form.value = { destino: data.destino || "", fechaViaje: toDatetimeLocal(data.fechaViaje) }
+    const { data } = await viajesBomboneraService.obtener(route.params.id)
+    form.destino = data?.destino || ""
+    form.fechaViaje = toDatetimeLocal(data?.fechaViaje)
   } catch {
     toast.error("No se pudo cargar el viaje.")
     router.push("/viajes")

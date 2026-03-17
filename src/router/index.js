@@ -47,9 +47,9 @@ const routes = [
         component: SocioFormView,
       },
       {
-  path: "socios/:id",
-  component: SocioDetalleView,
-   },
+        path: "socios/:id",
+        component: SocioDetalleView,
+      },
       {
         path: "socios/importar-excel",
         component: () => import("../views/socios/ImportarSociosExcelView.vue"),
@@ -100,6 +100,11 @@ const routes = [
         path: "movimientos",
         name: "movimientos",
         component: () => import("../views/movimientos/MovimientosView.vue"),
+      },
+      {
+        path: "movimientos/reportes",
+        name: "movimientos-reportes",
+        component: () => import("../views/movimientos/MovimientosReporteView.vue"),
       },
       {
         path: "movimientos/nuevo",

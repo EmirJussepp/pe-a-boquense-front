@@ -1,8 +1,7 @@
 <template>
   <div class="layout">
-
-    <aside 
-      class="sidebar" 
+    <aside
+      class="sidebar"
       :class="{ 'is-collapsed': sidebarCollapsed }"
       @mouseenter="sidebarCollapsed = false"
       @mouseleave="sidebarCollapsed = true"
@@ -18,7 +17,6 @@
         </div>
 
         <nav class="nav-container">
-          
           <RouterLink to="/inicio" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LayoutDashboard :size="20" /></div>
@@ -32,8 +30,13 @@
                 <div class="nav-icon-box"><Users :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Socios</span>
               </div>
-              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.socios }" />
+              <ChevronDown
+                v-if="!sidebarCollapsed"
+                :size="14"
+                :class="{ rotate: openSubmenus.socios }"
+              />
             </button>
+
             <div v-if="openSubmenus.socios && !sidebarCollapsed" class="submenu">
               <RouterLink to="/socios/activos" class="submenu-item">Activos</RouterLink>
               <RouterLink to="/socios/baja" class="submenu-item">Bajas</RouterLink>
@@ -46,20 +49,37 @@
                 <div class="nav-icon-box"><CreditCard :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Cuotas</span>
               </div>
-              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.cuotas }" />
+              <ChevronDown
+                v-if="!sidebarCollapsed"
+                :size="14"
+                :class="{ rotate: openSubmenus.cuotas }"
+              />
             </button>
+
             <div v-if="openSubmenus.cuotas && !sidebarCollapsed" class="submenu">
               <RouterLink to="/cuotas/cobranzas" class="submenu-item">Cobranzas</RouterLink>
               <RouterLink to="/cuotas/reportes" class="submenu-item">Reportes</RouterLink>
             </div>
           </div>
 
-          <RouterLink to="/movimientos" class="nav-item">
-            <div class="nav-item-left">
-              <div class="nav-icon-box"><ArrowLeftRight :size="20" /></div>
-              <span class="nav-text" v-if="!sidebarCollapsed">Movimientos</span>
+          <div class="nav-group">
+            <button class="nav-item" @click.stop="handleGroupClick('movimientos')">
+              <div class="nav-item-left">
+                <div class="nav-icon-box"><ArrowLeftRight :size="20" /></div>
+                <span class="nav-text" v-if="!sidebarCollapsed">Movimientos</span>
+              </div>
+              <ChevronDown
+                v-if="!sidebarCollapsed"
+                :size="14"
+                :class="{ rotate: openSubmenus.movimientos }"
+              />
+            </button>
+
+            <div v-if="openSubmenus.movimientos && !sidebarCollapsed" class="submenu">
+              <RouterLink to="/movimientos" class="submenu-item">Listado</RouterLink>
+              <RouterLink to="/movimientos/reportes" class="submenu-item">Reporte</RouterLink>
             </div>
-          </RouterLink>
+          </div>
 
           <RouterLink to="/viajes" class="nav-item">
             <div class="nav-item-left">
@@ -81,14 +101,18 @@
                 <div class="nav-icon-box"><Key :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Alquileres</span>
               </div>
-              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.alquileres }" />
+              <ChevronDown
+                v-if="!sidebarCollapsed"
+                :size="14"
+                :class="{ rotate: openSubmenus.alquileres }"
+              />
             </button>
+
             <div v-if="openSubmenus.alquileres && !sidebarCollapsed" class="submenu">
               <RouterLink to="/alquileres" class="submenu-item">Listado</RouterLink>
               <RouterLink to="/alquileres/calendario" class="submenu-item">Calendario</RouterLink>
             </div>
           </div>
-
         </nav>
 
         <div class="sidebar-footer">
@@ -98,6 +122,7 @@
               <span class="nav-text" v-if="!sidebarCollapsed">Configuración</span>
             </div>
           </RouterLink>
+
           <button class="logout-item" @click.stop="logout">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LogOut :size="20" /></div>
@@ -121,33 +146,55 @@ import { ref, watch } from "vue"
 import { useAuthStore } from "../../stores/auth"
 import { useRouter, useRoute } from "vue-router"
 import logoChico from "../../assets/logochico.png"
-import { 
-  LayoutDashboard, Users, CreditCard, ArrowLeftRight, Key, Gift, Plane,
-  ChevronDown, LogOut, Settings
-} from 'lucide-vue-next'
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  ArrowLeftRight,
+  Key,
+  Gift,
+  Plane,
+  ChevronDown,
+  LogOut,
+  Settings,
+} from "lucide-vue-next"
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
 const sidebarCollapsed = ref(true)
-const openSubmenus = ref({ socios: false, cuotas: false, alquileres: false })
 
-const logout = () => { auth.logout(); router.push("/login") }
-
-// Cerrar sidebar y submenús al navegar
-watch(() => route.path, () => {
-  sidebarCollapsed.value = true
-  openSubmenus.value = { socios: false, cuotas: false, alquileres: false }
+const initialSubmenus = () => ({
+  socios: false,
+  cuotas: false,
+  movimientos: false,
+  alquileres: false,
 })
+
+const openSubmenus = ref(initialSubmenus())
+
+const logout = () => {
+  auth.logout()
+  router.push("/login")
+}
+
+watch(
+  () => route.path,
+  () => {
+    sidebarCollapsed.value = true
+    openSubmenus.value = initialSubmenus()
+  },
+)
 
 function handleGroupClick(menu) {
   if (sidebarCollapsed.value) {
     sidebarCollapsed.value = false
     openSubmenus.value[menu] = true
-  } else {
-    openSubmenus.value[menu] = !openSubmenus.value[menu]
+    return
   }
+
+  openSubmenus.value[menu] = !openSubmenus.value[menu]
 }
 </script>
 
@@ -156,16 +203,8 @@ function handleGroupClick(menu) {
   display: flex;
   width: 100vw;
   height: 100vh;
-  background-color: var(--bg); 
+  background-color: var(--bg);
   overflow: hidden;
-}
-
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(2px);
-  z-index: 40;
 }
 
 .sidebar {
@@ -179,7 +218,11 @@ function handleGroupClick(menu) {
   display: flex;
   flex-direction: column;
 }
-.sidebar.is-collapsed { width: 80px; cursor: pointer; }
+
+.sidebar.is-collapsed {
+  width: 80px;
+  cursor: pointer;
+}
 
 .sidebar-inner {
   display: flex;
@@ -207,18 +250,33 @@ function handleGroupClick(menu) {
   justify-content: center;
 }
 
-.brand-logo { width: 20px; height: 20px; }
-.brand-name { color: #fff; font-size: 1rem; font-weight: 700; white-space: nowrap; }
+.brand-logo {
+  width: 20px;
+  height: 20px;
+}
 
-.nav-container { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+.brand-name {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-.nav-item, .logout-item {
+.nav-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item,
+.logout-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px;
   border-radius: 12px;
-  color: rgba(255, 255, 255, 0.7); 
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   background: transparent;
   border: none;
@@ -227,11 +285,12 @@ function handleGroupClick(menu) {
   transition: 0.2s;
 }
 
-.nav-item-left { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
+.nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-grow: 1;
+  min-width: 0;
 }
 
 .nav-icon-box {
@@ -239,12 +298,16 @@ function handleGroupClick(menu) {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: var(--accent); 
+  color: var(--accent);
 }
 
-.nav-text { white-space: nowrap; font-size: 0.95rem; }
+.nav-text {
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
 
-.nav-item:hover, .router-link-active {
+.nav-item:hover,
+.router-link-active {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
@@ -267,7 +330,10 @@ function handleGroupClick(menu) {
   transition: 0.2s;
 }
 
-.submenu-item:hover, .submenu-item.router-link-active { color: #f1b44c; }
+.submenu-item:hover,
+.submenu-item.router-link-active {
+  color: #f1b44c;
+}
 
 .sidebar-footer {
   margin-top: auto;
@@ -282,7 +348,7 @@ function handleGroupClick(menu) {
 
 .main-wrapper {
   flex-grow: 1;
-  min-width: 0; 
+  min-width: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -293,10 +359,10 @@ function handleGroupClick(menu) {
   flex-grow: 1;
   overflow-y: auto;
   padding: 40px;
-  transition: all 0.3s ease; 
+  transition: all 0.3s ease;
 }
 
-.rotate { transform: rotate(180deg); }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.rotate {
+  transform: rotate(180deg);
+}
 </style>

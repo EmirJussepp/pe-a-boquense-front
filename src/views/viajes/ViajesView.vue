@@ -1,12 +1,12 @@
 <template>
   <div class="page">
-
     <section class="page-head card">
       <div class="page-head-copy">
         <p class="eyebrow">Bombonera</p>
         <h1>Viajes</h1>
         <p class="page-subtitle">Organización de viajes a la Bombonera.</p>
       </div>
+
       <div class="head-actions">
         <button class="btn-secondary" @click="loadViajes" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
@@ -56,25 +56,33 @@
       </div>
     </section>
 
-    <!-- MODAL PAGOS DEL VIAJE -->
-    <div v-if="modalPagos.abierto" class="modal-overlay" @click.self="modalPagos.abierto = false">
-      <div class="modal-card" style="width: 560px;">
+    <div v-if="modalPagos.abierto" class="modal-overlay" @click.self="cerrarModalPagos">
+      <div class="modal-card" style="width: 820px;">
         <div class="modal-header">
           <h3>Pagos — {{ modalPagos.viaje?.destino }}</h3>
-          <button class="modal-close" @click="modalPagos.abierto = false">✕</button>
+          <button class="modal-close" @click="cerrarModalPagos">✕</button>
         </div>
 
         <div v-if="modalPagos.loading" class="empty-state" style="padding: 20px;">Cargando...</div>
         <div v-else-if="!modalPagos.pagos.length" class="empty-state" style="padding: 20px;">Sin pagos registrados.</div>
+
         <div v-else class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Nombre</th><th>DNI</th><th>Monto</th></tr>
+              <tr>
+                <th>Pasajero</th>
+                <th>DNI</th>
+                <th>Método</th>
+                <th>Cobrador</th>
+                <th>Monto</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="p in modalPagos.pagos" :key="p.viajePagoId">
-                <td>{{ p.apellido ? `${p.apellido}, ${p.nombre}` : p.nombre || "—" }}</td>
+                <td>{{ nombreCompletoPago(p) }}</td>
                 <td>{{ p.dni || "—" }}</td>
+                <td>{{ metodoNombre(p.metodoPagoId) }}</td>
+                <td>{{ cobradorNombre(p.cobradorId) }}</td>
                 <td>$ {{ formatoMoneda(p.monto) }}</td>
               </tr>
             </tbody>
@@ -87,34 +95,61 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, computed } from "vue"
+import { computed, onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
-import { http } from "../../services/http"
+import { viajesBomboneraService } from "../../services/viajesBomboneraService"
+import { viajesPagosService } from "../../services/viajesPagosService"
+import { metodosPagoService } from "../../services/metodosPagoService"
+import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 
 const router = useRouter()
 const toast = useToast()
+
 const loading = ref(false)
 const rows = ref([])
+const metodosPago = ref([])
+const cobradores = ref([])
 
-const modalPagos = reactive({ abierto: false, loading: false, viaje: null, pagos: [] })
+const modalPagos = reactive({
+  abierto: false,
+  loading: false,
+  viaje: null,
+  pagos: [],
+})
 
 const totalPagos = computed(() =>
   formatoMoneda(modalPagos.pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0))
 )
 
+async function loadCatalogos() {
+  try {
+    const [metodosRes, cobradoresRes] = await Promise.all([
+      metodosPagoService.listar(),
+      cobradoresService.listar(),
+    ])
+
+    metodosPago.value = Array.isArray(metodosRes.data) ? metodosRes.data : []
+    cobradores.value = Array.isArray(cobradoresRes.data) ? cobradoresRes.data : []
+  } catch {
+    toast.error("No se pudieron cargar métodos de pago o cobradores.")
+  }
+}
+
 async function loadViajes() {
   loading.value = true
   try {
-    const { data } = await http.get("/viajes-bombonera")
-    rows.value = data || []
-  } catch { toast.error("Error al cargar los viajes.") }
-  finally { loading.value = false }
+    const { data } = await viajesBomboneraService.listar()
+    rows.value = Array.isArray(data) ? data : []
+  } catch {
+    toast.error("Error al cargar los viajes.")
+  } finally {
+    loading.value = false
+  }
 }
 
 async function verPagos(viaje) {
@@ -122,26 +157,75 @@ async function verPagos(viaje) {
   modalPagos.abierto = true
   modalPagos.loading = true
   modalPagos.pagos = []
+
   try {
-    const { data } = await http.get(`/viajes-pagos/viaje/${viaje.viajeBomboneraId}`)
-    modalPagos.pagos = data || []
-  } catch { toast.error("No se pudieron cargar los pagos.") }
-  finally { modalPagos.loading = false }
+    const { data } = await viajesPagosService.listarPorViaje(viaje.viajeBomboneraId)
+    modalPagos.pagos = Array.isArray(data) ? data : []
+  } catch {
+    toast.error("No se pudieron cargar los pagos.")
+  } finally {
+    modalPagos.loading = false
+  }
 }
 
-function nuevoViaje() { router.push("/viajes/nuevo") }
-function editarViaje(v) { router.push(`/viajes/${v.viajeBomboneraId}/editar`) }
-function nuevoPago(v) { router.push(`/viajes/${v.viajeBomboneraId}/pago`) }
+function cerrarModalPagos() {
+  modalPagos.abierto = false
+  modalPagos.viaje = null
+  modalPagos.pagos = []
+}
+
+function metodoNombre(id) {
+  const item = metodosPago.value.find(m => Number(m.metodoPagoId) === Number(id))
+  return item?.nombre || `#${id}`
+}
+
+function cobradorNombre(id) {
+  const item = cobradores.value.find(c =>
+    Number(c.cobradorId ?? c.cobradoresId ?? c.id) === Number(id)
+  )
+  return item?.nombre || `#${id}`
+}
+
+function nombreCompletoPago(p) {
+  const apellido = String(p?.apellido ?? "").trim()
+  const nombre = String(p?.nombre ?? "").trim()
+
+  if (apellido && nombre) return `${apellido}, ${nombre}`
+  if (nombre) return nombre
+  if (apellido) return apellido
+  return "—"
+}
+
+function nuevoViaje() {
+  router.push("/viajes/nuevo")
+}
+
+function editarViaje(v) {
+  router.push(`/viajes/${v.viajeBomboneraId}/editar`)
+}
+
+function nuevoPago(v) {
+  router.push(`/viajes/${v.viajeBomboneraId}/pago`)
+}
 
 function formatearFecha(f) {
   if (!f) return "—"
-  return new Intl.DateTimeFormat("es-AR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(f))
-}
-function formatoMoneda(n) {
-  return Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })
+  return new Intl.DateTimeFormat("es-AR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(f))
 }
 
-onMounted(loadViajes)
+function formatoMoneda(n) {
+  return Number(n || 0).toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
+onMounted(async () => {
+  await Promise.all([loadViajes(), loadCatalogos()])
+})
 </script>
 
 <style scoped>
@@ -155,5 +239,8 @@ onMounted(loadViajes)
   font-weight: 700;
   cursor: pointer;
 }
-.btn-pagos:hover { background: var(--primary); color: white; }
+.btn-pagos:hover {
+  background: var(--primary);
+  color: white;
+}
 </style>

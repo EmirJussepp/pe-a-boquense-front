@@ -129,6 +129,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue"
 import { http } from "../../services/http"
+import { beneficiosService } from "../../services/beneficiosService"
 
 const socios = ref([])
 const loading = ref(false)
@@ -162,7 +163,15 @@ const sociosFiltrados = computed(() => {
   if (filtroBeneficio.value === "sin") result = result.filter(s => !s.tieneBeneficio)
   return result
 })
+const cargarBeneficios = async () => {
+  const res = await beneficiosService.getAll({
+    page: 1,
+    pageSize: 10,
+    search: ""
+  })
 
+  console.log(res.data)
+}
 const totalPaginas = computed(() => Math.max(1, Math.ceil(sociosFiltrados.value.length / POR_PAGINA)))
 const sociosPagina = computed(() => {
   const start = (pagina.value - 1) * POR_PAGINA
@@ -172,14 +181,17 @@ const sociosPagina = computed(() => {
 async function cargarDatos() {
   loading.value = true
   try {
-    // Traemos socios activos y beneficios en paralelo
     const [sociosRes, beneficiosRes] = await Promise.all([
       http.get("/socios"),
-      http.get("/beneficios").catch(() => ({ data: [] })), // si no existe el endpoint devuelve []
+      beneficiosService.getAll({
+        page: 1,
+        pageSize: 1000,
+        search: ""
+      }).catch(() => ({ data: { data: [] } })),
     ])
 
     const beneficioIds = new Set(
-      (beneficiosRes.data || []).map(b => b.socioId)
+      (beneficiosRes.data.data || []).map(b => b.socioId)
     )
 
     socios.value = (sociosRes.data || []).map(s => ({
@@ -187,6 +199,7 @@ async function cargarDatos() {
       tieneBeneficio: beneficioIds.has(s.socioId),
       recalculando: false,
     }))
+
   } catch (e) {
     console.error("Error cargando datos", e)
     mostrarToast("Error al cargar los datos.", "error")
@@ -194,6 +207,7 @@ async function cargarDatos() {
     loading.value = false
   }
 }
+
 
 async function recalcularTodos() {
   recalculando.value = true

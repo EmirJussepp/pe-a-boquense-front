@@ -13,7 +13,6 @@
       </div>
     </section>
 
-    <!-- ERROR BANNER -->
     <div v-if="error" class="error-banner">
       <span>⚠️</span>
       <span class="error-msg">{{ error }}</span>
@@ -22,7 +21,6 @@
 
     <form class="card form-card" @submit.prevent="guardar">
 
-      <!-- DATOS PERSONALES -->
       <div class="form-section">
         <h2>Datos personales</h2>
         <div class="form-grid">
@@ -53,7 +51,6 @@
         </div>
       </div>
 
-      <!-- CONTACTO -->
       <div class="form-section">
         <h2>Contacto</h2>
         <div class="form-grid">
@@ -79,7 +76,6 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN DEL SOCIO -->
       <div class="form-section">
         <h2>Información del socio</h2>
         <div class="form-grid">
@@ -128,20 +124,19 @@ import { reactive, ref, onMounted, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import { sociosService } from "../../services/sociosService"
 import { http } from "../../services/http"
+import { useToast } from "../../composables/useToast"
 import LocalidadBuscador from "../../components/LocalidadBuscador.vue"
 
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
 const loading = ref(false)
 const error = ref(null)
 
-// Listas para selectores
 const cobradores = ref([])
 const tiposSocioPena = ref([])
 const tiposSocioBoca = ref([])
-
-// Para modo edición: mostrar la localidad actual en el buscador
 const localidadInicial = ref(null)
 
 const form = reactive({
@@ -190,12 +185,13 @@ async function cargarSocio() {
       telefono: data.telefono,
       direccion: data.direccion,
       numSocioBoca: data.numSocioBoca,
+      // ✅ slice(0,10) convierte "2020-03-15T00:00:00Z" → "2020-03-15" para input[type=date]
+      fechaAntiguedad: data.fechaAntiguedad ? data.fechaAntiguedad.slice(0, 10) : null,
       localidadId: data.localidadId,
       cobradorId: data.cobradorId,
       tipoSocioPenaId: data.tipoSocioPenaId,
       tipoSocioBocaId: data.tipoSocioBocaId,
     })
-    // Mostrar la localidad actual en el buscador
     if (data.localidadNombre) {
       localidadInicial.value = {
         nombre: data.localidadNombre,
@@ -213,20 +209,20 @@ async function guardar() {
   try {
     if (isEdit.value) {
       await sociosService.editar(route.params.id, form)
+      toast.success("Socio actualizado correctamente.")
     } else {
       await sociosService.crear(form)
+      toast.success("Socio creado correctamente.")
     }
     router.push("/socios/activos")
-  } catch (e) {
+  } catch {
     error.value = "No se pudo guardar el socio. Revisá los datos e intentá de nuevo."
   } finally {
     loading.value = false
   }
 }
 
-function volver() {
-  router.push("/socios/activos")
-}
+function volver() { router.push("/socios/activos") }
 
 onMounted(async () => {
   await cargarSelectores()
@@ -235,93 +231,28 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.socio-form-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.page-head {
-  padding: 22px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.form-card {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.form-section h2 {
-  margin: 0 0 14px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
+.socio-form-page { display: flex; flex-direction: column; gap: 16px; }
+.page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.eyebrow { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
+.page-head h1 { margin: 0 0 4px; font-size: 2rem; font-weight: 900; color: var(--primary); }
+.page-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; }
+.head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.form-card { padding: 24px; display: flex; flex-direction: column; gap: 30px; }
+.form-section h2 { margin: 0 0 14px; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .required { color: #dc2626; }
-
-.field input,
-.field select,
-.field textarea {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #f8fafc;
-  color: var(--text-main);
-  font-size: 13px;
-}
-
-.field select {
-  cursor: pointer;
-}
-
-/* ERROR BANNER */
-.error-banner {
-  display: flex; align-items: center; gap: 12px;
-  background: #fef2f2; border: 1px solid #fecaca;
-  border-radius: 10px; padding: 14px 18px;
-  color: #991b1b; font-size: 13px; font-weight: 600;
-}
+.field input, .field select, .field textarea { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; color: var(--text-main); font-size: 13px; }
+.field select { cursor: pointer; }
+.error-banner { display: flex; align-items: center; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 18px; color: #991b1b; font-size: 13px; font-weight: 600; }
 .error-msg { flex: 1; }
 .error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; }
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
+.form-actions { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
 @media (max-width: 900px) {
   .page-head { flex-direction: column; align-items: stretch; }
   .form-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }
   .form-actions { flex-direction: column; }

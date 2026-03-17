@@ -1,5 +1,8 @@
 <template>
   <div class="cobranzas-page">
+
+    <ConfirmModal ref="confirmModal" />
+
     <header class="page-header">
       <div class="header-left">
         <p class="eyebrow">COBRANZAS</p>
@@ -8,17 +11,11 @@
       </div>
     </header>
 
-    <!-- ERROR BANNER -->
     <div v-if="error" class="error-banner">
       <span class="error-icon">⚠️</span>
       <span class="error-msg">{{ error }}</span>
-      <button class="error-close" @click="error = null">✕</button>
+      <button class="error-close" type="button" @click="error = null">✕</button>
     </div>
-
-    <!-- TOAST -->
-    <transition name="toast">
-      <div v-if="toast" class="toast">{{ toast }}</div>
-    </transition>
 
     <div class="dashboard-layout">
       <main class="main-column">
@@ -26,16 +23,16 @@
           <h3 class="card-subtitle">FILTROS DE BÚSQUEDA</h3>
           <form class="search-form" @submit.prevent="buscarCuotas">
             <div class="field-container">
-              <label class="field-label">DNI o Nombre del Socio</label>
+              <label class="field-label">DNI o nombre del socio</label>
               <div class="input-action-group">
                 <input
-                  v-model="filtroBusqueda"
+                  v-model.trim="filtroBusqueda"
                   type="text"
                   placeholder="Ej. 32123456"
                   class="dark-input"
                 />
                 <button type="submit" class="btn-buscar" :disabled="loading">
-                  {{ loading ? '...' : 'Buscar' }}
+                  {{ loading ? "..." : "Buscar" }}
                 </button>
                 <button type="button" class="btn-limpiar" @click="limpiarBusqueda">
                   Limpiar
@@ -49,7 +46,11 @@
           <div class="table-card-header">
             <h2>Cuotas encontradas</h2>
             <label v-if="elegibles.length" class="select-all">
-              <input type="checkbox" :checked="allSelected" @change="toggleSelectAll($event.target.checked)"/>
+              <input
+                type="checkbox"
+                :checked="allSelected"
+                @change="toggleSelectAll($event.target.checked)"
+              />
               <span>Seleccionar todas</span>
             </label>
           </div>
@@ -60,35 +61,47 @@
                 <tr>
                   <th>SEL.</th>
                   <th @click="establecerOrden('socioApellido')" class="sortable">
-                    SOCIO / DNI <span class="sort-icon">{{ getIconoOrden('socioApellido') }}</span>
+                    SOCIO / DNI
+                    <span class="sort-icon">{{ getIconoOrden("socioApellido") }}</span>
                   </th>
                   <th @click="establecerOrden('periodo')" class="sortable">
-                    PERIODO <span class="sort-icon">{{ getIconoOrden('periodo') }}</span>
+                    PERÍODO
+                    <span class="sort-icon">{{ getIconoOrden("periodo") }}</span>
                   </th>
                   <th @click="establecerOrden('fechaVencimiento')" class="sortable">
-                    VENCIMIENTO <span class="sort-icon">{{ getIconoOrden('fechaVencimiento') }}</span>
+                    VENCIMIENTO
+                    <span class="sort-icon">{{ getIconoOrden("fechaVencimiento") }}</span>
                   </th>
                   <th @click="establecerOrden('montoAPagar')" class="sortable">
-                    MONTO <span class="sort-icon">{{ getIconoOrden('montoAPagar') }}</span>
+                    MONTO
+                    <span class="sort-icon">{{ getIconoOrden("montoAPagar") }}</span>
                   </th>
                   <th>ESTADO</th>
                 </tr>
               </thead>
+
               <tbody>
-                <tr v-if="loading" v-for="n in 3" :key="'sk'+n" class="skeleton-row">
+                <tr v-if="loading" v-for="n in 3" :key="`sk-${n}`" class="skeleton-row">
                   <td colspan="6"></td>
                 </tr>
-                <tr v-else-if="!loading && cuotasFiltradas.length === 0">
+
+                <tr v-else-if="cuotasFiltradas.length === 0">
                   <td colspan="6" class="empty-state">No se encontraron cuotas.</td>
                 </tr>
+
                 <tr
                   v-else
                   v-for="cuota in cuotasFiltradas"
-                  :key="cuota.cuotaId"
-                  :class="{ 'selected-row': selectedIds.includes(cuota.cuotaId) }"
+                  :key="cuota.id"
+                  :class="{ 'selected-row': selectedIds.includes(cuota.id) }"
                 >
                   <td class="col-check">
-                    <input type="checkbox" v-model="selectedIds" :value="cuota.cuotaId" :disabled="isPaid(cuota)"/>
+                    <input
+                      v-model="selectedIds"
+                      type="checkbox"
+                      :value="cuota.id"
+                      :disabled="isPaid(cuota)"
+                    />
                   </td>
                   <td>
                     <div class="socio-cell">
@@ -100,7 +113,9 @@
                   <td>{{ formatFecha(cuota.fechaVencimiento) }}</td>
                   <td class="monto-cell">$ {{ formatMoney(cuota.montoAPagar) }}</td>
                   <td>
-                    <span class="badge-estado" :class="estadoClass(cuota.estado)">{{ cuota.estado }}</span>
+                    <span class="badge-estado" :class="estadoClass(cuota.estado)">
+                      {{ cuota.estado }}
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -114,48 +129,50 @@
           <h2 class="summary-title">Resumen de Pago</h2>
 
           <div class="total-adeudado-box">
-            <span class="adeudado-label">Total Adeudado:</span>
+            <span class="adeudado-label">Total adeudado:</span>
             <span class="adeudado-amount">$ {{ totalAdeudado }}</span>
           </div>
 
           <div class="payment-method-container">
             <p class="method-label">MÉTODO DE PAGO</p>
-            <div class="method-buttons">
+
+            <div v-if="loadingMetodos" class="helper-text">
+              Cargando métodos de pago...
+            </div>
+            <div v-else-if="!metodosPago.length" class="helper-text">
+              No hay métodos de pago disponibles.
+            </div>
+            <div v-else class="method-buttons">
               <button
+                v-for="metodo in metodosPago"
+                :key="metodo.id"
+                type="button"
                 class="btn-method"
-                :class="{ 'active': metodoPagoId === 1 }"
-                @click="metodoPagoId = 1"
+                :class="{ active: metodoPagoId === metodo.id }"
+                @click="metodoPagoId = metodo.id"
               >
-                <span class="method-icon">💵</span>
-                Efectivo
-              </button>
-              <button
-                class="btn-method"
-                :class="{ 'active': metodoPagoId === 2 }"
-                @click="metodoPagoId = 2"
-              >
-                <span class="method-icon">💳</span>
-                Transferencia
+                <span v-if="metodo.icono" class="method-icon">{{ metodo.icono }}</span>
+                {{ metodo.nombre }}
               </button>
             </div>
           </div>
 
           <div class="checkout-details">
             <div class="detail-row">
-              <span>Cuotas Seleccionadas:</span>
+              <span>Cuotas seleccionadas:</span>
               <span>{{ selectedIds.length }}</span>
             </div>
             <div class="total-to-pay">
-              <span>A Pagar:</span>
+              <span>A pagar:</span>
               <span class="total-val">$ {{ totalSeleccionado }}</span>
             </div>
 
             <button
               class="btn-confirmar"
-              :disabled="selectedIds.length === 0 || paying"
+              :disabled="selectedIds.length === 0 || paying || !metodoPagoId"
               @click="pagarSeleccionadas"
             >
-              {{ paying ? 'PROCESANDO...' : 'CONFIRMAR PAGO' }}
+              {{ paying ? "PROCESANDO..." : "CONFIRMAR PAGO" }}
             </button>
 
             <p class="footer-note">
@@ -173,89 +190,189 @@ import { computed, onMounted, ref } from "vue"
 import { useAuthStore } from "../../stores/auth"
 import { cuotasService } from "../../services/cuotasService"
 import { pagosService } from "../../services/pagosService"
+import { metodosPagoService } from "../../services/metodosPagoService"
+import { useToast } from "../../composables/useToast"
+import ConfirmModal from "../../components/ui/ConfirmModal.vue"
 
 const auth = useAuthStore()
+const toast = useToast()
+const confirmModal = ref(null)
 
-// Estado
 const filtroBusqueda = ref("")
 const loading = ref(false)
+const loadingMetodos = ref(false)
 const paying = ref(false)
 const cuotas = ref([])
-const metodoPagoId = ref(1)
+const metodosPago = ref([])
+const metodoPagoId = ref(null)
 const selectedIds = ref([])
 const ordenColumna = ref("fechaVencimiento")
 const ordenSentido = ref("asc")
 const error = ref(null)
-const toast = ref(null)
 
-// Computadas
-const pageTitle = computed(() => (auth.isCobrador && !auth.isAdmin) ? "Tus cobranzas" : "Gestión de Cuotas")
-const pageDescription = computed(() => "Consulta y gestiona cuotas desde tu sesión de cobrador.")
+const pageTitle = computed(() =>
+  auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
+)
+
+const pageDescription = computed(() =>
+  "Consulta y gestiona cuotas desde tu sesión de cobrador."
+)
+
+function normalizeCuota(item) {
+  return {
+    id: Number(item?.cuotaId ?? item?.id ?? 0),
+    socioNombre: String(item?.socioNombre ?? ""),
+    socioApellido: String(item?.socioApellido ?? ""),
+    socioDni: String(item?.socioDni ?? ""),
+    periodo: item?.periodo ?? "",
+    fechaVencimiento: item?.fechaVencimiento ?? null,
+    montoAPagar: Number(item?.montoAPagar ?? 0),
+    estado: String(item?.estado ?? ""),
+  }
+}
+
+function resolveMetodoIcono(nombre) {
+  const value = String(nombre || "").toLowerCase()
+  if (value.includes("efectivo")) return "💵"
+  if (value.includes("transfer")) return "🏦"
+  if (value.includes("tarjeta")) return "💳"
+  if (value.includes("debito")) return "💳"
+  if (value.includes("crédito") || value.includes("credito")) return "💳"
+  if (value.includes("mercado pago")) return "💙"
+  if (value.includes("qr")) return "📱"
+  return "💰"
+}
+
+function normalizeMetodoPago(item) {
+  const id = Number(item?.metodoPagoId ?? item?.id ?? 0)
+  const nombre = String(item?.nombre ?? "")
+  return { id, nombre, icono: resolveMetodoIcono(nombre) }
+}
 
 const cuotasFiltradas = computed(() => {
-  let result = [...cuotas.value]
-  if (filtroBusqueda.value.trim()) {
-    const term = filtroBusqueda.value.toLowerCase()
-    result = result.filter(c =>
-      c.socioDni.includes(term) ||
-      c.socioNombre.toLowerCase().includes(term) ||
-      c.socioApellido.toLowerCase().includes(term)
-    )
-  }
+  const result = [...cuotas.value]
   result.sort((a, b) => {
-    let vA = a[ordenColumna.value], vB = b[ordenColumna.value]
-    if (typeof vA === "string") { vA = vA.toLowerCase(); vB = vB.toLowerCase() }
-    return ordenSentido.value === "asc" ? (vA < vB ? -1 : 1) : (vA > vB ? -1 : 1)
+    let valorA = a[ordenColumna.value]
+    let valorB = b[ordenColumna.value]
+    if (typeof valorA === "string") valorA = valorA.toLowerCase()
+    if (typeof valorB === "string") valorB = valorB.toLowerCase()
+    if (valorA === valorB) return 0
+    return ordenSentido.value === "asc"
+      ? valorA < valorB ? -1 : 1
+      : valorA > valorB ? -1 : 1
   })
   return result
 })
 
-const elegibles = computed(() => cuotasFiltradas.value.filter(c => !isPaid(c)))
+const elegibles = computed(() => cuotasFiltradas.value.filter((item) => !isPaid(item)))
+
 const allSelected = computed(() =>
-  elegibles.value.length > 0 && elegibles.value.every(c => selectedIds.value.includes(c.cuotaId))
-)
-const totalSeleccionado = computed(() =>
-  formatMoney(cuotas.value.filter(c => selectedIds.value.includes(c.cuotaId)).reduce((acc, c) => acc + Number(c.montoAPagar || 0), 0))
-)
-const totalAdeudado = computed(() =>
-  formatMoney(cuotas.value.reduce((acc, c) => acc + Number(c.montoAPagar || 0), 0))
+  elegibles.value.length > 0 &&
+  elegibles.value.every((item) => selectedIds.value.includes(item.id))
 )
 
-// Helpers
-function establecerOrden(col) {
-  if (ordenColumna.value === col) ordenSentido.value = ordenSentido.value === "asc" ? "desc" : "asc"
-  else { ordenColumna.value = col; ordenSentido.value = "asc" }
+const totalSeleccionado = computed(() => {
+  const total = cuotas.value
+    .filter((item) => selectedIds.value.includes(item.id))
+    .reduce((acc, item) => acc + Number(item.montoAPagar || 0), 0)
+  return formatMoney(total)
+})
+
+const totalAdeudado = computed(() => {
+  const total = elegibles.value.reduce((acc, item) => acc + Number(item.montoAPagar || 0), 0)
+  return formatMoney(total)
+})
+
+// ✅ Resumen legible para el modal de confirmación
+const resumenPagoTexto = computed(() => {
+  const cantidad = selectedIds.value.length
+  const metodo = metodosPago.value.find(m => m.id === metodoPagoId.value)
+  const nombreMetodo = metodo?.nombre ?? "método seleccionado"
+  return `${cantidad} cuota(s) por $ ${totalSeleccionado.value} via ${nombreMetodo}.`
+})
+
+function establecerOrden(columna) {
+  if (ordenColumna.value === columna) {
+    ordenSentido.value = ordenSentido.value === "asc" ? "desc" : "asc"
+    return
+  }
+  ordenColumna.value = columna
+  ordenSentido.value = "asc"
 }
-function getIconoOrden(col) {
-  if (ordenColumna.value !== col) return "↕"
+
+function getIconoOrden(columna) {
+  if (ordenColumna.value !== columna) return "↕"
   return ordenSentido.value === "asc" ? "↑" : "↓"
 }
-function isPaid(c) { return c?.estado === "PAGADA" || c?.estado === "EXENTA" }
-function formatMoney(v) { return new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2 }).format(Number(v || 0)) }
-function formatFecha(v) { return v ? new Intl.DateTimeFormat("es-AR").format(new Date(v)) : "—" }
-function formatPeriodo(p) { const s = String(p); return s.length === 6 ? `${s.slice(4, 6)}/${s.slice(0, 4)}` : s }
-function toggleSelectAll(checked) { selectedIds.value = checked ? elegibles.value.map(c => c.cuotaId) : [] }
+
+function isPaid(cuota) {
+  return cuota?.estado === "PAGADA" || cuota?.estado === "EXENTA"
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value || 0))
+}
+
+function formatFecha(value) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return new Intl.DateTimeFormat("es-AR").format(date)
+}
+
+function formatPeriodo(periodo) {
+  const value = String(periodo ?? "")
+  return value.length === 6 ? `${value.slice(4, 6)}/${value.slice(0, 4)}` : value
+}
+
+function toggleSelectAll(checked) {
+  selectedIds.value = checked ? elegibles.value.map((item) => item.id) : []
+}
+
 function estadoClass(estado) {
   if (estado === "PAGADA") return "badge-pagada"
   if (estado === "VENCIDA") return "badge-vencida"
   if (estado === "EXENTA") return "badge-exenta"
   return "badge-pendiente"
 }
-function mostrarToast(msg) {
-  toast.value = msg
-  setTimeout(() => { toast.value = null }, 3000)
+
+async function cargarMetodosPago() {
+  loadingMetodos.value = true
+  try {
+    const { data } = await metodosPagoService.listar()
+    metodosPago.value = Array.isArray(data)
+      ? data.map(normalizeMetodoPago).filter((item) => item.id > 0)
+      : []
+    if (!metodoPagoId.value && metodosPago.value.length) {
+      metodoPagoId.value = metodosPago.value[0].id
+    }
+  } catch {
+    metodosPago.value = []
+  } finally {
+    loadingMetodos.value = false
+  }
 }
 
-// Acciones
 async function buscarCuotas() {
   loading.value = true
   error.value = null
+  selectedIds.value = []
   try {
+    const termino = filtroBusqueda.value.trim()
     const params = {}
-    if (/^\d+$/.test(filtroBusqueda.value.trim())) params.dni = filtroBusqueda.value.trim()
+    if (/^\d+$/.test(termino)) {
+      params.dni = termino
+    } else if (termino) {
+      params.search = termino
+    }
     const { data } = await cuotasService.listarCobranzas(params)
-    cuotas.value = (data || []).map(c => ({ ...c, montoAPagar: Number(c.montoAPagar || 0) }))
-  } catch (e) {
+    cuotas.value = Array.isArray(data)
+      ? data.map(normalizeCuota).filter((item) => item.id > 0)
+      : []
+  } catch {
     error.value = "No se pudieron cargar las cuotas. Intentá de nuevo."
     cuotas.value = []
   } finally {
@@ -264,24 +381,45 @@ async function buscarCuotas() {
 }
 
 async function pagarSeleccionadas() {
-  if (!selectedIds.value.length) return
+  if (!selectedIds.value.length || !metodoPagoId.value) return
+
+  // ✅ Modal de confirmación antes de pagar
+  const ok = await confirmModal.value.open({
+    icon: "💳",
+    title: "Confirmar pago",
+    message: `¿Confirmás el pago de ${resumenPagoTexto.value}`,
+    confirmLabel: "Confirmar pago",
+    variant: "success",
+  })
+  if (!ok) return
+
   paying.value = true
   error.value = null
+
   try {
-    await pagosService.pagarMasivo({ cuotaIds: selectedIds.value, metodoPagoId: Number(metodoPagoId.value) })
-    mostrarToast(`✅ ${selectedIds.value.length} cuota(s) pagada(s) correctamente.`)
+    await pagosService.pagarMasivo({
+      cuotaIds: selectedIds.value,
+      metodoPagoId: Number(metodoPagoId.value),
+    })
+    toast.success(`${selectedIds.value.length} cuota(s) pagada(s) correctamente.`)
     selectedIds.value = []
     await buscarCuotas()
-  } catch (e) {
+  } catch {
+    toast.error("No se pudo procesar el pago. Verificá la conexión e intentá de nuevo.")
     error.value = "No se pudo procesar el pago. Verificá la conexión e intentá de nuevo."
   } finally {
     paying.value = false
   }
 }
 
-function limpiarBusqueda() { filtroBusqueda.value = ""; buscarCuotas() }
+function limpiarBusqueda() {
+  filtroBusqueda.value = ""
+  buscarCuotas()
+}
 
-onMounted(() => buscarCuotas())
+onMounted(async () => {
+  await Promise.all([cargarMetodosPago(), buscarCuotas()])
+})
 </script>
 
 <style scoped>
@@ -296,12 +434,15 @@ onMounted(() => buscarCuotas())
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 25px;
+  gap: 16px;
 }
-.eyebrow { color: var(--accent); font-weight: 800; font-size: 11px; letter-spacing: 1px; margin: 0; }
-.page-header h1 { font-size: 32px; font-weight: 900; color: var(--primary); margin: 5px 0; }
-.hero-description { color: var(--text-muted); font-size: 14px; }
 
-/* ERROR BANNER */
+.eyebrow { color: var(--accent); font-weight: 800; font-size: 11px; letter-spacing: 1px; margin: 0; }
+
+.page-header h1 { font-size: 32px; font-weight: 900; color: var(--primary); margin: 5px 0; }
+
+.hero-description { color: var(--text-muted); font-size: 14px; margin: 0; }
+
 .error-banner {
   display: flex;
   align-items: center;
@@ -315,104 +456,46 @@ onMounted(() => buscarCuotas())
   font-size: 13px;
   font-weight: 600;
 }
+
 .error-icon { font-size: 16px; flex-shrink: 0; }
 .error-msg { flex: 1; }
-.error-close {
-  background: none;
-  border: none;
-  color: #991b1b;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 0 4px;
-  flex-shrink: 0;
-}
+.error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
 
-/* TOAST */
-.toast {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background: var(--primary);
-  color: white;
-  padding: 12px 22px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  z-index: 9999;
-}
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(10px); }
-
-/* LAYOUT */
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: minmax(0, 1fr) 350px;
   gap: 20px;
   align-items: start;
 }
 
-.card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-}
+.card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); }
 
 .card-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 15px; font-weight: 800; }
+
 .field-label { font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px; display: block; }
-.input-action-group { display: flex; gap: 12px; }
 
-.dark-input {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  color: var(--text-main);
-  flex: 1;
-}
+.input-action-group { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; }
 
-.btn-buscar {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0 25px;
-  font-weight: 700;
-  cursor: pointer;
-}
+.dark-input { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text-main); min-width: 0; }
+
+.btn-buscar { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 25px; font-weight: 700; cursor: pointer; }
 .btn-buscar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.btn-limpiar {
-  background: #f1f5f9;
-  border: 1px solid var(--border);
-  color: var(--text-soft);
-  border-radius: 8px;
-  padding: 0 20px;
-  font-weight: 600;
-  cursor: pointer;
-}
+.btn-limpiar { background: #f1f5f9; border: 1px solid var(--border); color: var(--text-soft); border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; }
 
-/* TABLA */
 .table-card { margin-top: 20px; }
-.table-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.table-card-header h2 { font-size: 18px; color: var(--primary); font-weight: 800; }
+
+.table-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
+.table-card-header h2 { font-size: 18px; color: var(--primary); font-weight: 800; margin: 0; }
 
 .select-all { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
 
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table th {
-  text-align: left;
-  color: var(--text-muted);
-  font-size: 11px;
-  padding: 12px;
-  border-bottom: 2px solid var(--bg);
-  background: #f1f5f9;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
+.table-container { overflow-x: auto; }
+
+.data-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.data-table th { text-align: left; color: var(--text-muted); font-size: 11px; padding: 12px; border-bottom: 2px solid var(--bg); background: #f1f5f9; font-weight: 800; letter-spacing: 0.5px; }
 .data-table td { padding: 14px 12px; border-bottom: 1px solid var(--bg); font-size: 13px; }
+
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--primary); }
 .selected-row { background-color: rgba(241, 180, 76, 0.05); }
@@ -420,9 +503,9 @@ onMounted(() => buscarCuotas())
 .socio-name { display: block; font-weight: 700; color: var(--primary); }
 .socio-dni { font-size: 11px; color: var(--text-muted); }
 .monto-cell { font-weight: 800; color: var(--text-main); }
+
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
 
-/* SKELETON */
 .skeleton-row td {
   height: 52px;
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -431,81 +514,45 @@ onMounted(() => buscarCuotas())
 }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-/* BADGES */
-.badge-estado {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-}
+.badge-estado { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; }
 .badge-pendiente { background: rgba(241, 180, 76, 0.15); color: #9c6e1e; }
 .badge-vencida   { background: #fee2e2; color: #991b1b; }
 .badge-pagada    { background: #dcfce7; color: #166534; }
 .badge-exenta    { background: #f1f5f9; color: #64748b; }
 
-/* SIDEBAR */
 .summary-title { font-size: 18px; font-weight: 900; margin-bottom: 20px; color: var(--primary); }
-.total-adeudado-box {
-  background: var(--bg);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  border-left: 4px solid var(--accent);
-}
+
+.total-adeudado-box { background: var(--bg); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid var(--accent); }
 .adeudado-label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; }
 .adeudado-amount { font-size: 24px; font-weight: 900; color: var(--text-main); display: block; }
 
 .method-label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; }
-.method-buttons { display: flex; gap: 12px; margin-bottom: 20px; }
-.btn-method {
-  flex: 1;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-.btn-method.active {
-  border: 2px solid #003b7a;
-  color: #003b7a;
-}
+.method-buttons { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+.btn-method { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 600; color: var(--text-main); }
+.btn-method.active { border: 2px solid #003b7a; color: #003b7a; }
+.helper-text { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
 
 .detail-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-soft); margin-bottom: 8px; }
-.total-to-pay {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 2px dashed var(--border);
-}
+.total-to-pay { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed var(--border); gap: 12px; }
 .total-val { font-size: 26px; font-weight: 900; color: var(--primary); }
 
-.btn-confirmar {
-  width: 100%;
-  padding: 16px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 800;
-  margin-top: 20px;
-  background: #cbd5e1;
-  color: #64748b;
-  cursor: not-allowed;
-  font-size: 14px;
-}
-.btn-confirmar:not(:disabled) {
-  background: var(--accent);
-  color: var(--primary);
-  cursor: pointer;
-}
+.btn-confirmar { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; margin-top: 20px; background: #cbd5e1; color: #64748b; cursor: not-allowed; font-size: 14px; }
+.btn-confirmar:not(:disabled) { background: var(--accent); color: var(--primary); cursor: pointer; }
 
 .footer-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px; }
+
+@media (max-width: 1100px) {
+  .cobranzas-page { padding: 20px 24px; }
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .sidebar-column { order: -1; }
+  .method-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .cobranzas-page { padding: 16px; }
+  .page-header h1 { font-size: 28px; }
+  .input-action-group { grid-template-columns: 1fr; }
+  .btn-buscar, .btn-limpiar { min-height: 44px; padding: 0 16px; }
+  .method-buttons { grid-template-columns: 1fr; }
+  .total-to-pay { flex-direction: column; align-items: flex-start; }
+}
 </style>
