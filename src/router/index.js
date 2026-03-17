@@ -8,6 +8,7 @@ import SociosActivosView from "../views/socios/SociosActivosView.vue"
 import SociosBajaView from "../views/socios/SociosBajaView.vue"
 import SocioFormView from "../views/socios/SocioFormView.vue"
 import CobranzasView from "../views/cuotas/CobranzasView.vue"
+import SocioDetalleView from "../views/socios/SocioDetalleView.vue"
 
 const routes = [
   {
@@ -46,6 +47,10 @@ const routes = [
         component: SocioFormView,
       },
       {
+  path: "socios/:id",
+  component: SocioDetalleView,
+   },
+      {
         path: "socios/importar-excel",
         component: () => import("../views/socios/ImportarSociosExcelView.vue"),
       },
@@ -59,6 +64,35 @@ const routes = [
         path: "cuotas/reportes",
         name: "cuotas-reportes",
         component: () => import("../views/cuotas/CuotasReportesView.vue"),
+      },
+
+      // ── Viajes ──────────────────────────────────────────
+      {
+        path: "viajes",
+        name: "viajes",
+        component: () => import("../views/viajes/ViajesView.vue"),
+      },
+      {
+        path: "viajes/nuevo",
+        name: "viajes-nuevo",
+        component: () => import("../views/viajes/ViajesFormView.vue"),
+      },
+      {
+        path: "viajes/:id/editar",
+        name: "viajes-editar",
+        component: () => import("../views/viajes/ViajesFormView.vue"),
+      },
+      {
+        path: "viajes/:id/pago",
+        name: "viajes-pago",
+        component: () => import("../views/viajes/ViajePagoFormView.vue"),
+      },
+
+      // ── Beneficios ──────────────────────────────────────
+      {
+        path: "beneficios",
+        name: "beneficios",
+        component: () => import("../views/beneficios/BeneficiosView.vue"),
       },
 
       // ── Movimientos ─────────────────────────────────────

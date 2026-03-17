@@ -1,19 +1,13 @@
 <template>
   <div class="layout">
-    <transition name="fade">
-      <div
-        v-if="!sidebarCollapsed"
-        class="sidebar-overlay"
-        @click="closeSidebar"
-      ></div>
-    </transition>
 
-    <aside
-      class="sidebar"
+    <aside 
+      class="sidebar" 
       :class="{ 'is-collapsed': sidebarCollapsed }"
-      @click="handleAsideClick"
+      @mouseenter="sidebarCollapsed = false"
+      @mouseleave="sidebarCollapsed = true"
     >
-      <div class="sidebar-inner" @click.stop>
+      <div class="sidebar-inner">
         <div class="brand">
           <div class="logo-wrapper">
             <img :src="logoChico" alt="Logo" class="brand-logo" />
@@ -24,7 +18,8 @@
         </div>
 
         <nav class="nav-container">
-          <RouterLink to="/inicio" class="nav-item" @click="closeSidebar">
+          
+          <RouterLink to="/inicio" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LayoutDashboard :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Inicio</span>
@@ -37,20 +32,11 @@
                 <div class="nav-icon-box"><Users :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Socios</span>
               </div>
-              <ChevronDown
-                v-if="!sidebarCollapsed"
-                :size="14"
-                :class="{ rotate: openSubmenus.socios }"
-              />
+              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.socios }" />
             </button>
-
             <div v-if="openSubmenus.socios && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/socios/activos" class="submenu-item" @click="closeSidebar">
-                Activos
-              </RouterLink>
-              <RouterLink to="/socios/baja" class="submenu-item" @click="closeSidebar">
-                Bajas
-              </RouterLink>
+              <RouterLink to="/socios/activos" class="submenu-item">Activos</RouterLink>
+              <RouterLink to="/socios/baja" class="submenu-item">Bajas</RouterLink>
             </div>
           </div>
 
@@ -60,27 +46,32 @@
                 <div class="nav-icon-box"><CreditCard :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Cuotas</span>
               </div>
-              <ChevronDown
-                v-if="!sidebarCollapsed"
-                :size="14"
-                :class="{ rotate: openSubmenus.cuotas }"
-              />
+              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.cuotas }" />
             </button>
-
             <div v-if="openSubmenus.cuotas && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/cuotas/cobranzas" class="submenu-item" @click="closeSidebar">
-                Cobranzas
-              </RouterLink>
-              <RouterLink to="/cuotas/reportes" class="submenu-item" @click="closeSidebar">
-                Reportes
-              </RouterLink>
+              <RouterLink to="/cuotas/cobranzas" class="submenu-item">Cobranzas</RouterLink>
+              <RouterLink to="/cuotas/reportes" class="submenu-item">Reportes</RouterLink>
             </div>
           </div>
 
-          <RouterLink to="/movimientos" class="nav-item" @click="closeSidebar">
+          <RouterLink to="/movimientos" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><ArrowLeftRight :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Movimientos</span>
+            </div>
+          </RouterLink>
+
+          <RouterLink to="/viajes" class="nav-item">
+            <div class="nav-item-left">
+              <div class="nav-icon-box"><Plane :size="20" /></div>
+              <span class="nav-text" v-if="!sidebarCollapsed">Viajes</span>
+            </div>
+          </RouterLink>
+
+          <RouterLink to="/beneficios" class="nav-item">
+            <div class="nav-item-left">
+              <div class="nav-icon-box"><Gift :size="20" /></div>
+              <span class="nav-text" v-if="!sidebarCollapsed">Beneficios</span>
             </div>
           </RouterLink>
 
@@ -90,32 +81,23 @@
                 <div class="nav-icon-box"><Key :size="20" /></div>
                 <span class="nav-text" v-if="!sidebarCollapsed">Alquileres</span>
               </div>
-              <ChevronDown
-                v-if="!sidebarCollapsed"
-                :size="14"
-                :class="{ rotate: openSubmenus.alquileres }"
-              />
+              <ChevronDown v-if="!sidebarCollapsed" :size="14" :class="{ rotate: openSubmenus.alquileres }" />
             </button>
-
             <div v-if="openSubmenus.alquileres && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/alquileres" class="submenu-item" @click="closeSidebar">
-                Listado
-              </RouterLink>
-              <RouterLink to="/alquileres/calendario" class="submenu-item" @click="closeSidebar">
-                Calendario
-              </RouterLink>
+              <RouterLink to="/alquileres" class="submenu-item">Listado</RouterLink>
+              <RouterLink to="/alquileres/calendario" class="submenu-item">Calendario</RouterLink>
             </div>
           </div>
+
         </nav>
 
         <div class="sidebar-footer">
-          <RouterLink to="/configuracion" class="nav-item" @click="closeSidebar">
+          <RouterLink to="/configuracion" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Settings :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Configuración</span>
             </div>
           </RouterLink>
-
           <button class="logout-item" @click.stop="logout">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LogOut :size="20" /></div>
@@ -135,54 +117,37 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import { useAuthStore } from "../../stores/auth"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
 import logoChico from "../../assets/logochico.png"
-import {
-  LayoutDashboard, Users, CreditCard, ArrowLeftRight, Key,
+import { 
+  LayoutDashboard, Users, CreditCard, ArrowLeftRight, Key, Gift, Plane,
   ChevronDown, LogOut, Settings
-} from "lucide-vue-next"
+} from 'lucide-vue-next'
 
 const auth = useAuthStore()
+const route = useRoute()
 const router = useRouter()
 
 const sidebarCollapsed = ref(true)
-const openSubmenus = ref({
-  socios: false,
-  cuotas: false,
-  alquileres: false
-})
+const openSubmenus = ref({ socios: false, cuotas: false, alquileres: false })
 
-function closeSidebar() {
+const logout = () => { auth.logout(); router.push("/login") }
+
+// Cerrar sidebar y submenús al navegar
+watch(() => route.path, () => {
   sidebarCollapsed.value = true
-  openSubmenus.value = {
-    socios: false,
-    cuotas: false,
-    alquileres: false
-  }
-}
-
-function handleAsideClick() {
-  if (sidebarCollapsed.value) {
-    sidebarCollapsed.value = false
-  }
-}
-
-const logout = () => {
-  auth.logout()
-  closeSidebar()
-  router.push("/login")
-}
+  openSubmenus.value = { socios: false, cuotas: false, alquileres: false }
+})
 
 function handleGroupClick(menu) {
   if (sidebarCollapsed.value) {
     sidebarCollapsed.value = false
     openSubmenus.value[menu] = true
-    return
+  } else {
+    openSubmenus.value[menu] = !openSubmenus.value[menu]
   }
-
-  openSubmenus.value[menu] = !openSubmenus.value[menu]
 }
 </script>
 

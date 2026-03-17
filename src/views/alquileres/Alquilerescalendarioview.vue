@@ -32,10 +32,7 @@
           v-for="celda in celdas"
           :key="celda.key"
           class="cal-cell"
-          :class="{
-            'otro-mes': !celda.esEsteMes,
-            'hoy': celda.esHoy,
-          }"
+          :class="{ 'otro-mes': !celda.esEsteMes, 'hoy': celda.esHoy }"
           @click="celda.esEsteMes && abrirDia(celda)"
         >
           <span class="cal-day-num">{{ celda.dia }}</span>
@@ -45,11 +42,11 @@
               v-for="a in celda.alquileres"
               :key="a.alquilerId"
               class="cal-event"
-              :class="badgeClase(a.estado)"
-              :title="`${a.clienteNombre || 'Sin nombre'} — ${formatoHora(a.fechaDesde)}`"
+              :class="a.condicion ? 'badge-success' : 'badge-warning'"
+              :title="`${a.nombre || 'Sin nombre'} — ${formatoHora(a.fecha)}`"
               @click.stop="editarAlquiler(a)"
             >
-              {{ a.clienteNombre || "Reserva" }}
+              {{ a.nombre || "Reserva" }}
             </div>
             <div v-if="celda.masCount > 0" class="cal-mas">+{{ celda.masCount }} más</div>
           </div>
@@ -72,14 +69,16 @@
         <div v-else class="modal-list">
           <div v-for="a in diaSeleccionado.alquileres" :key="a.alquilerId" class="modal-item">
             <div class="modal-item-top">
-              <strong>{{ a.clienteNombre || "Sin nombre" }}</strong>
-              <span class="badge" :class="badgeClase(a.estado)">{{ a.estado || "pendiente" }}</span>
+              <strong>{{ a.nombre || "Sin nombre" }}</strong>
+              <span class="badge" :class="a.condicion ? 'badge-success' : 'badge-warning'">
+                {{ a.condicion ? "Con seña" : "Sin seña" }}
+              </span>
             </div>
-            <p class="modal-item-sub">
-              🕐 {{ formatoHora(a.fechaDesde) }}
-              <span v-if="a.fechaHasta"> → {{ formatoHora(a.fechaHasta) }}</span>
-            </p>
-            <p class="modal-item-sub">💰 $ {{ formatoMoneda(a.precio || a.monto) }}</p>
+            <p class="modal-item-sub">🕐 {{ formatoHora(a.fecha) }}</p>
+            <p class="modal-item-sub">📋 DNI: {{ a.dni || "—" }}</p>
+            <p class="modal-item-sub">📞 {{ a.telefono || "—" }}</p>
+            <p class="modal-item-sub">💰 $ {{ formatoMoneda(a.monto) }}</p>
+            <p v-if="a.observaciones" class="modal-item-sub">📝 {{ a.observaciones }}</p>
             <div class="modal-item-actions">
               <button class="table-btn" @click="editarAlquiler(a)">Editar</button>
             </div>
@@ -117,14 +116,12 @@ const MAX_VISIBLE = 2
 
 const celdas = computed(() => {
   const primerDia = new Date(anio.value, mesActual.value, 1)
-  const ultimoDia = new Date(anio.value, mesActual.value + 1, 0)
   const inicio = new Date(primerDia)
-  inicio.setDate(inicio.getDate() - inicio.getDay()) // retroceder al domingo
+  inicio.setDate(inicio.getDate() - inicio.getDay())
 
   const result = []
   const cursor = new Date(inicio)
 
-  // 6 semanas x 7 días = 42 celdas
   for (let i = 0; i < 42; i++) {
     const fecha = new Date(cursor)
     const esEsteMes = fecha.getMonth() === mesActual.value
@@ -132,7 +129,9 @@ const celdas = computed(() => {
     const fechaStr = fecha.toISOString().slice(0, 10)
 
     const alqsDia = alquileres.value.filter(a => {
-      const f = new Date(a.fechaDesde || a.fecha)
+      if (!a.fecha) return false
+      // El backend devuelve fecha como string ISO, normalizamos
+      const f = new Date(a.fecha)
       return f.toISOString().slice(0, 10) === fechaStr
     })
 
@@ -162,7 +161,10 @@ function irHoy() { mesActual.value = hoy.getMonth(); anio.value = hoy.getFullYea
 function abrirDia(celda) { diaSeleccionado.value = celda }
 function nuevoAlquiler() { router.push("/alquileres/nuevo") }
 function irListado() { router.push("/alquileres") }
-function editarAlquiler(a) { router.push(`/alquileres/${a.alquilerId}/editar`); diaSeleccionado.value = null }
+function editarAlquiler(a) {
+  router.push(`/alquileres/${a.alquilerId}/editar`)
+  diaSeleccionado.value = null
+}
 function nuevoAlquilerDia(fecha) {
   const pad = n => String(n).padStart(2, "0")
   const iso = `${fecha.getFullYear()}-${pad(fecha.getMonth()+1)}-${pad(fecha.getDate())}T09:00`
@@ -170,12 +172,9 @@ function nuevoAlquilerDia(fecha) {
   diaSeleccionado.value = null
 }
 
-function badgeClase(estado) {
-  if (estado === "confirmado") return "badge-success"
-  if (estado === "cancelado") return "badge-danger"
-  return "badge-warning"
+function formatoMoneda(n) {
+  return Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })
 }
-function formatoMoneda(n) { return Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 2 }) }
 function formatoHora(f) {
   if (!f) return "—"
   return new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(f))
@@ -212,26 +211,22 @@ onMounted(async () => {
   box-shadow: var(--shadow-sm);
 }
 
-/* PAGE HEAD */
 .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
 .eyebrow { color: var(--accent); font-weight: 800; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 0 4px; }
 .page-head h1 { font-size: 30px; font-weight: 900; color: var(--primary); margin: 0 0 4px; }
 .page-subtitle { color: var(--text-muted); font-size: 13px; margin: 0; }
 .head-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
 
-/* BUTTONS */
 .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-secondary { background: white; color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-weight: 600; font-size: 13px; cursor: pointer; }
 .btn-hoy { background: rgba(241,180,76,0.12); color: #9c6e1e; border: 1px solid rgba(241,180,76,0.4); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 8px; }
 
-/* MES NAV */
 .mes-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 .mes-titulo { font-size: 20px; font-weight: 900; color: var(--primary); margin: 0; min-width: 200px; text-align: center; }
 .nav-btn { background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 900; }
 .nav-btn:hover { background: var(--primary); color: white; }
 
-/* CALENDARIO GRID */
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -267,52 +262,36 @@ onMounted(async () => {
   background: var(--accent);
   color: var(--primary);
   border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
   font-weight: 900;
 }
 .cal-day-num { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 5px; display: inline-block; }
 
 .cal-events { display: flex; flex-direction: column; gap: 2px; }
 .cal-event {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   cursor: pointer;
 }
 .cal-event:hover { opacity: 0.8; }
 .cal-mas { font-size: 10px; color: var(--text-muted); padding: 1px 4px; font-style: italic; }
 
 .badge-success { background: rgba(34,197,94,0.15); color: #15803d; }
-.badge-danger  { background: rgba(239,68,68,0.12); color: #b91c1c; }
-.badge-warning { background: rgba(241,180,76,0.2); color: #9c6e1e; }
+.badge-warning  { background: rgba(241,180,76,0.2); color: #9c6e1e; }
 
-/* MODAL */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.4);
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 .modal-card {
-  background: white;
-  border-radius: 14px;
-  padding: 24px;
-  width: 420px;
-  max-width: 95vw;
+  background: white; border-radius: 14px; padding: 24px;
+  width: 420px; max-width: 95vw;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: 80vh; overflow-y: auto;
 }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .modal-header h3 { font-size: 16px; font-weight: 800; color: var(--primary); margin: 0; text-transform: capitalize; }
@@ -321,9 +300,9 @@ onMounted(async () => {
 
 .modal-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
 .modal-item { background: #f8fafc; border-radius: 8px; padding: 12px; border: 1px solid var(--border); }
-.modal-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.modal-item-sub { font-size: 12px; color: var(--text-muted); margin: 2px 0; }
-.modal-item-actions { margin-top: 8px; }
+.modal-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.modal-item-sub { font-size: 12px; color: var(--text-muted); margin: 3px 0; }
+.modal-item-actions { margin-top: 10px; }
 
 .modal-footer { border-top: 1px solid var(--border); padding-top: 14px; }
 

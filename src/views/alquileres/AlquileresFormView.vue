@@ -69,6 +69,7 @@
                 <span class="input-prefix">$</span>
                 <input v-model="form.monto" type="number" min="0" step="0.01" placeholder="0.00" required />
               </div>
+              <span v-if="montoAutocompletado" class="field-hint">💡 Precio del salón aplicado automáticamente</span>
             </div>
             <div class="field">
               <label>Método de Pago <span class="required">*</span></label>
@@ -111,7 +112,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { alquileresService } from "../../services/alquileresService"
 import { salonesService } from "../../services/salonesService"
@@ -125,6 +126,7 @@ const loadingData = ref(false)
 const saving = ref(false)
 const salones = ref([])
 const metodosPago = ref([])
+const montoAutocompletado = ref(false)
 
 const ahora = () => {
   const d = new Date()
@@ -133,8 +135,35 @@ const ahora = () => {
 }
 
 const form = ref({
-  salonId: null, nombre: "", dni: "", telefono: "",
-  fecha: ahora(), monto: "", condicion: false, metodoPagoId: null, observaciones: "",
+  salonId: null,
+  nombre: "",
+  dni: "",
+  telefono: "",
+  fecha: ahora(),
+  monto: "",
+  condicion: false,
+  metodoPagoId: null,
+  observaciones: "",
+})
+
+// Auto-completa el monto con el precio del salón al seleccionarlo (solo al crear)
+watch(() => form.value.salonId, (nuevoId) => {
+  if (!nuevoId || esEdicion.value) return
+  const salon = salones.value.find(s => s.salonId === nuevoId)
+  if (salon?.precio) {
+    form.value.monto = salon.precio
+    montoAutocompletado.value = true
+  }
+})
+
+// Si el usuario edita el monto manualmente, sacar el hint
+watch(() => form.value.monto, () => {
+  if (montoAutocompletado.value) {
+    const salon = salones.value.find(s => s.salonId === form.value.salonId)
+    if (String(form.value.monto) !== String(salon?.precio)) {
+      montoAutocompletado.value = false
+    }
+  }
 })
 
 function volver() { router.push("/alquileres") }
@@ -176,23 +205,46 @@ function toDatetimeLocal(iso) {
 
 onMounted(async () => {
   try {
-    const [salonesRes, metodosRes] = await Promise.all([salonesService.listar(), metodosPagoService.listar()])
+    const [salonesRes, metodosRes] = await Promise.all([
+      salonesService.listar(),
+      metodosPagoService.listar()
+    ])
     salones.value = salonesRes.data || []
     metodosPago.value = metodosRes.data || []
     if (metodosPago.value.length) form.value.metodoPagoId = metodosPago.value[0].metodoPagoId
-  } catch { console.error("No se pudieron cargar los datos") }
+  } catch {
+    console.error("No se pudieron cargar los datos")
+  }
 
   if (!esEdicion.value) return
   loadingData.value = true
   try {
     const { data } = await alquileresService.obtener(route.params.id)
     form.value = {
-      salonId: data.salonId, nombre: data.nombre || "", dni: data.dni || "",
-      telefono: data.telefono || "", fecha: toDatetimeLocal(data.fecha),
-      monto: data.monto || "", condicion: data.condicion ?? false,
-      metodoPagoId: data.metodoPagoId || null, observaciones: data.observaciones || "",
+      salonId: data.salonId,
+      nombre: data.nombre || "",
+      dni: data.dni || "",
+      telefono: data.telefono || "",
+      fecha: toDatetimeLocal(data.fecha),
+      monto: data.monto || "",
+      condicion: data.condicion ?? false,
+      metodoPagoId: data.metodoPagoId || null,
+      observaciones: data.observaciones || "",
     }
-  } catch { alert("No se pudo cargar el alquiler."); router.push("/alquileres") }
-  finally { loadingData.value = false }
+  } catch {
+    alert("No se pudo cargar el alquiler.")
+    router.push("/alquileres")
+  } finally {
+    loadingData.value = false
+  }
 })
 </script>
+
+<style scoped>
+.field-hint {
+  font-size: 11px;
+  color: #9c6e1e;
+  margin-top: 4px;
+  display: block;
+}
+</style>
