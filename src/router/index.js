@@ -27,6 +27,8 @@ const routes = [
         path: "inicio",
         component: InicioView,
       },
+
+      // ── Socios ──────────────────────────────────────────
       {
         path: "socios/activos",
         component: SociosActivosView,
@@ -44,12 +46,60 @@ const routes = [
         component: SocioFormView,
       },
       {
-      path: "socios/importar-excel",
+        path: "socios/importar-excel",
         component: () => import("../views/socios/ImportarSociosExcelView.vue"),
       },
+
+      // ── Cuotas ──────────────────────────────────────────
       {
-      path: "cuotas/cobranzas",
+        path: "cuotas/cobranzas",
         component: CobranzasView,
+      },
+      {
+        path: "cuotas/reportes",
+        name: "cuotas-reportes",
+        component: () => import("../views/cuotas/CuotasReportesView.vue"),
+      },
+
+      // ── Movimientos ─────────────────────────────────────
+      {
+        path: "movimientos",
+        name: "movimientos",
+        component: () => import("../views/movimientos/MovimientosView.vue"),
+      },
+      {
+        path: "movimientos/nuevo",
+        name: "movimientos-nuevo",
+        component: () => import("../views/movimientos/MovimientosFormView.vue"),
+      },
+
+      // ── Configuración ───────────────────────────────────
+      {
+        path: "configuracion",
+        name: "configuracion",
+        component: () => import("../views/ConfiguracionView.vue"),
+      },
+
+      // ── Alquileres ──────────────────────────────────────
+      {
+        path: "alquileres",
+        name: "alquileres",
+        component: () => import("../views/alquileres/AlquileresView.vue"),
+      },
+      {
+        path: "alquileres/calendario",
+        name: "alquileres-calendario",
+        component: () => import("../views/alquileres/AlquileresCalendarioView.vue"),
+      },
+      {
+        path: "alquileres/nuevo",
+        name: "alquileres-nuevo",
+        component: () => import("../views/alquileres/AlquileresFormView.vue"),
+      },
+      {
+        path: "alquileres/:id/editar",
+        name: "alquileres-editar",
+        component: () => import("../views/alquileres/AlquileresFormView.vue"),
       },
     ],
   },

@@ -24,5 +24,10 @@
   },
   "overrides": {
     "vite": "^8.0.0-beta.13"
+  },
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": false
   }
+
+  
 }

@@ -1,18 +1,23 @@
 <template>
   <div class="login-page">
     <div class="login-grid">
-      <section class="login-brand">
-        <div class="brand-badge">Peña Boquense · Sistema</div>
 
+      <section class="login-brand">
+        <div class="login-eyebrow">Peña Boquense · Sistema</div>
         <h1>
           Gestión moderna para
-          <span>socios, cuotas y organización</span>
+          <span class="gradient-text">socios, cuotas y organización</span>
         </h1>
-
         <p>
           Una plataforma administrativa unificada para cobranzas, viajes,
           alquileres y control operativo.
         </p>
+        <div class="login-features">
+          <div class="feature-item">✓ Gestión de socios</div>
+          <div class="feature-item">✓ Cobranzas y cuotas</div>
+          <div class="feature-item">✓ Alquileres de salones</div>
+          <div class="feature-item">✓ Control de movimientos</div>
+        </div>
       </section>
 
       <section class="login-card glass-card">
@@ -25,7 +30,7 @@
         </div>
 
         <form @submit.prevent="onSubmit">
-          <div class="field">
+          <div class="field" style="margin-bottom: 16px;">
             <label>Email</label>
             <input
               v-model="form.email"
@@ -35,7 +40,7 @@
             />
           </div>
 
-          <div class="field">
+          <div class="field" style="margin-bottom: 20px;">
             <label>Contraseña</label>
             <input
               v-model="form.password"
@@ -47,11 +52,12 @@
 
           <p v-if="errorMsg" class="error-text">{{ errorMsg }}</p>
 
-          <button class="btn-primary" type="submit" :disabled="auth.loading">
+          <button class="btn-primary" type="submit" :disabled="auth.loading" style="width:100%;">
             {{ auth.loading ? "Ingresando..." : "Ingresar" }}
           </button>
         </form>
       </section>
+
     </div>
   </div>
 </template>
@@ -64,25 +70,15 @@ import logo3byte from "../assets/logo3byte.png"
 
 const router = useRouter()
 const auth = useAuthStore()
-
 const errorMsg = ref("")
-
-const form = reactive({
-  email: "",
-  password: "",
-})
+const form = reactive({ email: "", password: "" })
 
 async function onSubmit() {
   errorMsg.value = ""
-
   try {
     await auth.login(form)
     router.push("/inicio")
   } catch (error) {
-    console.log("LOGIN ERROR >>>", error)
-    console.log("LOGIN ERROR RESPONSE >>>", error?.response)
-    console.log("LOGIN ERROR DATA >>>", error?.response?.data)
-
     errorMsg.value =
       error?.response?.data?.message ||
       error?.response?.data?.error ||
@@ -98,93 +94,129 @@ async function onSubmit() {
   display: grid;
   place-items: center;
   padding: 32px;
+  background: var(--bg);
 }
 
 .login-grid {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1100px;
   display: grid;
-  grid-template-columns: 1.1fr 440px;
-  gap: 28px;
+  grid-template-columns: 1.1fr 420px;
+  gap: 48px;
   align-items: center;
 }
 
-.login-brand {
-  padding: 20px 10px 20px 0;
-}
+/* BRAND SIDE */
+.login-brand { padding: 20px 0; }
 
-.brand-badge {
+.login-eyebrow {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
+  padding: 6px 16px;
   border-radius: 999px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #c7d2fe;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 18px;
+  background: var(--primary-soft);
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
 }
 
 .login-brand h1 {
-  margin: 0 0 14px;
-  font-size: clamp(2.3rem, 4vw, 4.2rem);
-  line-height: 1.02;
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  line-height: 1.05;
   letter-spacing: -0.03em;
-  max-width: 760px;
+  color: var(--text);
+  font-weight: 900;
 }
 
-.login-brand h1 span {
-  background: linear-gradient(135deg, #a78bfa, #60a5fa, #22d3ee);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* gradient-text ya está en globals.css */
 
-.login-brand p {
-  margin: 0;
-  max-width: 640px;
-  color: var(--text-2);
+.login-brand > p {
+  margin: 0 0 32px;
+  max-width: 520px;
+  color: var(--text-soft);
   font-size: 1.05rem;
   line-height: 1.65;
 }
 
+.login-features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.feature-item {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feature-item::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* CARD SIDE */
 .login-card {
-  padding: 26px;
+  padding: 32px;
 }
 
 .login-card-top {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 }
 
 .login-logo {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .login-card-top h2 {
   margin: 0 0 4px;
-  font-size: 1.45rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--primary);
 }
 
 .login-card-top p {
   margin: 0;
-  color: var(--text-3);
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
-@media (max-width: 980px) {
+/* fields heredados del globals.css */
+.field label { color: var(--primary); }
+
+.error-text {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+@media (max-width: 900px) {
   .login-grid {
     grid-template-columns: 1fr;
+    max-width: 460px;
   }
-
-  .login-brand {
-    padding-right: 0;
-  }
+  .login-brand { display: none; }
 }
 </style>
