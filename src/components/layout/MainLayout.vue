@@ -24,7 +24,8 @@
             </div>
           </RouterLink>
 
-          <div class="nav-group">
+          <!-- Socios: admin y cobrador -->
+          <div class="nav-group" v-if="auth.puedeVerSocios">
             <button class="nav-item" @click.stop="handleGroupClick('socios')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><Users :size="20" /></div>
@@ -36,14 +37,19 @@
                 :class="{ rotate: openSubmenus.socios }"
               />
             </button>
-
             <div v-if="openSubmenus.socios && !sidebarCollapsed" class="submenu">
               <RouterLink to="/socios/activos" class="submenu-item">Activos</RouterLink>
               <RouterLink to="/socios/baja" class="submenu-item">Bajas</RouterLink>
+              <!-- Importar y nuevo solo para admin -->
+              <template v-if="auth.isAdmin">
+                <RouterLink to="/socios/nuevo" class="submenu-item">Nuevo socio</RouterLink>
+                <RouterLink to="/socios/importar-excel" class="submenu-item">Importar Excel</RouterLink>
+              </template>
             </div>
           </div>
 
-          <div class="nav-group">
+          <!-- Cuotas: admin y cobrador -->
+          <div class="nav-group" v-if="auth.puedeVerCuotas">
             <button class="nav-item" @click.stop="handleGroupClick('cuotas')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><CreditCard :size="20" /></div>
@@ -55,14 +61,14 @@
                 :class="{ rotate: openSubmenus.cuotas }"
               />
             </button>
-
             <div v-if="openSubmenus.cuotas && !sidebarCollapsed" class="submenu">
               <RouterLink to="/cuotas/cobranzas" class="submenu-item">Cobranzas</RouterLink>
-              <RouterLink to="/cuotas/reportes" class="submenu-item">Reportes</RouterLink>
+              <RouterLink v-if="auth.isAdmin" to="/cuotas/reportes" class="submenu-item">Reportes</RouterLink>
             </div>
           </div>
 
-          <div class="nav-group">
+          <!-- Movimientos: solo admin -->
+          <div class="nav-group" v-if="auth.puedeVerMovimientos">
             <button class="nav-item" @click.stop="handleGroupClick('movimientos')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><ArrowLeftRight :size="20" /></div>
@@ -74,28 +80,30 @@
                 :class="{ rotate: openSubmenus.movimientos }"
               />
             </button>
-
             <div v-if="openSubmenus.movimientos && !sidebarCollapsed" class="submenu">
               <RouterLink to="/movimientos" class="submenu-item">Listado</RouterLink>
               <RouterLink to="/movimientos/reportes" class="submenu-item">Reporte</RouterLink>
             </div>
           </div>
 
-          <RouterLink to="/viajes" class="nav-item">
+          <!-- Viajes: admin y rol viajes -->
+          <RouterLink v-if="auth.puedeVerViajes" to="/viajes" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Plane :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Viajes</span>
             </div>
           </RouterLink>
 
-          <RouterLink to="/beneficios" class="nav-item">
+          <!-- Beneficios: admin, viajes y alquileres -->
+          <RouterLink v-if="auth.puedeVerBeneficios" to="/beneficios" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Gift :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Beneficios</span>
             </div>
           </RouterLink>
 
-          <div class="nav-group">
+          <!-- Alquileres: admin y rol alquileres -->
+          <div class="nav-group" v-if="auth.puedeVerAlquileres">
             <button class="nav-item" @click.stop="handleGroupClick('alquileres')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><Key :size="20" /></div>
@@ -107,7 +115,6 @@
                 :class="{ rotate: openSubmenus.alquileres }"
               />
             </button>
-
             <div v-if="openSubmenus.alquileres && !sidebarCollapsed" class="submenu">
               <RouterLink to="/alquileres" class="submenu-item">Listado</RouterLink>
               <RouterLink to="/alquileres/calendario" class="submenu-item">Calendario</RouterLink>
@@ -116,7 +123,8 @@
         </nav>
 
         <div class="sidebar-footer">
-          <RouterLink to="/configuracion" class="nav-item">
+          <!-- Configuración: solo admin -->
+          <RouterLink v-if="auth.isAdmin" to="/configuracion" class="nav-item">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Settings :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed">Configuración</span>
@@ -193,7 +201,6 @@ function handleGroupClick(menu) {
     openSubmenus.value[menu] = true
     return
   }
-
   openSubmenus.value[menu] = !openSubmenus.value[menu]
 }
 </script>

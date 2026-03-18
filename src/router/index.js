@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
-import { isLoggedIn } from "../auth/session"
+import { isLoggedIn, getUser } from "../auth/session"
+import { hasPermission, hasAnyPermission } from "../auth/permissions"
 
 import LoginView from "../views/LoginView.vue"
 import MainLayout from "../components/layout/MainLayout.vue"
@@ -33,37 +34,45 @@ const routes = [
       {
         path: "socios/activos",
         component: SociosActivosView,
+        meta: { perms: ["socios:ver"] },
       },
       {
         path: "socios/baja",
         component: SociosBajaView,
+        meta: { perms: ["socios:ver"] },
       },
       {
         path: "socios/nuevo",
         component: SocioFormView,
+        meta: { perms: ["socios:gestionar"] },
       },
       {
         path: "socios/:id/editar",
         component: SocioFormView,
+        meta: { perms: ["socios:gestionar"] },
       },
       {
         path: "socios/:id",
         component: SocioDetalleView,
+        meta: { perms: ["socios:ver"] },
       },
       {
         path: "socios/importar-excel",
         component: () => import("../views/socios/ImportarSociosExcelView.vue"),
+        meta: { perms: ["socios:gestionar"] },
       },
 
       // ── Cuotas ──────────────────────────────────────────
       {
         path: "cuotas/cobranzas",
         component: CobranzasView,
+        meta: { perms: ["cuotas:ver"] },
       },
       {
         path: "cuotas/reportes",
         name: "cuotas-reportes",
         component: () => import("../views/cuotas/CuotasReportesView.vue"),
+        meta: { perms: ["cuotas:ver"] },
       },
 
       // ── Viajes ──────────────────────────────────────────
@@ -71,21 +80,25 @@ const routes = [
         path: "viajes",
         name: "viajes",
         component: () => import("../views/viajes/ViajesView.vue"),
+        meta: { perms: ["viajes:ver"] },
       },
       {
         path: "viajes/nuevo",
         name: "viajes-nuevo",
         component: () => import("../views/viajes/ViajesFormView.vue"),
+        meta: { perms: ["viajes:gestionar"] },
       },
       {
         path: "viajes/:id/editar",
         name: "viajes-editar",
         component: () => import("../views/viajes/ViajesFormView.vue"),
+        meta: { perms: ["viajes:gestionar"] },
       },
       {
         path: "viajes/:id/pago",
         name: "viajes-pago",
         component: () => import("../views/viajes/ViajePagoFormView.vue"),
+        meta: { perms: ["viajes:gestionar"] },
       },
 
       // ── Beneficios ──────────────────────────────────────
@@ -93,6 +106,7 @@ const routes = [
         path: "beneficios",
         name: "beneficios",
         component: () => import("../views/beneficios/BeneficiosView.vue"),
+        meta: { perms: ["beneficios:ver"] },
       },
 
       // ── Movimientos ─────────────────────────────────────
@@ -100,16 +114,19 @@ const routes = [
         path: "movimientos",
         name: "movimientos",
         component: () => import("../views/movimientos/MovimientosView.vue"),
+        meta: { perms: ["movimientos:ver"] },
       },
       {
         path: "movimientos/reportes",
         name: "movimientos-reportes",
         component: () => import("../views/movimientos/MovimientosReporteView.vue"),
+        meta: { perms: ["movimientos:ver"] },
       },
       {
         path: "movimientos/nuevo",
         name: "movimientos-nuevo",
         component: () => import("../views/movimientos/MovimientosFormView.vue"),
+        meta: { perms: ["movimientos:gestionar"] },
       },
 
       // ── Configuración ───────────────────────────────────
@@ -117,6 +134,7 @@ const routes = [
         path: "configuracion",
         name: "configuracion",
         component: () => import("../views/ConfiguracionView.vue"),
+        meta: { perms: ["*"] },
       },
 
       // ── Alquileres ──────────────────────────────────────
@@ -124,21 +142,25 @@ const routes = [
         path: "alquileres",
         name: "alquileres",
         component: () => import("../views/alquileres/AlquileresView.vue"),
+        meta: { perms: ["alquileres:ver"] },
       },
       {
         path: "alquileres/calendario",
         name: "alquileres-calendario",
-        component: () => import("../views/alquileres/AlquileresCalendarioView.vue"),
+        component: () => import("../views/alquileres/Alquilerescalendarioview.vue"),
+        meta: { perms: ["alquileres:ver"] },
       },
       {
         path: "alquileres/nuevo",
         name: "alquileres-nuevo",
         component: () => import("../views/alquileres/AlquileresFormView.vue"),
+        meta: { perms: ["alquileres:gestionar"] },
       },
       {
         path: "alquileres/:id/editar",
         name: "alquileres-editar",
         component: () => import("../views/alquileres/AlquileresFormView.vue"),
+        meta: { perms: ["alquileres:gestionar"] },
       },
     ],
   },
@@ -152,12 +174,23 @@ const router = createRouter({
 router.beforeEach((to) => {
   const logged = isLoggedIn()
 
+  // Si no está logueado y la ruta no es pública → login
   if (!to.meta?.public && !logged) {
     return "/login"
   }
 
+  // Si ya está logueado y va al login → inicio
   if (to.path === "/login" && logged) {
     return "/inicio"
+  }
+
+  // Si la ruta requiere permisos → verificar
+  if (to.meta?.perms) {
+    const user = getUser()
+    const allowed = hasAnyPermission(user, to.meta.perms)
+    if (!allowed) {
+      return "/inicio" // redirige a inicio si no tiene permiso
+    }
   }
 })
 

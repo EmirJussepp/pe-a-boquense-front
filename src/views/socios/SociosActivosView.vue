@@ -13,8 +13,9 @@
         <button class="btn-secondary" @click="refreshCurrentPage" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
-        <button class="btn-secondary" @click="irImportarExcel">Importar Excel</button>
-        <button class="btn-primary" @click="nuevoSocio">+ Nuevo socio</button>
+        <!-- Solo admin -->
+        <button v-if="auth.isAdmin" class="btn-secondary" @click="irImportarExcel">Importar Excel</button>
+        <button v-if="auth.isAdmin" class="btn-primary" @click="nuevoSocio">+ Nuevo socio</button>
       </div>
     </section>
 
@@ -63,16 +64,15 @@
       <div v-else class="table-scroll">
         <table class="data-table">
           <thead>
-            <!-- DESPUÉS -->
-<tr>
-  <th>SOCIO</th>
-  <th>DNI</th>
-  <th>CONTACTO</th>
-  <th>MEMBRESÍA</th>
-  <th>BOCA</th>
-  <th>COBRADOR</th>
-  <th class="th-actions">ACCIONES</th>
-</tr>
+            <tr>
+              <th>SOCIO</th>
+              <th>DNI</th>
+              <th>CONTACTO</th>
+              <th>MEMBRESÍA</th>
+              <th>BOCA</th>
+              <th>COBRADOR</th>
+              <th class="th-actions">ACCIONES</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="socio in rows" :key="socio.socioId">
@@ -99,29 +99,42 @@
                 <span v-else class="text-muted">—</span>
               </td>
               <td>
-  <div v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca" class="boca-cell">
-    <span v-if="socio.tipoSocioBocaNombre" class="badge badge-boca">
-      {{ socio.tipoSocioBocaNombre }}
-    </span>
-    <span v-if="socio.numSocioBoca" class="boca-num">
-      {{ socio.numSocioBoca }}
-    </span>
-  </div>
-  <span v-else class="text-muted">—</span>
-</td>
-
-<!-- COBRADOR (sin cambios) -->
-<td>
-  <span v-if="socio.cobradorNombre" class="cobrador-tag">
-    {{ socio.cobradorNombre }}
-  </span>
-  <span v-else class="text-muted">—</span>
-</td>
+                <div v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca" class="boca-cell">
+                  <span v-if="socio.tipoSocioBocaNombre" class="badge badge-boca">
+                    {{ socio.tipoSocioBocaNombre }}
+                  </span>
+                  <span v-if="socio.numSocioBoca" class="boca-num">
+                    {{ socio.numSocioBoca }}
+                  </span>
+                </div>
+                <span v-else class="text-muted">—</span>
+              </td>
+              <td>
+                <span v-if="socio.cobradorNombre" class="cobrador-tag">
+                  {{ socio.cobradorNombre }}
+                </span>
+                <span v-else class="text-muted">—</span>
+              </td>
               <td>
                 <div class="row-actions">
+                  <!-- Ver: todos pueden -->
                   <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁</button>
-                  <button class="btn-action" @click="editarSocio(socio)" title="Editar">✏️</button>
-                  <button class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">✕</button>
+
+                  <!-- Editar: solo admin -->
+                  <button
+                    v-if="auth.isAdmin"
+                    class="btn-action"
+                    @click="editarSocio(socio)"
+                    title="Editar"
+                  >✏️</button>
+
+                  <!-- Dar de baja: solo admin -->
+                  <button
+                    v-if="auth.isAdmin"
+                    class="btn-action danger"
+                    @click="darDeBaja(socio)"
+                    title="Dar de baja"
+                  >✕</button>
                 </div>
               </td>
             </tr>
@@ -147,10 +160,12 @@ import { computed, onMounted, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import { sociosService } from "../../services/sociosService"
 import { useToast } from "../../composables/useToast"
+import { useAuthStore } from "../../stores/auth"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
 
 const router = useRouter()
 const toast = useToast()
+const auth = useAuthStore()
 const confirmModal = ref(null)
 
 const loading = ref(false)
@@ -220,12 +235,24 @@ function prevPage() { if (page.value > 1) { page.value--; loadSocios() } }
 function nextPage() { if (page.value < totalPages.value) { page.value++; loadSocios() } }
 function goToFirst() { if (page.value !== 1) { page.value = 1; loadSocios() } }
 function goToLast() { if (page.value !== totalPages.value) { page.value = totalPages.value; loadSocios() } }
+
 function irImportarExcel() { router.push("/socios/importar-excel") }
 function nuevoSocio() { router.push("/socios/nuevo") }
 function verSocio(socio) { router.push(`/socios/${socio.socioId}`) }
-function editarSocio(socio) { router.push(`/socios/${socio.socioId}/editar`) }
+
+function editarSocio(socio) {
+  if (!auth.isAdmin) {
+    toast.warning("No tenés permiso para editar socios.")
+    return
+  }
+  router.push(`/socios/${socio.socioId}/editar`)
+}
 
 async function darDeBaja(socio) {
+  if (!auth.isAdmin) {
+    toast.warning("No tenés permiso para dar de baja socios.")
+    return
+  }
   const ok = await confirmModal.value.open({
     icon: "⚠️",
     title: "Dar de baja",
@@ -264,7 +291,8 @@ onMounted(loadSocios)
 .table-top { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .table-top h2 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 .count-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.table-scroll { overflow-x: auto; }.data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .data-table th { text-align: left; padding: 10px 14px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 800; background: #f8fafc; border-bottom: 2px solid var(--border); }
 .data-table td { padding: 14px; border-bottom: 1px solid var(--bg); vertical-align: middle; font-size: 13px; }
 .data-table tbody tr:hover { background: rgba(0,59,122,0.02); }
@@ -295,23 +323,14 @@ onMounted(loadSocios)
 .pager-text strong { color: var(--primary); }
 .pager-btns { display: flex; gap: 8px; }
 .boca-cell { display: flex; flex-direction: column; gap: 3px; }
-/* Anchos fijos para cada columna */
-.data-table th:nth-child(1) { width: 260px; } /* SOCIO */
-.data-table th:nth-child(2) { width: 110px; } /* DNI */
-.data-table th:nth-child(3) { width: 180px; } /* CONTACTO */
-.data-table th:nth-child(4) { width: 120px; } /* MEMBRESÍA */
-.data-table th:nth-child(5) { width: 120px; } /* BOCA */
-.data-table th:nth-child(6) { width: 120px; } /* COBRADOR */
-.data-table th:nth-child(7) { width: 100px; } /* ACCIONES */
-.badge-boca {
-  background: rgba(241,180,76,0.15);
-  color: #9c6e1e;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 800;
-  width: fit-content;
-}
+.data-table th:nth-child(1) { width: 260px; }
+.data-table th:nth-child(2) { width: 110px; }
+.data-table th:nth-child(3) { width: 180px; }
+.data-table th:nth-child(4) { width: 120px; }
+.data-table th:nth-child(5) { width: 120px; }
+.data-table th:nth-child(6) { width: 120px; }
+.data-table th:nth-child(7) { width: 100px; }
+.badge-boca { background: rgba(241,180,76,0.15); color: #9c6e1e; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; width: fit-content; }
 .boca-num { font-size: 11px; color: var(--text-muted); font-family: monospace; }
 @media (max-width: 920px) {
   .page-head { flex-direction: column; align-items: stretch; }
