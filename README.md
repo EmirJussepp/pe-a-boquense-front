@@ -1,5 +1,26 @@
-# Vue 3 + Vite
+# 🏟️ Peña Boquense - Sistema de Gestión
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Sistema full stack desarrollado para la gestión de socios, cuotas y beneficios de una peña de fútbol.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 🚀 Tecnologías
+
+- Frontend: Vue 3
+- Backend: Kotlin (Ktor)
+- Base de datos: MySQL
+- Autenticación: JWT
+
+## ⚙️ Funcionalidades principales
+
+- Gestión de socios (altas, bajas, estados)
+- Sistema de cuotas con validaciones
+- Beneficios automáticos según comportamiento de pago
+- API REST con autenticación
+- Control de lógica de negocio real
+
+## 📸 Demo
+
+*(acá después podés poner video o imágenes)*
+
+## 🧠 Aprendizajes
+
+Este proyecto fue desarrollado trabajando con lógica de negocio real, resolviendo problemas concretos y aplicando arquitectura backend + frontend integrada.
