@@ -179,8 +179,6 @@ async function cargarMetricas() {
       stats.value.alquileres = Array.isArray(alquileresRes.value.data) ? alquileresRes.value.data.length : "—"
     if (movimientosRes.status === "fulfilled")
       stats.value.movimientos = Array.isArray(movimientosRes.value.data) ? movimientosRes.value.data.length : "—"
-  } catch (e) {
-    console.error("Error cargando métricas", e)
   } finally {
     loadingMetrics.value = false
   }

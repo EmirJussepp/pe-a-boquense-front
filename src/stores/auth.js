@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { authService } from "../services/authService"
 import { saveToken, saveUser, clearSession, getUser } from "../auth/session"
 import { hasPermission, hasAnyPermission } from "../auth/permissions"
+import { ROLES, PERMS } from "../auth/roles"
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -11,10 +12,10 @@ export const useAuthStore = defineStore("auth", {
 
   getters: {
     // ── Roles ────────────────────────────────────────────
-    isAdmin:        (state) => !!state.user?.admin,
-    isCobrador:     (state) => !!state.user?.cobrador,
-    isViajes:       (state) => !!state.user?.rolViajes,
-    isAlquileres:   (state) => !!state.user?.rolAlquileres,
+    isAdmin:        (state) => !!state.user?.[ROLES.ADMIN],
+    isCobrador:     (state) => !!state.user?.[ROLES.COBRADOR],
+    isViajes:       (state) => !!state.user?.[ROLES.VIAJES],
+    isAlquileres:   (state) => !!state.user?.[ROLES.ALQUILERES],
     isLoggedIn:     (state) => !!state.user,
 
     cobradorId:     (state) => state.user?.cobradorId ?? null,
@@ -28,13 +29,13 @@ export const useAuthStore = defineStore("auth", {
     canAny: (state) => (perms) => hasAnyPermission(state.user, perms),
 
     // ── Accesos por sección (para v-if en sidebar/rutas) ─
-    puedeVerSocios:      (state) => hasAnyPermission(state.user, ["socios:ver", "*"]),
-    puedeVerCuotas:      (state) => hasAnyPermission(state.user, ["cuotas:ver", "*"]),
-    puedeVerViajes:      (state) => hasAnyPermission(state.user, ["viajes:ver", "*"]),
-    puedeVerAlquileres:  (state) => hasAnyPermission(state.user, ["alquileres:ver", "*"]),
-    puedeVerBeneficios:  (state) => hasAnyPermission(state.user, ["beneficios:ver", "*"]),
-    puedeVerMovimientos: (state) => hasAnyPermission(state.user, ["movimientos:ver", "*"]),
-    puedeVerConfig:      (state) => hasPermission(state.user, "*"),
+    puedeVerSocios:      (state) => hasAnyPermission(state.user, [PERMS.SOCIOS_VER, PERMS.ALL]),
+    puedeVerCuotas:      (state) => hasAnyPermission(state.user, [PERMS.CUOTAS_VER, PERMS.ALL]),
+    puedeVerViajes:      (state) => hasAnyPermission(state.user, [PERMS.VIAJES_VER, PERMS.ALL]),
+    puedeVerAlquileres:  (state) => hasAnyPermission(state.user, [PERMS.ALQUILERES_VER, PERMS.ALL]),
+    puedeVerBeneficios:  (state) => hasAnyPermission(state.user, [PERMS.BENEFICIOS_VER, PERMS.ALL]),
+    puedeVerMovimientos: (state) => hasAnyPermission(state.user, [PERMS.MOVIMIENTOS_VER, PERMS.ALL]),
+    puedeVerConfig:      (state) => hasPermission(state.user, PERMS.ALL),
   },
 
   actions: {
@@ -53,10 +54,16 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async fetchMe() {
-      const { data } = await authService.me()
-      this.user = data
-      saveUser(data)
-      return data
+      try {
+        const { data } = await authService.me()
+        this.user = data
+        saveUser(data)
+        return data
+      } catch (e) {
+        this.user = null
+        clearSession()
+        throw e
+      }
     },
 
     logout() {

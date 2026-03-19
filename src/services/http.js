@@ -1,10 +1,8 @@
 import axios from "axios"
 import { getToken, clearSession } from "../auth/session"
+import { useToast } from "../composables/useToast"
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8083"
-
-console.log("API BASE URL >>>", import.meta.env.VITE_API_BASE_URL)
-console.log("API BASE FALLBACK >>>", baseURL)
 
 export const http = axios.create({
   baseURL,
@@ -28,7 +26,12 @@ http.interceptors.response.use(
   (error) => {
     if (error?.response?.status === 401) {
       clearSession()
-      window.location.href = "/login"
+      const { info } = useToast()
+      info("Tu sesión expiró. Iniciá sesión nuevamente.")
+      // Importamos el router de forma lazy para evitar dependencias circulares
+      import("../router").then(({ default: router }) => {
+        router.push("/login")
+      })
     }
 
     return Promise.reject(error)

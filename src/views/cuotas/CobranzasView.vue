@@ -85,6 +85,10 @@
                   <td colspan="6"></td>
                 </tr>
 
+                <tr v-else-if="!buscado">
+                  <td colspan="6" class="empty-state">Ingresá un DNI o nombre y presioná Buscar.</td>
+                </tr>
+
                 <tr v-else-if="cuotasFiltradas.length === 0">
                   <td colspan="6" class="empty-state">No se encontraron cuotas.</td>
                 </tr>
@@ -202,6 +206,7 @@ const filtroBusqueda = ref("")
 const loading = ref(false)
 const loadingMetodos = ref(false)
 const paying = ref(false)
+const buscado = ref(false)
 const cuotas = ref([])
 const metodosPago = ref([])
 const metodoPagoId = ref(null)
@@ -360,6 +365,7 @@ async function buscarCuotas() {
   loading.value = true
   error.value = null
   selectedIds.value = []
+  buscado.value = true
   try {
     const termino = filtroBusqueda.value.trim()
     const params = {}
@@ -418,7 +424,7 @@ function limpiarBusqueda() {
 }
 
 onMounted(async () => {
-  await Promise.all([cargarMetodosPago(), buscarCuotas()])
+  await cargarMetodosPago()
 })
 </script>
 

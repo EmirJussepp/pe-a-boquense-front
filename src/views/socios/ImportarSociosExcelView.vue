@@ -145,6 +145,11 @@ const fileSizeLabel = computed(() => {
   return mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`
 })
 
+const VALID_MIME_TYPES = [
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+]
+
 function onFileChange(event) {
   const file = event.target.files?.[0] || null
   selectedFile.value = file
@@ -153,6 +158,12 @@ function onFileChange(event) {
   resultado.value = null
   importadoOk.value = false
   if (!file) return
+
+  if (!VALID_MIME_TYPES.includes(file.type)) {
+    fileError.value = "El archivo no es un Excel válido (.xlsx o .xls)."
+    return
+  }
+
   const sizeMB = file.size / (1024 * 1024)
   if (sizeMB > MAX_SIZE_MB) {
     fileError.value = `El archivo supera el límite de ${MAX_SIZE_MB} MB (${sizeMB.toFixed(1)} MB).`

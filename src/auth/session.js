@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode"
+
 const TOKEN_KEY = "token"
 const USER_KEY = "auth_user"
 
@@ -29,6 +31,24 @@ export function clearSession() {
   localStorage.removeItem(USER_KEY)
 }
 
+export function isTokenExpired() {
+  const token = getToken()
+  if (!token) return true
+  try {
+    const { exp } = jwtDecode(token)
+    if (!exp) return false
+    // 10 segundos de margen para evitar race conditions
+    return Date.now() >= (exp * 1000) - 10_000
+  } catch {
+    return true
+  }
+}
+
 export function isLoggedIn() {
-  return !!getToken()
+  if (!getToken()) return false
+  if (isTokenExpired()) {
+    clearSession()
+    return false
+  }
+  return true
 }
