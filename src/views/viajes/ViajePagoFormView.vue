@@ -153,7 +153,7 @@ const canSubmit = computed(() => {
 })
 
 function volver() {
-  router.push("/viajes")
+  router.push({ path: "/viajes", query: { viajeId: viajeId } })
 }
 
 function formatearFecha(f) {
@@ -204,7 +204,7 @@ async function guardar() {
     })
 
     toast.success("Pago registrado correctamente.")
-    router.push("/viajes")
+    router.push({ path: "/viajes", query: { viajeId: viajeId } })
   } catch {
     toast.error("No se pudo registrar el pago.")
   } finally {

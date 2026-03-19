@@ -12,4 +12,16 @@ export const cuotasService = {
       params,
     })
   },
+  descargarCuponesCobrador(cobradorId, periodo) {
+  return http.get(`/cupones/cobrador/${cobradorId}`, {
+    params: { periodo },
+    responseType: "arraybuffer", // importante para PDFs
+  })
+},
+
+descargarCuponesSocio(socioId) {
+  return http.get(`/cupones/socio/${socioId}`, {
+    responseType: "arraybuffer",
+  })
+},
 }

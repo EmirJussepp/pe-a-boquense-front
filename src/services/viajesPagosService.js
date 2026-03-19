@@ -1,8 +1,8 @@
 import { http } from "./http"
 
 export const viajesPagosService = {
-  listarPorViaje(viajeId) {
-    return http.get(`/viajes-pagos/viaje/${viajeId}`)
+  listarPorViaje(viajeId, params = {}) {
+    return http.get(`/viajes-pagos/viaje/${viajeId}`, { params })
   },
 
   obtener(id) {

@@ -48,6 +48,20 @@
               </div>
             </div>
           </form>
+          <!-- Sección cupones: solo si hay cobrador identificable -->
+          <div v-if="auth.isAdmin ? cobradorSeleccionadoId : auth.cobradorId" class="cupon-section">
+            <h3 class="card-subtitle">GENERAR CUPONES</h3>
+            <div class="cupon-controls">
+              <div class="field-container" style="margin: 0">
+                <label class="field-label">Período</label>
+                <input v-model="periodoSeleccionado" type="month" class="dark-input"
+                  @change="val => periodoSeleccionado = val.target.value.replace('-', '')" />
+              </div>
+              <button type="button" class="btn-cupon" :disabled="descargandoCobrador" @click="descargarCuponCobrador">
+                {{ descargandoCobrador ? "Generando..." : "🖨️ Cupones del cobrador" }}
+              </button>
+            </div>
+          </div>
         </section>
 
         <section class="card table-card">
@@ -81,6 +95,8 @@
                     <span class="sort-icon">{{ getIconoOrden("montoAPagar") }}</span>
                   </th>
                   <th>ESTADO</th>
+                  <!-- En el thead, después de ESTADO -->
+                  <th>CUPÓN</th>
                 </tr>
               </thead>
 
@@ -115,6 +131,13 @@
                     <span class="badge-estado" :class="estadoClass(cuota.estado)">
                       {{ cuota.estado }}
                     </span>
+                  </td>
+                  <!-- En el tr de cada cuota, después del badge de estado -->
+                  <td>
+                    <button class="btn-cupon-row" :disabled="descargandoSocio === cuota.socioId"
+                      @click="descargarCuponSocio(cuota.socioId)" title="Descargar cupones del socio">
+                      {{ descargandoSocio === cuota.socioId ? "..." : "🖨️" }}
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -222,6 +245,15 @@ const cobradorSeleccionadoId = ref(null)
 const paginacion = ref({ total: 0, page: 1, pageSize: 20, totalPages: 1 })
 
 
+
+const periodoSeleccionado = ref((() => {
+  const now = new Date()
+  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`
+})())
+const descargandoCobrador = ref(false)
+const descargandoSocio = ref(null) // guarda el socioId que está descargando
+
+
 const pageTitle = computed(() =>
   auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
 )
@@ -240,6 +272,7 @@ function normalizeCuota(item) {
     fechaVencimiento: item?.fechaVencimiento ?? null,
     montoAPagar: Number(item?.montoAPagar ?? 0),
     estado: String(item?.estado ?? ""),
+        socioId: Number(item?.socioId ?? 0),
   }
 }
 
@@ -447,16 +480,57 @@ async function pagarSeleccionadas() {
   }
 }
 
+
+
+// Función descarga por cobrador
+async function descargarCuponCobrador() {
+  const cobradorId = auth.isAdmin ? cobradorSeleccionadoId.value : auth.cobradorId
+  if (!cobradorId) {
+    toast.error("Seleccioná un cobrador para generar los cupones.")
+    return
+  }
+  descargandoCobrador.value = true
+  try {
+    const response = await cuotasService.descargarCuponesCobrador(cobradorId, periodoSeleccionado.value)
+    const blob = new Blob([response.data], { type: "application/pdf" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `cupones_cobrador_${cobradorId}_${periodoSeleccionado.value}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    toast.error("No se pudieron generar los cupones.")
+  } finally {
+    descargandoCobrador.value = false
+  }
+}
+
+// Función descarga por socio (fila)
+async function descargarCuponSocio(socioId) {
+  descargandoSocio.value = socioId
+  try {
+    const response = await cuotasService.descargarCuponesSocio(socioId)
+    const blob = new Blob([response.data], { type: "application/pdf" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `cupones_socio_${socioId}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    toast.error("No se pudieron generar los cupones del socio.")
+  } finally {
+    descargandoSocio.value = null
+  }
+}
+
 function limpiarBusqueda() {
   filtroBusqueda.value = ""
   buscarCuotas()
 }
 
 let debounceTimer = null
-watch(filtroBusqueda, () => {
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => buscarCuotas(), 400)
-})
 watch(filtroBusqueda, () => {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
@@ -469,8 +543,6 @@ watch(cobradorSeleccionadoId, () => {
   paginacion.value.page = 1
   buscarCuotas()
 })
-
-watch(cobradorSeleccionadoId, () => buscarCuotas())
 
 async function cargarCobradores() {
   if (!auth.isAdmin) return
@@ -950,6 +1022,7 @@ onMounted(async () => {
   gap: 16px;
   padding: 16px 0 4px;
 }
+
 .btn-pag {
   background: white;
   border: 1px solid var(--border);
@@ -959,7 +1032,74 @@ onMounted(async () => {
   cursor: pointer;
   color: var(--primary);
 }
-.btn-pag:disabled { opacity: 0.4; cursor: not-allowed; }
-.pag-info { font-size: 13px; font-weight: 600; color: var(--text-soft); }
-.pag-total { color: var(--text-muted); font-weight: 400; }
+
+.btn-pag:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pag-info {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.pag-total {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+
+
+
+
+.cupon-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.cupon-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-cupon {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-cupon:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cupon-row {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-soft);
+  transition: background 0.15s;
+}
+
+.btn-cupon-row:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.btn-cupon-row:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 </style>

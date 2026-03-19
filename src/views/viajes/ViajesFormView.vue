@@ -60,7 +60,8 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const esEdicion = computed(() => !!route.params.id)
+const viajeId = computed(() => Number(route.params.id))
+const esEdicion = computed(() => !!route.params.id && !Number.isNaN(viajeId.value) && viajeId.value > 0)
 const loadingData = ref(false)
 const saving = ref(false)
 
@@ -70,11 +71,17 @@ const form = reactive({
 })
 
 function nowDatetimeLocal() {
+  // Usar fecha/hora local del navegador formateada manualmente
+  // para evitar que toISOString() convierta a UTC y desface la hora
   const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  const hours = String(d.getHours()).padStart(2, "0")
+  return formatToDatetimeLocal(d)
+}
+
+function formatToDatetimeLocal(d) {
+  const year    = d.getFullYear()
+  const month   = String(d.getMonth() + 1).padStart(2, "0")
+  const day     = String(d.getDate()).padStart(2, "0")
+  const hours   = String(d.getHours()).padStart(2, "0")
   const minutes = String(d.getMinutes()).padStart(2, "0")
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
@@ -82,16 +89,20 @@ function nowDatetimeLocal() {
 function toDatetimeLocal(value) {
   if (!value) return nowDatetimeLocal()
 
-  const d = new Date(value)
+  // Si el backend devuelve sin timezone (ej: "2026-03-10T10:30:00"),
+  // new Date() lo interpreta como UTC en algunos entornos.
+  // Forzamos interpretación local agregando la hora de offset si no viene con Z ni +
+  let normalized = value
+  if (!/Z$|[+-]\d{2}:\d{2}$/.test(value)) {
+    // No tiene info de timezone → lo tratamos como local (sin conversión)
+    const parts = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/)
+    if (parts) return `${parts[1]}T${parts[2]}`
+  }
+
+  const d = new Date(normalized)
   if (Number.isNaN(d.getTime())) return nowDatetimeLocal()
 
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  const hours = String(d.getHours()).padStart(2, "0")
-  const minutes = String(d.getMinutes()).padStart(2, "0")
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`
+  return formatToDatetimeLocal(d)
 }
 
 function volver() {
@@ -121,11 +132,11 @@ async function guardar() {
   try {
     const payload = {
       destino: String(form.destino).trim(),
-      fechaViaje: form.fechaViaje,
+      fechaViaje: form.fechaViaje.length === 16 ? form.fechaViaje + ":00" : form.fechaViaje,
     }
 
     if (esEdicion.value) {
-      await viajesBomboneraService.actualizar(route.params.id, payload)
+      await viajesBomboneraService.actualizar(viajeId.value, payload)
       toast.success("Viaje actualizado correctamente.")
     } else {
       await viajesBomboneraService.crear(payload)
@@ -145,7 +156,7 @@ onMounted(async () => {
 
   loadingData.value = true
   try {
-    const { data } = await viajesBomboneraService.obtener(route.params.id)
+    const { data } = await viajesBomboneraService.obtener(viajeId.value)
     form.destino = data?.destino || ""
     form.fechaViaje = toDatetimeLocal(data?.fechaViaje)
   } catch {
