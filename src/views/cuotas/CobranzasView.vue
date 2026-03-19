@@ -22,6 +22,27 @@
         <section class="card filter-card">
           <h3 class="card-subtitle">FILTROS DE BÚSQUEDA</h3>
           <form class="search-form" @submit.prevent="buscarCuotas">
+
+            <!-- Select de cobrador: solo visible para admin -->
+            <div v-if="auth.isAdmin" class="field-container">
+              <label class="field-label">Cobrador</label>
+              <div v-if="loadingCobradores" class="helper-text">Cargando cobradores...</div>
+              <select
+                v-else
+                v-model="cobradorSeleccionadoId"
+                class="dark-input"
+              >
+                <option :value="null">— Todos los cobradores —</option>
+                <option
+                  v-for="c in cobradores"
+                  :key="c.cobradoresId"
+                  :value="c.cobradoresId"
+                >
+                  {{ c.nombre }} ({{ c.zona }})
+                </option>
+              </select>
+            </div>
+
             <div class="field-container">
               <label class="field-label">DNI o nombre del socio</label>
               <div class="input-action-group">
@@ -86,7 +107,7 @@
                 </tr>
 
                 <tr v-else-if="!buscado">
-                  <td colspan="6" class="empty-state">Ingresá un DNI o nombre y presioná Buscar.</td>
+                  <td colspan="6" class="empty-state">Cargando cuotas...</td>
                 </tr>
 
                 <tr v-else-if="cuotasFiltradas.length === 0">
@@ -190,11 +211,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { useAuthStore } from "../../stores/auth"
 import { cuotasService } from "../../services/cuotasService"
 import { pagosService } from "../../services/pagosService"
 import { metodosPagoService } from "../../services/metodosPagoService"
+import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
 
@@ -205,6 +227,7 @@ const confirmModal = ref(null)
 const filtroBusqueda = ref("")
 const loading = ref(false)
 const loadingMetodos = ref(false)
+const loadingCobradores = ref(false)
 const paying = ref(false)
 const buscado = ref(false)
 const cuotas = ref([])
@@ -214,6 +237,10 @@ const selectedIds = ref([])
 const ordenColumna = ref("fechaVencimiento")
 const ordenSentido = ref("asc")
 const error = ref(null)
+
+// Cobradores (solo para admin)
+const cobradores = ref([])
+const cobradorSeleccionadoId = ref(null)
 
 const pageTitle = computed(() =>
   auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
@@ -369,11 +396,25 @@ async function buscarCuotas() {
   try {
     const termino = filtroBusqueda.value.trim()
     const params = {}
+
+    // Si es cobrador (no admin), siempre filtra por su cobradorId
+    if (auth.isCobrador && !auth.isAdmin) {
+      if (auth.cobradorId) {
+        params.cobradorId = auth.cobradorId
+      }
+    }
+
+    // Si es admin y seleccionó un cobrador, filtrar por ese cobrador
+    if (auth.isAdmin && cobradorSeleccionadoId.value) {
+      params.cobradorId = cobradorSeleccionadoId.value
+    }
+
     if (/^\d+$/.test(termino)) {
       params.dni = termino
     } else if (termino) {
       params.search = termino
     }
+
     const { data } = await cuotasService.listarCobranzas(params)
     cuotas.value = Array.isArray(data)
       ? data.map(normalizeCuota).filter((item) => item.id > 0)
@@ -423,8 +464,30 @@ function limpiarBusqueda() {
   buscarCuotas()
 }
 
+let debounceTimer = null
+watch(filtroBusqueda, () => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => buscarCuotas(), 400)
+})
+
+watch(cobradorSeleccionadoId, () => buscarCuotas())
+
+async function cargarCobradores() {
+  if (!auth.isAdmin) return
+  loadingCobradores.value = true
+  try {
+    const { data } = await cobradoresService.listar()
+    cobradores.value = Array.isArray(data) ? data : []
+  } catch {
+    cobradores.value = []
+  } finally {
+    loadingCobradores.value = false
+  }
+}
+
 onMounted(async () => {
-  await cargarMetodosPago()
+  await Promise.all([cargarMetodosPago(), cargarCobradores()])
+  await buscarCuotas()
 })
 </script>
 
@@ -482,7 +545,7 @@ onMounted(async () => {
 
 .input-action-group { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; }
 
-.dark-input { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text-main); min-width: 0; }
+.dark-input { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text-main); min-width: 0; width: 100%; box-sizing: border-box; }
 
 .btn-buscar { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 25px; font-weight: 700; cursor: pointer; }
 .btn-buscar:disabled { opacity: 0.6; cursor: not-allowed; }

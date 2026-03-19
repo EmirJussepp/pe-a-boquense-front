@@ -27,7 +27,6 @@
             v-model="search"
             type="text"
             placeholder="Nombre, apellido, DNI, teléfono..."
-            @keyup.enter="applyFilters"
           />
         </div>
         <div class="field field-xs">
@@ -271,6 +270,13 @@ async function darDeBaja(socio) {
 }
 
 watch(pageSize, () => { page.value = 1; loadSocios() })
+
+let debounceTimer = null
+watch(search, () => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => { page.value = 1; loadSocios() }, 400)
+})
+
 onMounted(loadSocios)
 </script>
 
