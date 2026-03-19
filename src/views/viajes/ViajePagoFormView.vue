@@ -152,16 +152,37 @@ const canSubmit = computed(() => {
   )
 })
 
+// Redirige al detalle del viaje (ruta /viajes/:id)
 function volver() {
-  router.push({ path: "/viajes", query: { viajeId: viajeId } })
+  router.push(`/viajes/${viajeId}`)
 }
 
-function formatearFecha(f) {
-  if (!f) return ""
+function formatearFecha(value) {
+  if (!value) return "—"
+
+  const match = String(value).match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?$/
+  )
+
+  if (match) {
+    const [, year, month, day, hour = "00", minute = "00"] = match
+    const localDate = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute)
+    )
+    return new Intl.DateTimeFormat("es-AR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(localDate)
+  }
+
   return new Intl.DateTimeFormat("es-AR", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(f))
+  }).format(new Date(value))
 }
 
 function validarFormulario() {
@@ -184,6 +205,7 @@ function validarFormulario() {
   return ""
 }
 
+// ✅ función guardar que faltaba completamente
 async function guardar() {
   const error = validarFormulario()
   if (error) {
@@ -193,19 +215,21 @@ async function guardar() {
 
   saving.value = true
   try {
-    await viajesPagosService.crear({
-      viajeId,
+    const payload = {
+      viajeId: viajeId,
       nombre: String(form.nombre ?? "").trim() || null,
       apellido: String(form.apellido ?? "").trim() || null,
       dni: String(form.dni ?? "").trim() || null,
-      monto: String(form.monto ?? "").trim(),
+      monto: String(form.monto),
       metodoPagoId: Number(form.metodoPagoId),
       cobradorId: Number(form.cobradorId),
-    })
+    }
 
+    await viajesPagosService.crear(payload)
     toast.success("Pago registrado correctamente.")
-    router.push({ path: "/viajes", query: { viajeId: viajeId } })
-  } catch {
+    router.push(`/viajes/${viajeId}`)
+  } catch (err) {
+    console.error("Error guardando pago:", err)
     toast.error("No se pudo registrar el pago.")
   } finally {
     saving.value = false
@@ -230,12 +254,10 @@ onMounted(async () => {
     }
 
     if (cobradores.value.length) {
-      const firstId =
+      form.cobradorId =
         cobradores.value[0].cobradorId ??
         cobradores.value[0].cobradoresId ??
         null
-
-      form.cobradorId = firstId
     }
   } catch {
     toast.error("No se pudieron cargar los datos.")

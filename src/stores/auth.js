@@ -20,6 +20,7 @@ export const useAuthStore = defineStore("auth", {
 
     cobradorId:     (state) => state.user?.cobradorId ?? null,
     nombre:         (state) => state.user?.nombre ?? "",
+    userId: (state) => state.user?.usuarioId ?? state.user?.id ?? null,
 
     // ── Permisos ─────────────────────────────────────────
     // Uso: auth.can("socios:ver")

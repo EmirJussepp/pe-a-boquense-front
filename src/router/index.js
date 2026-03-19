@@ -48,10 +48,13 @@ const routes = [
       },
 
       // ── Viajes ──────────────────────────────────────────
-      { path: "viajes",            name: "viajes",        component: () => import("../views/viajes/ViajesView.vue"),        meta: { perms: [PERMS.VIAJES_VER] } },
-      { path: "viajes/nuevo",      name: "viajes-nuevo",  component: () => import("../views/viajes/ViajesFormView.vue"),    meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
-      { path: "viajes/:id/editar", name: "viajes-editar", component: () => import("../views/viajes/ViajesFormView.vue"),    meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
-      { path: "viajes/:id/pago",   name: "viajes-pago",   component: () => import("../views/viajes/ViajePagoFormView.vue"), meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
+      // ── Viajes ──────────────────────────────────────────
+// ── Viajes (reemplazá el bloque de rutas de viajes en tu router/index.js) ──────
+{ path: "viajes",              name: "viajes",         component: () => import("../views/viajes/ViajesView.vue"),        meta: { perms: [PERMS.VIAJES_VER] } },
+{ path: "viajes/nuevo",        name: "viajes-nuevo",   component: () => import("../views/viajes/ViajesFormView.vue"),    meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
+{ path: "viajes/:id",          name: "viajes-detalle", component: () => import("../views/viajes/ViajeDetalleView.vue"),  meta: { perms: [PERMS.VIAJES_VER] } },
+{ path: "viajes/:id/editar",   name: "viajes-editar",  component: () => import("../views/viajes/ViajesFormView.vue"),    meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
+{ path: "viajes/:id/pago",     name: "viajes-pago",    component: () => import("../views/viajes/ViajePagoFormView.vue"), meta: { perms: [PERMS.VIAJES_GESTIONAR] } },
 
       // ── Beneficios ──────────────────────────────────────
       { path: "beneficios", name: "beneficios", component: () => import("../views/beneficios/BeneficiosView.vue"), meta: { perms: [PERMS.BENEFICIOS_VER] } },

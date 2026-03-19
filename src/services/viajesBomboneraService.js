@@ -5,15 +5,15 @@ export const viajesBomboneraService = {
     return http.get("/viajes-bombonera", { params })
   },
 
+  obtener(id) {
+    return http.get(`/viajes-bombonera/${id}`)
+  },
+
   crear(payload) {
     return http.post("/viajes-bombonera", payload)
   },
 
- obtener(id) {
-  return http.get(`/viajes-bombonera/${id}`)
-},
-
-actualizar(id, payload) {
-  return http.put(`/viajes-bombonera/${id}`, payload)
-},
+  actualizar(id, payload) {
+    return http.put(`/viajes-bombonera/${id}`, payload)
+  },
 }

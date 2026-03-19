@@ -19,13 +19,8 @@
     </transition>
 
     <div class="tabs-bar">
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="tab-btn"
-        :class="{ active: tabActivo === tab.key }"
-        @click="cambiarTab(tab.key)"
-      >
+      <button v-for="tab in tabs" :key="tab.key" class="tab-btn" :class="{ active: tabActivo === tab.key }"
+        @click="cambiarTab(tab.key)">
         <span>{{ tab.icon }}</span>
         {{ tab.label }}
       </button>
@@ -44,7 +39,14 @@
         <div v-if="loading" class="empty-state">Cargando...</div>
         <div v-else-if="!listas['tipos-socio-pena'].length" class="empty-state">No hay tipos de socio registrados.</div>
         <table v-else class="data-table">
-          <thead><tr><th>Nombre</th><th>Precio</th><th>Vitalicio</th><th class="th-actions">Acciones</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Precio</th>
+              <th>Vitalicio</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="item in listas['tipos-socio-pena']" :key="item.tipoSocioPenaId">
               <td><strong>{{ item.nombre }}</strong></td>
@@ -54,7 +56,10 @@
                   {{ item.esVitalicio ? "Sí" : "No" }}
                 </span>
               </td>
-              <td><div class="row-actions"><button class="table-btn" @click="abrirEditar('tipos-socio-pena', item)">Editar</button></div></td>
+              <td>
+                <div class="row-actions"><button class="table-btn"
+                    @click="abrirEditar('tipos-socio-pena', item)">Editar</button></div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -72,11 +77,19 @@
         <div v-if="loading" class="empty-state">Cargando...</div>
         <div v-else-if="!listas['tipos-socio-boca'].length" class="empty-state">No hay tipos registrados.</div>
         <table v-else class="data-table">
-          <thead><tr><th>Nombre</th><th class="th-actions">Acciones</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="item in listas['tipos-socio-boca']" :key="item.tipoSocioBocaId">
               <td><strong>{{ item.nombre }}</strong></td>
-              <td><div class="row-actions"><button class="table-btn" @click="abrirEditar('tipos-socio-boca', item)">Editar</button></div></td>
+              <td>
+                <div class="row-actions"><button class="table-btn"
+                    @click="abrirEditar('tipos-socio-boca', item)">Editar</button></div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -94,12 +107,21 @@
         <div v-if="loading" class="empty-state">Cargando...</div>
         <div v-else-if="!listas.salones.length" class="empty-state">No hay salones registrados.</div>
         <table v-else class="data-table">
-          <thead><tr><th>Nombre</th><th>Precio</th><th class="th-actions">Acciones</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Precio</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="item in listas.salones" :key="item.salonId">
               <td><strong>{{ item.nombre }}</strong></td>
               <td>$ {{ item.precio }}</td>
-              <td><div class="row-actions"><button class="table-btn" @click="abrirEditar('salones', item)">Editar</button></div></td>
+              <td>
+                <div class="row-actions"><button class="table-btn" @click="abrirEditar('salones', item)">Editar</button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -117,10 +139,20 @@
         <div v-if="loading" class="empty-state">Cargando...</div>
         <div v-else-if="!listas['metodos-pago'].length" class="empty-state">No hay métodos de pago registrados.</div>
         <table v-else class="data-table">
-          <thead><tr><th>Nombre</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="item in listas['metodos-pago']" :key="item.metodoPagoId">
               <td><strong>{{ item.nombre }}</strong></td>
+              <td>
+                <div class="row-actions">
+                  <button class="table-btn" @click="abrirEditar('metodos-pago', item)">Editar</button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -193,13 +225,17 @@
           <div v-if="tabActivo === 'tipos-socio-pena'" class="field">
             <label>¿Es vitalicio?</label>
             <div class="toggle-group">
-              <button type="button" class="btn-toggle" :class="{ 'active-success': modal.form.esVitalicio === true }" @click="modal.form.esVitalicio = true">Sí</button>
-              <button type="button" class="btn-toggle" :class="{ 'active-neutral': modal.form.esVitalicio === false }" @click="modal.form.esVitalicio = false">No</button>
+              <button type="button" class="btn-toggle" :class="{ 'active-success': modal.form.esVitalicio === true }"
+                @click="modal.form.esVitalicio = true">Sí</button>
+              <button type="button" class="btn-toggle" :class="{ 'active-neutral': modal.form.esVitalicio === false }"
+                @click="modal.form.esVitalicio = false">No</button>
             </div>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="btn-primary" :disabled="modal.saving">{{ modal.saving ? "Guardando..." : "Guardar" }}</button>
+            <button type="submit" class="btn-primary" :disabled="modal.saving">{{ modal.saving ? "Guardando..." :
+              "Guardar"
+              }}</button>
           </div>
         </form>
       </div>
@@ -235,16 +271,14 @@
           <!-- Selector de usuario con rol cobrador -->
           <div class="field">
             <label>Usuario del sistema</label>
-            <p class="field-hint">Vinculá este cobrador con un usuario para que pueda iniciar sesión y ver sus cobranzas.</p>
+            <p class="field-hint">Vinculá este cobrador con un usuario para que pueda iniciar sesión y ver sus
+              cobranzas.
+            </p>
             <div v-if="loadingUsuarios" class="empty-state-sm">Cargando usuarios...</div>
             <select v-else v-model="modal.form.usuarioId" class="select-usuario">
               <option :value="null">— Sin vincular —</option>
-              <option
-                v-for="u in usuariosCobrador"
-                :key="u.usuarioId"
-                :value="u.usuarioId"
-                :disabled="usuarioYaVinculado(u.usuarioId)"
-              >
+              <option v-for="u in usuariosCobrador" :key="u.usuarioId" :value="u.usuarioId"
+                :disabled="usuarioYaVinculado(u.usuarioId)">
                 {{ u.nombre }} ({{ u.email }})
                 {{ usuarioYaVinculado(u.usuarioId) ? " — ya vinculado" : "" }}
               </option>
@@ -253,7 +287,9 @@
 
           <div class="modal-actions">
             <button type="button" class="btn-secondary" @click="cerrarModal">Cancelar</button>
-            <button type="submit" class="btn-primary" :disabled="modal.saving">{{ modal.saving ? "Guardando..." : "Guardar" }}</button>
+            <button type="submit" class="btn-primary" :disabled="modal.saving">{{ modal.saving ? "Guardando..." :
+              "Guardar"
+              }}</button>
           </div>
         </form>
       </div>
@@ -266,11 +302,11 @@ import { computed, onMounted, reactive, ref } from "vue"
 import { http } from "../services/http"
 
 const tabs = [
-  { key: "tipos-socio-pena",  label: "Tipos Socio Peña",  icon: "👥" },
-  { key: "tipos-socio-boca",  label: "Tipos Socio Boca",  icon: "🏟️" },
-  { key: "salones",           label: "Salones",            icon: "🏠" },
-  { key: "metodos-pago",      label: "Métodos de Pago",    icon: "💳" },
-  { key: "cobradores",        label: "Cobradores",         icon: "🧾" },
+  { key: "tipos-socio-pena", label: "Tipos Socio Peña", icon: "👥" },
+  { key: "tipos-socio-boca", label: "Tipos Socio Boca", icon: "🏟️" },
+  { key: "salones", label: "Salones", icon: "🏠" },
+  { key: "metodos-pago", label: "Métodos de Pago", icon: "💳" },
+  { key: "cobradores", label: "Cobradores", icon: "🧾" },
 ]
 
 const config = {
@@ -301,11 +337,11 @@ const config = {
   },
 }
 
-const tabActivo        = ref("tipos-socio-pena")
-const loading          = ref(false)
-const loadingUsuarios  = ref(false)
-const error            = ref(null)
-const toast            = ref(null)
+const tabActivo = ref("tipos-socio-pena")
+const loading = ref(false)
+const loadingUsuarios = ref(false)
+const error = ref(null)
+const toast = ref(null)
 
 // Lista de usuarios con rol cobrador para el selector
 const usuariosCobrador = ref([])
@@ -319,11 +355,11 @@ const listas = reactive({
 })
 
 const modal = reactive({
-  abierto:  false,
+  abierto: false,
   editando: false,
-  itemId:   null,
-  saving:   false,
-  form:     {},
+  itemId: null,
+  saving: false,
+  form: {},
 })
 
 const tabLabel = computed(() => tabs.find(t => t.key === tabActivo.value)?.label || "")
@@ -393,26 +429,26 @@ function cambiarTab(tab) {
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
 function abrirModal(tab) {
-  modal.abierto  = true
+  modal.abierto = true
   modal.editando = false
-  modal.itemId   = null
-  modal.form     = config[tab].defaultForm()
+  modal.itemId = null
+  modal.form = config[tab].defaultForm()
   if (tab === "cobradores") cargarUsuariosCobrador()
 }
 
 function abrirEditar(tab, item) {
-  modal.abierto  = true
+  modal.abierto = true
   modal.editando = true
-  modal.itemId   = item[config[tab].idField]
-  modal.form     = { ...config[tab].defaultForm(), ...item }
+  modal.itemId = item[config[tab].idField]
+  modal.form = { ...config[tab].defaultForm(), ...item }
   if (tab === "cobradores") cargarUsuariosCobrador()
 }
 
 function cerrarModal() {
-  modal.abierto  = false
+  modal.abierto = false
   modal.editando = false
-  modal.itemId   = null
-  modal.form     = {}
+  modal.itemId = null
+  modal.form = {}
 }
 
 // ── Validación ────────────────────────────────────────────────────────────────
@@ -428,7 +464,7 @@ function yaExisteOtroVitalicio() {
 
 function validarModal() {
   const tab = tabActivo.value
-  const f   = modal.form
+  const f = modal.form
 
   if (!String(f.nombre ?? "").trim()) return "El nombre es obligatorio."
 
@@ -436,9 +472,9 @@ function validarModal() {
     return "El precio no puede ser negativo."
 
   if (tab === "cobradores") {
-    if (!String(f.dni      ?? "").trim()) return "El DNI es obligatorio."
+    if (!String(f.dni ?? "").trim()) return "El DNI es obligatorio."
     if (!String(f.telefono ?? "").trim()) return "El teléfono es obligatorio."
-    if (!String(f.zona     ?? "").trim()) return "La zona es obligatoria."
+    if (!String(f.zona ?? "").trim()) return "La zona es obligatoria."
   }
 
   if (yaExisteOtroVitalicio())
@@ -451,12 +487,12 @@ function validarModal() {
 
 function buildPayload() {
   const tab = tabActivo.value
-  const f   = modal.form
+  const f = modal.form
 
   if (tab === "tipos-socio-pena") {
     return {
-      nombre:      String(f.nombre ?? "").trim(),
-      precio:      f.precio !== "" && f.precio != null ? String(f.precio) : null,
+      nombre: String(f.nombre ?? "").trim(),
+      precio: f.precio !== "" && f.precio != null ? String(f.precio) : null,
       esVitalicio: Boolean(f.esVitalicio),
     }
   }
@@ -470,10 +506,10 @@ function buildPayload() {
 
   if (tab === "cobradores") {
     return {
-      nombre:    String(f.nombre    ?? "").trim(),
-      dni:       String(f.dni       ?? "").trim(),
-      telefono:  String(f.telefono  ?? "").trim(),
-      zona:      String(f.zona      ?? "").trim(),
+      nombre: String(f.nombre ?? "").trim(),
+      dni: String(f.dni ?? "").trim(),
+      telefono: String(f.telefono ?? "").trim(),
+      zona: String(f.zona ?? "").trim(),
       usuarioId: f.usuarioId ?? null,   // ← incluye el vínculo
     }
   }
@@ -488,7 +524,7 @@ async function guardarModal() {
   if (validacion) { error.value = validacion; return }
 
   modal.saving = true
-  error.value  = null
+  error.value = null
 
   const { endpoint } = config[tabActivo.value]
 
@@ -517,25 +553,159 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.tabs-bar { display: flex; gap: 8px; flex-wrap: wrap; }
-.tab-btn { display: flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow); }
-.tab-btn:hover { border-color: var(--primary); color: var(--primary); }
-.tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-.tab-content { padding: 24px; }
-.error-banner { display: flex; align-items: center; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; color: #991b1b; font-size: 13px; font-weight: 600; }
-.error-msg { flex: 1; }
-.error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; }
-.toast { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; padding: 12px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; }
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(10px); }
-.modal-form { display: flex; flex-direction: column; gap: 16px; }
-.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.mono { font-family: monospace; font-size: 12px; }
-.badge-neutral { background: #f1f5f9; color: #475569; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-.badge-success { background: rgba(16,185,129,0.1); color: #065f46; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-.text-muted { color: var(--text-muted); font-size: 12px; }
-.field-hint { font-size: 12px; color: var(--text-muted); margin: 0 0 6px; }
-.select-usuario { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: white; color: var(--text); cursor: pointer; }
-.select-usuario:focus { outline: none; border-color: var(--primary); }
-.empty-state-sm { font-size: 13px; color: var(--text-muted); padding: 8px 0; }
+.tabs-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.tab-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error-msg {
+  flex: 1;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--primary);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mono {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.badge-neutral {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.select-usuario {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.select-usuario:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.empty-state-sm {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
 </style>

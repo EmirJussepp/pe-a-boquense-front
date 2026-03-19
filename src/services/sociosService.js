@@ -43,4 +43,11 @@ export const sociosService = {
       },
     })
   },
+  baja(params = {}) {
+  return http.get("/socios/baja", { params })
+},
+
+reactivar(id) {
+  return http.put(`/socios/${id}/reactivar`)
+},
 }
