@@ -42,12 +42,5 @@ export const sociosService = {
         "Content-Type": "multipart/form-data",
       },
     })
-  },
-  baja(params = {}) {
-  return http.get("/socios/baja", { params })
-},
-
-reactivar(id) {
-  return http.put(`/socios/${id}/reactivar`)
-},
+  }
 }
