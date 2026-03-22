@@ -199,7 +199,7 @@ function volver() { router.push("/socios/activos") }
 </script>
 
 <style scoped>
-.import-page { display: flex; flex-direction: column; gap: 16px; }
+.import-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
 .page-head, .upload-card, .result-card { padding: 22px; }
 .page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -239,5 +239,8 @@ function volver() { router.push("/socios/activos") }
 @media (max-width: 920px) {
   .page-head { flex-direction: column; align-items: stretch; }
   .result-head { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .import-page { padding: 16px; }
 }
 </style>

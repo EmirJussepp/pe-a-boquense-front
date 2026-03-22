@@ -191,7 +191,7 @@ onMounted(cargarMetricas)
 .inicio-page {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 28px 20px 40px;
 }
 
 /* WELCOME */
@@ -208,7 +208,7 @@ onMounted(cargarMetricas)
 /* MÉTRICAS */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
   gap: 14px;
   margin-bottom: 32px;
 }
@@ -239,7 +239,6 @@ onMounted(cargarMetricas)
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 5px;
-  white-space: nowrap;
 }
 .metric-value {
   font-size: 26px;
@@ -299,7 +298,7 @@ onMounted(cargarMetricas)
 .hover-indicator { position: absolute; bottom: 0; left: 0; width: 0; height: 4px; background: var(--accent); transition: width 0.4s ease; }
 .module-card:hover .hover-indicator { width: 100%; }
 
-@media (max-width: 1200px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px)  { .metrics-grid { grid-template-columns: repeat(2, 1fr); } .modules-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .inicio-page { padding: 16px 16px 32px; } .metrics-grid { grid-template-columns: repeat(2, 1fr); } .modules-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px)  { .modules-grid { grid-template-columns: 1fr; } }
 </style>

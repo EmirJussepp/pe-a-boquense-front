@@ -26,6 +26,7 @@
       </button>
     </div>
 
+
     <section class="card tab-content">
       <!-- TIPOS SOCIO PEÑA -->
       <template v-if="tabActivo === 'tipos-socio-pena'">
@@ -158,6 +159,56 @@
         </table>
       </template>
 
+      <!-- USUARIOS -->
+      <template v-else-if="tabActivo === 'usuarios'">
+        <div class="section-header">
+          <div>
+            <h2>Usuarios del sistema</h2>
+            <p class="section-sub">Gestioná los accesos y roles de cada usuario.</p>
+          </div>
+          <button class="btn-primary" @click="abrirUsuarioModal()">+ Nuevo usuario</button>
+        </div>
+        <div v-if="loading" class="empty-state">Cargando...</div>
+        <div v-else-if="!listas.usuarios.length" class="empty-state">No hay usuarios registrados.</div>
+        <table v-else class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Estado</th>
+              <th>Roles</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="u in listas.usuarios" :key="u.usuarioId">
+              <td><strong>{{ u.nombre }}</strong></td>
+              <td class="text-mono">{{ u.email }}</td>
+              <td>
+                <span class="badge" :class="u.activo ? 'badge-success' : 'badge-inactive'">
+                  {{ u.activo ? "Activo" : "Inactivo" }}
+                </span>
+              </td>
+              <td>
+                <div class="roles-list">
+                  <span v-if="u.admin" class="badge badge-admin">Admin</span>
+                  <span v-if="u.cobrador" class="badge badge-cobrador">Cobrador</span>
+                  <span v-if="u.rolViajes" class="badge badge-viajes">Viajes</span>
+                  <span v-if="u.rolAlquileres" class="badge badge-alquileres">Alquileres</span>
+                  <span v-if="!u.admin && !u.cobrador && !u.rolViajes && !u.rolAlquileres" class="text-muted">Sin roles</span>
+                </div>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button class="table-btn" @click="abrirUsuarioModal(u)">Editar</button>
+                  <button class="table-btn table-btn-outline" @click="abrirCambiarPassword(u)">Contraseña</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
       <!-- COBRADORES -->
       <template v-else-if="tabActivo === 'cobradores'">
         <div class="section-header">
@@ -241,6 +292,103 @@
       </div>
     </div>
 
+    <!-- MODAL USUARIO -->
+    <div v-if="usuarioModal.abierto" class="modal-overlay" @click.self="cerrarUsuarioModal">
+      <div class="modal-card modal-card-lg">
+        <div class="modal-header">
+          <h3>{{ usuarioModal.editando ? "Editar usuario" : "Nuevo usuario" }}</h3>
+          <button class="modal-close" @click="cerrarUsuarioModal">✕</button>
+        </div>
+        <form @submit.prevent="guardarUsuario" class="modal-form">
+          <div class="form-grid-2">
+            <div class="field">
+              <label>Nombre <span class="required">*</span></label>
+              <input v-model="usuarioModal.form.nombre" type="text" placeholder="Nombre completo..." required />
+            </div>
+            <div class="field">
+              <label>Email <span class="required">*</span></label>
+              <input v-model="usuarioModal.form.email" type="email" placeholder="correo@ejemplo.com" required />
+            </div>
+          </div>
+
+          <div v-if="!usuarioModal.editando" class="field">
+            <label>Contraseña <span class="required">*</span></label>
+            <input v-model="usuarioModal.form.password" type="password" placeholder="Mínimo 6 caracteres..." required minlength="6" />
+          </div>
+
+          <div v-if="usuarioModal.editando" class="field">
+            <label>Estado</label>
+            <div class="toggle-group">
+              <button type="button" class="btn-toggle" :class="{ 'active-success': usuarioModal.form.activo === true }"
+                @click="usuarioModal.form.activo = true">Activo</button>
+              <button type="button" class="btn-toggle" :class="{ 'active-neutral': usuarioModal.form.activo === false }"
+                @click="usuarioModal.form.activo = false">Inactivo</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Roles</label>
+            <p class="field-hint">Seleccioná los permisos que tendrá este usuario. Un admin tiene acceso total.</p>
+            <div class="roles-checks">
+              <label class="role-check">
+                <input type="checkbox" v-model="usuarioModal.form.admin" />
+                <span class="role-check-badge badge-admin">Admin</span>
+                <span class="role-check-desc">Acceso total al sistema</span>
+              </label>
+              <label class="role-check">
+                <input type="checkbox" v-model="usuarioModal.form.cobrador" />
+                <span class="role-check-badge badge-cobrador">Cobrador</span>
+                <span class="role-check-desc">Gestión de cuotas y cobranzas</span>
+              </label>
+              <label class="role-check">
+                <input type="checkbox" v-model="usuarioModal.form.rolViajes" />
+                <span class="role-check-badge badge-viajes">Viajes</span>
+                <span class="role-check-desc">Gestión de viajes a la Bombonera</span>
+              </label>
+              <label class="role-check">
+                <input type="checkbox" v-model="usuarioModal.form.rolAlquileres" />
+                <span class="role-check-badge badge-alquileres">Alquileres</span>
+                <span class="role-check-desc">Gestión de alquileres del salón</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" @click="cerrarUsuarioModal">Cancelar</button>
+            <button type="submit" class="btn-primary" :disabled="usuarioModal.saving">
+              {{ usuarioModal.saving ? "Guardando..." : "Guardar" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL CAMBIAR CONTRASEÑA -->
+    <div v-if="pwModal.abierto" class="modal-overlay" @click.self="cerrarPwModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Cambiar contraseña — {{ pwModal.nombre }}</h3>
+          <button class="modal-close" @click="cerrarPwModal">✕</button>
+        </div>
+        <form @submit.prevent="guardarPassword" class="modal-form">
+          <div class="field">
+            <label>Nueva contraseña <span class="required">*</span></label>
+            <input v-model="pwModal.newPassword" type="password" placeholder="Mínimo 6 caracteres..." required minlength="6" />
+          </div>
+          <div class="field">
+            <label>Confirmar contraseña <span class="required">*</span></label>
+            <input v-model="pwModal.confirm" type="password" placeholder="Repetí la contraseña..." required />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" @click="cerrarPwModal">Cancelar</button>
+            <button type="submit" class="btn-primary" :disabled="pwModal.saving">
+              {{ pwModal.saving ? "Guardando..." : "Cambiar contraseña" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- MODAL COBRADORES -->
     <div v-if="modal.abierto && tabActivo === 'cobradores'" class="modal-overlay" @click.self="cerrarModal">
       <div class="modal-card">
@@ -307,6 +455,7 @@ const tabs = [
   { key: "salones", label: "Salones", icon: "🏠" },
   { key: "metodos-pago", label: "Métodos de Pago", icon: "💳" },
   { key: "cobradores", label: "Cobradores", icon: "🧾" },
+  { key: "usuarios", label: "Usuarios", icon: "🔐" },
 ]
 
 const config = {
@@ -335,6 +484,11 @@ const config = {
     idField: "cobradoresId",
     defaultForm: () => ({ nombre: "", dni: "", telefono: "", zona: "", usuarioId: null }),
   },
+  usuarios: {
+    endpoint: "/usuarios",
+    idField: "usuarioId",
+    defaultForm: () => ({}),
+  },
 }
 
 const tabActivo = ref("tipos-socio-pena")
@@ -352,7 +506,124 @@ const listas = reactive({
   salones: [],
   "metodos-pago": [],
   cobradores: [],
+  usuarios: [],
 })
+
+// ── Estado modal usuarios ─────────────────────────────────────────────────────
+
+const usuarioModal = reactive({
+  abierto: false,
+  editando: false,
+  itemId: null,
+  saving: false,
+  form: {},
+})
+
+function defaultUsuarioForm() {
+  return { nombre: "", email: "", password: "", activo: true, admin: false, cobrador: false, rolViajes: false, rolAlquileres: false }
+}
+
+function abrirUsuarioModal(usuario = null) {
+  usuarioModal.abierto = true
+  usuarioModal.editando = !!usuario
+  usuarioModal.itemId = usuario?.usuarioId ?? null
+  usuarioModal.form = usuario
+    ? { nombre: usuario.nombre, email: usuario.email, activo: usuario.activo, admin: usuario.admin, cobrador: usuario.cobrador, rolViajes: usuario.rolViajes, rolAlquileres: usuario.rolAlquileres }
+    : defaultUsuarioForm()
+}
+
+function cerrarUsuarioModal() {
+  usuarioModal.abierto = false
+  usuarioModal.editando = false
+  usuarioModal.itemId = null
+  usuarioModal.form = {}
+}
+
+async function guardarUsuario() {
+  error.value = null
+  const f = usuarioModal.form
+
+  if (!String(f.nombre ?? "").trim()) { error.value = "El nombre es obligatorio."; return }
+  if (!String(f.email ?? "").trim() || !f.email.includes("@")) { error.value = "Ingresá un email válido."; return }
+  if (!usuarioModal.editando && (!f.password || f.password.length < 6)) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
+
+  usuarioModal.saving = true
+  try {
+    if (usuarioModal.editando) {
+      await http.put(`/usuarios/${usuarioModal.itemId}`, {
+        nombre: f.nombre.trim(),
+        email: f.email.trim(),
+        activo: f.activo,
+        admin: f.admin,
+        cobrador: f.cobrador,
+        rolViajes: f.rolViajes,
+        rolAlquileres: f.rolAlquileres,
+      })
+    } else {
+      await http.post("/usuarios", {
+        nombre: f.nombre.trim(),
+        email: f.email.trim(),
+        password: f.password,
+        admin: f.admin,
+        cobrador: f.cobrador,
+        rolViajes: f.rolViajes,
+        rolAlquileres: f.rolAlquileres,
+      })
+    }
+    const wasEditing = usuarioModal.editando
+    cerrarUsuarioModal()
+    await cargarTab("usuarios")
+    mostrarToast(wasEditing ? "✅ Usuario actualizado." : "✅ Usuario creado correctamente.")
+  } catch (e) {
+    error.value = e?.response?.data?.error ?? "No se pudo guardar el usuario. Revisá los datos e intentá de nuevo."
+  } finally {
+    usuarioModal.saving = false
+  }
+}
+
+// ── Estado modal cambiar contraseña ──────────────────────────────────────────
+
+const pwModal = reactive({
+  abierto: false,
+  itemId: null,
+  nombre: "",
+  newPassword: "",
+  confirm: "",
+  saving: false,
+})
+
+function abrirCambiarPassword(usuario) {
+  pwModal.abierto = true
+  pwModal.itemId = usuario.usuarioId
+  pwModal.nombre = usuario.nombre
+  pwModal.newPassword = ""
+  pwModal.confirm = ""
+}
+
+function cerrarPwModal() {
+  pwModal.abierto = false
+  pwModal.itemId = null
+  pwModal.nombre = ""
+  pwModal.newPassword = ""
+  pwModal.confirm = ""
+}
+
+async function guardarPassword() {
+  error.value = null
+  if (pwModal.newPassword.length < 6) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
+  if (pwModal.newPassword !== pwModal.confirm) { error.value = "Las contraseñas no coinciden."; return }
+
+  pwModal.saving = true
+  try {
+    await http.patch(`/usuarios/${pwModal.itemId}/password`, { newPassword: pwModal.newPassword })
+    cerrarPwModal()
+    mostrarToast("✅ Contraseña actualizada correctamente.")
+  } catch {
+    error.value = "No se pudo cambiar la contraseña. Intentá de nuevo."
+  } finally {
+    pwModal.saving = false
+  }
+}
 
 const modal = reactive({
   abierto: false,
@@ -707,5 +978,117 @@ onMounted(() => {
   font-size: 13px;
   color: var(--text-muted);
   padding: 8px 0;
+}
+
+/* USUARIOS */
+.modal-card-lg {
+  width: 560px;
+}
+
+.text-mono {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.badge-inactive {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-admin {
+  background: #ede9fe;
+  color: #5b21b6;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-cobrador {
+  background: #fef9ec;
+  color: #9c6e1e;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-viajes {
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-alquileres {
+  background: #f0fdf4;
+  color: #15803d;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.table-btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.table-btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: transparent;
+}
+
+.roles-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.role-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.role-check:hover {
+  background: var(--bg-soft, #f8fafc);
+}
+
+.role-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.role-check-badge {
+  flex-shrink: 0;
+}
+
+.role-check-desc {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 </style>

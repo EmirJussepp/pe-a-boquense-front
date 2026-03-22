@@ -231,7 +231,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.socio-form-page { display: flex; flex-direction: column; gap: 16px; }
+.socio-form-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
 .page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .eyebrow { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
 .page-head h1 { margin: 0 0 4px; font-size: 2rem; font-weight: 900; color: var(--primary); }
@@ -252,6 +252,9 @@ onMounted(async () => {
 @media (max-width: 900px) {
   .page-head { flex-direction: column; align-items: stretch; }
   .form-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .socio-form-page { padding: 16px; }
 }
 @media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }

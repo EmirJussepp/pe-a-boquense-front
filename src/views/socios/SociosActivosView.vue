@@ -568,6 +568,7 @@ onMounted(loadSocios)
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 28px 32px;
 }
 
 .page-head {
@@ -1065,6 +1066,10 @@ onMounted(loadSocios)
 }
 
 @media (max-width: 768px) {
+  .socios-page {
+    padding: 16px;
+  }
+
   .desktop-only {
     display: none;
   }

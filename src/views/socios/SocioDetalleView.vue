@@ -179,7 +179,7 @@ onMounted(loadSocio)
 </script>
 
 <style scoped>
-.detalle-page { display: flex; flex-direction: column; gap: 16px; }
+.detalle-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
 
 .page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .head-left { display: flex; align-items: center; gap: 18px; }
@@ -233,6 +233,9 @@ onMounted(loadSocio)
 @media (max-width: 900px) {
   .detalle-grid { grid-template-columns: repeat(2, 1fr); }
   .page-head { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 768px) {
+  .detalle-page { padding: 16px; }
 }
 @media (max-width: 600px) {
   .detalle-grid { grid-template-columns: 1fr; }

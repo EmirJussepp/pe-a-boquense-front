@@ -365,7 +365,6 @@ function handleGroupClick(menu) {
 .content-viewport {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 40px;
   transition: all 0.3s ease;
 }
 
