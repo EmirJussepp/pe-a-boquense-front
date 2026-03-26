@@ -185,7 +185,6 @@ async function cargarSocio() {
       telefono: data.telefono,
       direccion: data.direccion,
       numSocioBoca: data.numSocioBoca,
-      // ✅ slice(0,10) convierte "2020-03-15T00:00:00Z" → "2020-03-15" para input[type=date]
       fechaAntiguedad: data.fechaAntiguedad ? data.fechaAntiguedad.slice(0, 10) : null,
       localidadId: data.localidadId,
       cobradorId: data.cobradorId,
@@ -232,32 +231,55 @@ onMounted(async () => {
 
 <style scoped>
 .socio-form-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
-.page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+
+.page-head {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 .eyebrow { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
-.page-head h1 { margin: 0 0 4px; font-size: 2rem; font-weight: 900; color: var(--primary); }
+.page-head h1 { margin: 0 0 4px; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; color: var(--primary); }
 .page-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; }
 .head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
 .form-card { padding: 24px; display: flex; flex-direction: column; gap: 30px; }
 .form-section h2 { margin: 0 0 14px; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
 .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .required { color: #dc2626; }
-.field input, .field select, .field textarea { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; color: var(--text-main); font-size: 13px; }
+.field input, .field select, .field textarea {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: #f8fafc; color: var(--text-main); font-size: 13px;
+  width: 100%; box-sizing: border-box;
+}
 .field select { cursor: pointer; }
+
 .error-banner { display: flex; align-items: center; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 18px; color: #991b1b; font-size: 13px; font-weight: 600; }
 .error-msg { flex: 1; }
 .error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; }
+
 .form-actions { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+
+/* ── RESPONSIVO ───────────────────────── */
 @media (max-width: 900px) {
   .page-head { flex-direction: column; align-items: stretch; }
+  .head-actions button { flex: 1; }
   .form-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
 @media (max-width: 768px) {
   .socio-form-page { padding: 16px; }
+  .page-head { padding: 16px; }
+  .form-card { padding: 16px; gap: 22px; }
 }
+
 @media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }
   .form-actions { flex-direction: column; }
+  .form-actions button { width: 100%; }
 }
 </style>

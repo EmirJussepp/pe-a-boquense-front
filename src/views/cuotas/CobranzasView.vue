@@ -23,7 +23,6 @@
           <h3 class="card-subtitle">FILTROS DE BÚSQUEDA</h3>
           <form class="search-form" @submit.prevent="buscarCuotas">
 
-            <!-- Select de cobrador: solo visible para admin -->
             <div v-if="auth.isAdmin" class="field-container">
               <label class="field-label">Cobrador</label>
               <div v-if="loadingCobradores" class="helper-text">Cargando cobradores...</div>
@@ -49,7 +48,6 @@
             </div>
           </form>
 
-          <!-- Sección cupones: solo si hay cobrador identificable -->
           <div v-if="auth.isAdmin ? cobradorSeleccionadoId : auth.cobradorId" class="cupon-section">
             <h3 class="card-subtitle">GENERAR CUPONES</h3>
             <div class="cupon-controls">
@@ -144,7 +142,6 @@
                     </span>
                   </td>
                   <td>
-                    <!-- Botón cupón por fila -->
                     <button
                       class="btn-cupon-row"
                       :disabled="descargandoSocio === cuota.socioId"
@@ -186,12 +183,8 @@
           <div class="payment-method-container">
             <p class="method-label">MÉTODO DE PAGO</p>
 
-            <div v-if="loadingMetodos" class="helper-text">
-              Cargando métodos de pago...
-            </div>
-            <div v-else-if="!metodosPago.length" class="helper-text">
-              No hay métodos de pago disponibles.
-            </div>
+            <div v-if="loadingMetodos" class="helper-text">Cargando métodos de pago...</div>
+            <div v-else-if="!metodosPago.length" class="helper-text">No hay métodos de pago disponibles.</div>
             <div v-else class="method-buttons">
               <button v-for="metodo in metodosPago" :key="metodo.id" type="button" class="btn-method"
                 :class="{ active: metodoPagoId === metodo.id }" @click="metodoPagoId = metodo.id">
@@ -255,13 +248,11 @@ const ordenColumna = ref("fechaVencimiento")
 const ordenSentido = ref("asc")
 const error = ref(null)
 
-// Cobradores (solo para admin)
 const cobradores = ref([])
 const cobradorSeleccionadoId = ref(null)
 
 const paginacion = ref({ total: 0, page: 1, pageSize: 20, totalPages: 1 })
 
-// ─── PERÍODO ────────────────────────────────────────────────────────────────
 const periodoSeleccionado = ref((() => {
   const now = new Date()
   return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`
@@ -281,12 +272,10 @@ function onPeriodoChange(event) {
   const val = event.target.value
   periodoSeleccionado.value = val.replace("-", "")
 }
-// ────────────────────────────────────────────────────────────────────────────
 
 const descargandoCobrador = ref(false)
 const descargandoSocio = ref(null)
 
-// ─── CUPÓN: tema y config del club ──────────────────────────────────────────
 const THEME = { blue: '#003a70', yellow: '#f6c011', text: '#0b3c5d' }
 const CLUB = {
   nombreLinea1: 'ASOCIACIÓN CIVIL',
@@ -312,7 +301,6 @@ const ensureLogoDataUrl = async () => {
   }
 }
 
-/* ====== Estilos del cupón (2 columnas, ancho seguro) ====== */
 const CUPON_STYLES = `
   *{box-sizing:border-box}
   :root{ --blue:${THEME.blue}; --yellow:${THEME.yellow}; --text:${THEME.text}; }
@@ -322,7 +310,6 @@ const CUPON_STYLES = `
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
     background:#f7f9fc;
   }
-
   .ticket{
     max-width:740px;
     margin:0 auto 20px;
@@ -333,47 +320,29 @@ const CUPON_STYLES = `
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
     page-break-inside:avoid;
   }
-
-  /* Header principal */
   .hdr{display:grid;grid-template-columns:auto 1fr;position:relative}
   .hdr-left{display:flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:10px 14px}
-  .escudo{
-    width:60px;height:auto;flex-shrink:0;
-    background:none;border:none;border-radius:0;
-    display:grid;place-items:center;overflow:visible;
-  }
+  .escudo{width:60px;height:auto;flex-shrink:0;background:none;border:none;border-radius:0;display:grid;place-items:center;overflow:visible;}
   .escudo img{width:60px;height:auto;display:block;object-fit:contain}
   .club{line-height:1.1;text-transform:uppercase}
   .club .l1{display:block;font-weight:700;opacity:.95;font-size:.7rem}
   .club .l2{display:block;font-weight:1000;letter-spacing:.4px;font-size:.9rem}
   .club .l3{display:block;font-weight:800;opacity:.95;font-size:.8rem}
-  .hdr-right{display:flex;align-items:center;justify-content:flex-end;
-    padding:8px 12px;background:#f8fafc;gap:10px}
+  .hdr-right{display:flex;align-items:center;justify-content:flex-end;padding:8px 12px;background:#f8fafc;gap:10px}
   .comprob span{display:block;font-size:.7rem;color:#475569;font-weight:800}
   .comprob strong{display:block;font-size:1rem;color:var(--blue);letter-spacing:.5px}
   .faja{position:absolute;left:0;right:0;bottom:-1px;height:5px;background:var(--yellow)}
-
-  /* Stub header (lado socio) */
-  .hdr-stub{
-    display:block;background:var(--blue);color:#fff;padding:12px 8px;text-align:center;position:relative;
-  }
+  .hdr-stub{display:block;background:var(--blue);color:#fff;padding:12px 8px;text-align:center;position:relative;}
   .hdr-stub .escudo img{width:45px;margin-bottom:4px}
   .hdr-stub .club .l1{font-size:.6rem}
   .hdr-stub .club .l2{font-size:.8rem;letter-spacing:.25px}
   .hdr-stub .club .l3{font-size:.7rem}
-  .hdr-stub .pill{
-    display:inline-block;background:var(--yellow);color:var(--blue);
-    font-weight:1000;border-radius:999px;padding:3px 10px;font-size:.7rem;margin:6px 0 3px;
-  }
+  .hdr-stub .pill{display:inline-block;background:var(--yellow);color:var(--blue);font-weight:1000;border-radius:999px;padding:3px 10px;font-size:.7rem;margin:6px 0 3px;}
   .hdr-stub .sub{font-size:.8rem;font-weight:900;letter-spacing:.2px;margin-top:2px;color:#dbeafe}
   .hdr-stub .faja{position:absolute;left:0;right:0;bottom:-1px;height:4px;background:var(--yellow)}
-
-  /* Distribución */
   .cup-body{display:flex;align-items:stretch;gap:4px}
   .lado-cobrador{flex:2;min-width:0}
   .lado-socio{flex:0.8;min-width:190px;background:#fcfdff;border-left:1px dashed #cbd5e1}
-
-  /* Contenido */
   .body{padding:12px 16px}
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 14px;margin-bottom:10px}
   .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #e6e9f2}
@@ -382,30 +351,18 @@ const CUPON_STYLES = `
   .mono{font-variant-numeric:tabular-nums}
   .importe .lbl{color:var(--blue)}
   .importe .val{font-size:1.1rem;color:var(--blue)}
-
-  /* Firmas */
-  .firmas{
-    display:grid; grid-template-columns:1fr 1fr;
-    gap:30px; margin:20px 0 6px; padding-top:6px;
-  }
+  .firmas{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:20px 0 6px;padding-top:6px;}
   .firma-box .linea{height:1.3px;background:#475569;margin:28px 0 8px}
   .firma-box .label{font-size:.85rem;color:#475569;text-align:center}
-
-  /* Stub socio */
   .stub{padding:10px 12px}
   .stub .kvg{display:grid;gap:8px}
   .stub .kv{display:flex;justify-content:space-between;gap:6px}
   .stub .kv .k{font-size:.78rem;color:#64748b;font-weight:900}
   .stub .kv .v{font-weight:1000;font-size:.85rem}
   .stub .monto{font-size:.95rem;color:var(--blue)}
-
-  @media print{
-    body{margin:0;zoom:100%;}
-    .ticket{border:none;border-bottom:1px dashed #ddd;border-radius:0;page-break-inside:avoid;}
-  }
+  @media print{body{margin:0;zoom:100%;}.ticket{border:none;border-bottom:1px dashed #ddd;border-radius:0;page-break-inside:avoid;}}
 `
 
-// Helpers para el cupón
 const safe = (s) => String(s ?? '').replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))
 const fechaCorta = (v) => {
   if (!v) return '—'
@@ -414,14 +371,11 @@ const fechaCorta = (v) => {
 }
 const formatoPeriodoCupon = (periodo) => {
   const value = String(periodo ?? '')
-  return value.length === 6
-    ? `${value.slice(4, 6)}/${value.slice(0, 4)}`
-    : value
+  return value.length === 6 ? `${value.slice(4, 6)}/${value.slice(0, 4)}` : value
 }
 
 const buildCuponHTML = (cuota) => {
   const LOGO = logoDataUrl.value || LogoPena
-
   const header = `
     <div class="hdr">
       <div class="hdr-left">
@@ -439,9 +393,7 @@ const buildCuponHTML = (cuota) => {
         </div>
       </div>
       <div class="faja"></div>
-    </div>
-  `
-
+    </div>`
   const headerStub = `
     <div class="hdr-stub">
       <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
@@ -453,13 +405,10 @@ const buildCuponHTML = (cuota) => {
       <div class="pill">RECIBO PARA EL SOCIO</div>
       <div class="sub">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</div>
       <div class="faja"></div>
-    </div>
-  `
-
+    </div>`
   return `
   <section class="ticket">
     <div class="cup-body">
-      <!-- Izquierda: talón del cobrador -->
       <div class="lado-cobrador">
         ${header}
         <div class="body">
@@ -476,20 +425,12 @@ const buildCuponHTML = (cuota) => {
           </div>
         </div>
       </div>
-
-      <!-- Derecha: recibo del socio -->
       <div class="lado-socio">
         ${headerStub}
         <div class="stub">
           <div class="kvg">
-            <div class="kv">
-              <span class="k">Período</span>
-              <span class="v">${formatoPeriodoCupon(cuota.periodo)}</span>
-            </div>
-            <div class="kv">
-              <span class="k">Monto</span>
-              <span class="v mono monto">$ ${formatMoney(cuota.montoAPagar)}</span>
-            </div>
+            <div class="kv"><span class="k">Período</span><span class="v">${formatoPeriodoCupon(cuota.periodo)}</span></div>
+            <div class="kv"><span class="k">Monto</span><span class="v mono monto">$ ${formatMoney(cuota.montoAPagar)}</span></div>
           </div>
         </div>
       </div>
@@ -526,12 +467,10 @@ const wrapCuponesHTML = (ticketsHTML, titulo) => `
       })();
     <\/script>
   </body></html>`
-// ─── FIN CUPÓN ──────────────────────────────────────────────────────────────
 
 const pageTitle = computed(() =>
   auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
 )
-
 const pageDescription = computed(() =>
   "Consultá y gestioná cuotas desde tu sesión de cobrador."
 )
@@ -576,32 +515,25 @@ const cuotasFiltradas = computed(() => {
     if (typeof valorA === "string") valorA = valorA.toLowerCase()
     if (typeof valorB === "string") valorB = valorB.toLowerCase()
     if (valorA === valorB) return 0
-    return ordenSentido.value === "asc"
-      ? valorA < valorB ? -1 : 1
-      : valorA > valorB ? -1 : 1
+    return ordenSentido.value === "asc" ? (valorA < valorB ? -1 : 1) : (valorA > valorB ? -1 : 1)
   })
   return result
 })
 
 const elegibles = computed(() => cuotasFiltradas.value.filter((item) => !isPaid(item)))
-
 const allSelected = computed(() =>
-  elegibles.value.length > 0 &&
-  elegibles.value.every((item) => selectedIds.value.includes(item.id))
+  elegibles.value.length > 0 && elegibles.value.every((item) => selectedIds.value.includes(item.id))
 )
-
 const totalSeleccionado = computed(() => {
   const total = cuotas.value
     .filter((item) => selectedIds.value.includes(item.id))
     .reduce((acc, item) => acc + Number(item.montoAPagar || 0), 0)
   return formatMoney(total)
 })
-
 const totalAdeudado = computed(() => {
   const total = elegibles.value.reduce((acc, item) => acc + Number(item.montoAPagar || 0), 0)
   return formatMoney(total)
 })
-
 const resumenPagoTexto = computed(() => {
   const cantidad = selectedIds.value.length
   const metodo = metodosPago.value.find(m => m.id === metodoPagoId.value)
@@ -610,46 +542,30 @@ const resumenPagoTexto = computed(() => {
 })
 
 function establecerOrden(columna) {
-  if (ordenColumna.value === columna) {
-    ordenSentido.value = ordenSentido.value === "asc" ? "desc" : "asc"
-    return
-  }
-  ordenColumna.value = columna
-  ordenSentido.value = "asc"
+  if (ordenColumna.value === columna) { ordenSentido.value = ordenSentido.value === "asc" ? "desc" : "asc"; return }
+  ordenColumna.value = columna; ordenSentido.value = "asc"
 }
-
 function getIconoOrden(columna) {
   if (ordenColumna.value !== columna) return "↕"
   return ordenSentido.value === "asc" ? "↑" : "↓"
 }
-
-function isPaid(cuota) {
-  return cuota?.estado === "PAGADA" || cuota?.estado === "EXENTA"
-}
-
+function isPaid(cuota) { return cuota?.estado === "PAGADA" || cuota?.estado === "EXENTA" }
 function formatMoney(value) {
-  return new Intl.NumberFormat("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0))
+  return new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value || 0))
 }
-
 function formatFecha(value) {
   if (!value) return "—"
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "—"
   return new Intl.DateTimeFormat("es-AR").format(date)
 }
-
 function formatPeriodo(periodo) {
   const value = String(periodo ?? "")
   return value.length === 6 ? `${value.slice(4, 6)}/${value.slice(0, 4)}` : value
 }
-
 function toggleSelectAll(checked) {
   selectedIds.value = checked ? elegibles.value.map((item) => item.id) : []
 }
-
 function estadoClass(estado) {
   if (estado === "PAGADA") return "badge-pagada"
   if (estado === "VENCIDA") return "badge-vencida"
@@ -661,156 +577,77 @@ async function cargarMetodosPago() {
   loadingMetodos.value = true
   try {
     const { data } = await metodosPagoService.listar()
-    metodosPago.value = Array.isArray(data)
-      ? data.map(normalizeMetodoPago).filter((item) => item.id > 0)
-      : []
-    if (!metodoPagoId.value && metodosPago.value.length) {
-      metodoPagoId.value = metodosPago.value[0].id
-    }
-  } catch {
-    metodosPago.value = []
-  } finally {
-    loadingMetodos.value = false
-  }
+    metodosPago.value = Array.isArray(data) ? data.map(normalizeMetodoPago).filter((item) => item.id > 0) : []
+    if (!metodoPagoId.value && metodosPago.value.length) metodoPagoId.value = metodosPago.value[0].id
+  } catch { metodosPago.value = [] } finally { loadingMetodos.value = false }
 }
 
 async function buscarCuotas() {
-  loading.value = true
-  error.value = null
-  selectedIds.value = []
-  buscado.value = true
+  loading.value = true; error.value = null; selectedIds.value = []; buscado.value = true
   try {
     const termino = filtroBusqueda.value.trim()
-    const params = {
-      page: paginacion.value.page,
-      pageSize: paginacion.value.pageSize,
-    }
-
-    if (auth.isCobrador && !auth.isAdmin && auth.cobradorId)
-      params.cobradorId = auth.cobradorId
-    if (auth.isAdmin && cobradorSeleccionadoId.value)
-      params.cobradorId = cobradorSeleccionadoId.value
+    const params = { page: paginacion.value.page, pageSize: paginacion.value.pageSize }
+    if (auth.isCobrador && !auth.isAdmin && auth.cobradorId) params.cobradorId = auth.cobradorId
+    if (auth.isAdmin && cobradorSeleccionadoId.value) params.cobradorId = cobradorSeleccionadoId.value
     if (/^\d+$/.test(termino)) params.dni = termino
     else if (termino) params.search = termino
-
     const { data } = await cuotasService.listarCobranzas(params)
-
-    cuotas.value = Array.isArray(data.data)
-      ? data.data.map(normalizeCuota).filter(item => item.id > 0)
-      : []
-
-    paginacion.value = {
-      total: data.total,
-      page: data.page,
-      pageSize: data.pageSize,
-      totalPages: data.totalPages,
-    }
-  } catch {
-    error.value = "No se pudieron cargar las cuotas. Intentá de nuevo."
-    cuotas.value = []
-  } finally {
-    loading.value = false
-  }
+    cuotas.value = Array.isArray(data.data) ? data.data.map(normalizeCuota).filter(item => item.id > 0) : []
+    paginacion.value = { total: data.total, page: data.page, pageSize: data.pageSize, totalPages: data.totalPages }
+  } catch { error.value = "No se pudieron cargar las cuotas. Intentá de nuevo."; cuotas.value = [] }
+  finally { loading.value = false }
 }
 
-function cambiarPagina(nuevaPagina) {
-  paginacion.value.page = nuevaPagina
-  buscarCuotas()
-}
+function cambiarPagina(nuevaPagina) { paginacion.value.page = nuevaPagina; buscarCuotas() }
 
 async function pagarSeleccionadas() {
   if (!selectedIds.value.length || !metodoPagoId.value) return
-
   const ok = await confirmModal.value.open({
-    icon: "💳",
-    title: "Confirmar pago",
+    icon: "💳", title: "Confirmar pago",
     message: `¿Confirmás el pago de ${resumenPagoTexto.value}`,
-    confirmLabel: "Confirmar pago",
-    variant: "success",
+    confirmLabel: "Confirmar pago", variant: "success",
   })
   if (!ok) return
-
-  paying.value = true
-  error.value = null
-
+  paying.value = true; error.value = null
   try {
-    await pagosService.pagarMasivo({
-      cuotaIds: selectedIds.value,
-      metodoPagoId: Number(metodoPagoId.value),
-    })
+    await pagosService.pagarMasivo({ cuotaIds: selectedIds.value, metodoPagoId: Number(metodoPagoId.value) })
     toast.success(`${selectedIds.value.length} cuota(s) pagada(s) correctamente.`)
-    selectedIds.value = []
-    await buscarCuotas()
+    selectedIds.value = []; await buscarCuotas()
   } catch {
     toast.error("No se pudo procesar el pago. Verificá la conexión e intentá de nuevo.")
     error.value = "No se pudo procesar el pago. Verificá la conexión e intentá de nuevo."
-  } finally {
-    paying.value = false
-  }
+  } finally { paying.value = false }
 }
 
-// ─── IMPRIMIR CUPÓN INDIVIDUAL (por fila) ───────────────────────────────────
 async function imprimirCuponSocio(cuota) {
   descargandoSocio.value = cuota.socioId
   try {
     await ensureLogoDataUrl()
-    const html = wrapCuponesHTML(
-      buildCuponHTML(cuota),
-      `Cupón ${String(cuota.id).padStart(8, '0')}`
-    )
-    printHTML(html)
-  } catch {
-    toast.error("No se pudo generar el cupón.")
-  } finally {
-    descargandoSocio.value = null
-  }
+    printHTML(wrapCuponesHTML(buildCuponHTML(cuota), `Cupón ${String(cuota.id).padStart(8, '0')}`))
+  } catch { toast.error("No se pudo generar el cupón.") }
+  finally { descargandoSocio.value = null }
 }
 
-// ─── IMPRIMIR CUPONES DEL COBRADOR (todas las cuotas cargadas) ──────────────
 async function imprimirCuponesCobrador() {
-  if (!cuotas.value.length) {
-    toast.info("No hay cuotas cargadas para imprimir. Realizá una búsqueda primero.")
-    return
-  }
+  if (!cuotas.value.length) { toast.info("No hay cuotas cargadas para imprimir. Realizá una búsqueda primero."); return }
   descargandoCobrador.value = true
   try {
     await ensureLogoDataUrl()
-    // Imprime solo las cuotas pendientes (no pagadas/exentas)
     const pendientes = cuotas.value.filter(c => !isPaid(c))
-    if (!pendientes.length) {
-      toast.info("No hay cuotas pendientes para el período seleccionado.")
-      return
-    }
-    const html = wrapCuponesHTML(
-      pendientes.map(buildCuponHTML).join(''),
-      `Cupones cobrador – ${formatPeriodo(periodoSeleccionado.value)}`
-    )
-    printHTML(html)
-  } catch {
-    toast.error("No se pudieron generar los cupones.")
-  } finally {
-    descargandoCobrador.value = false
-  }
+    if (!pendientes.length) { toast.info("No hay cuotas pendientes para el período seleccionado."); return }
+    printHTML(wrapCuponesHTML(pendientes.map(buildCuponHTML).join(''), `Cupones cobrador – ${formatPeriodo(periodoSeleccionado.value)}`))
+  } catch { toast.error("No se pudieron generar los cupones.") }
+  finally { descargandoCobrador.value = false }
 }
 
-function limpiarBusqueda() {
-  filtroBusqueda.value = ""
-  buscarCuotas()
-}
+function limpiarBusqueda() { filtroBusqueda.value = ""; buscarCuotas() }
 
 let debounceTimer = null
 watch(filtroBusqueda, () => {
   clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    paginacion.value.page = 1
-    buscarCuotas()
-  }, 400)
+  debounceTimer = setTimeout(() => { paginacion.value.page = 1; buscarCuotas() }, 400)
 })
-
-watch(cobradorSeleccionadoId, () => {
-  paginacion.value.page = 1
-  buscarCuotas()
-})
+watch(cobradorSeleccionadoId, () => { paginacion.value.page = 1; buscarCuotas() })
 
 async function cargarCobradores() {
   if (!auth.isAdmin) return
@@ -818,11 +655,8 @@ async function cargarCobradores() {
   try {
     const { data } = await cobradoresService.listar()
     cobradores.value = Array.isArray(data) ? data : []
-  } catch {
-    cobradores.value = []
-  } finally {
-    loadingCobradores.value = false
-  }
+  } catch { cobradores.value = [] }
+  finally { loadingCobradores.value = false }
 }
 
 onMounted(async () => {
@@ -837,6 +671,9 @@ onMounted(async () => {
   background-color: var(--bg);
   min-height: 100vh;
   padding: 20px 40px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .page-header {
@@ -845,79 +682,41 @@ onMounted(async () => {
   align-items: flex-start;
   margin-bottom: 25px;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
-.eyebrow {
-  color: var(--accent);
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 1px;
-  margin: 0;
-}
-
-.page-header h1 {
-  font-size: 32px;
-  font-weight: 900;
-  color: var(--primary);
-  margin: 5px 0;
-}
-
-.hero-description {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin: 0;
-}
+.eyebrow { color: var(--accent); font-weight: 800; font-size: 11px; letter-spacing: 1px; margin: 0; }
+.page-header h1 { font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 900; color: var(--primary); margin: 5px 0; }
+.hero-description { color: var(--text-muted); font-size: 14px; margin: 0; }
 
 .error-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-  padding: 14px 18px;
-  margin-bottom: 20px;
-  color: #991b1b;
-  font-size: 13px;
-  font-weight: 600;
+  display: flex; align-items: center; gap: 12px;
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 20px; color: #991b1b; font-size: 13px; font-weight: 600;
 }
-
 .error-icon { font-size: 16px; flex-shrink: 0; }
 .error-msg { flex: 1; }
-.error-close {
-  background: none; border: none; color: #991b1b;
-  cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0;
-}
+.error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
 
 .dashboard-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 350px;
   gap: 20px;
   align-items: start;
+  min-width: 0;
+  width: 100%;
 }
 
-.card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+.main-column,
+.sidebar-column {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.card-subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 15px;
-  font-weight: 800;
-}
-
-.field-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-soft);
-  margin-bottom: 8px;
-  display: block;
-}
+.card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); box-sizing: border-box; min-width: 0; }
+.card-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 15px; font-weight: 800; }
+.field-label { font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px; display: block; }
 
 .input-action-group {
   display: grid;
@@ -926,372 +725,136 @@ onMounted(async () => {
 }
 
 .dark-input {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  color: var(--text-main);
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; color: var(--text-main); min-width: 0; width: 100%; box-sizing: border-box;
 }
 
 .btn-buscar {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0 25px;
-  font-weight: 700;
-  cursor: pointer;
+  background: var(--primary); color: white; border: none; border-radius: 8px;
+  padding: 0 25px; font-weight: 700; cursor: pointer; white-space: nowrap;
 }
 .btn-buscar:disabled { opacity: 0.6; cursor: not-allowed; }
-
 .btn-limpiar {
-  background: #f1f5f9;
-  border: 1px solid var(--border);
-  color: var(--text-soft);
-  border-radius: 8px;
-  padding: 0 20px;
-  font-weight: 600;
-  cursor: pointer;
+  background: #f1f5f9; border: 1px solid var(--border); color: var(--text-soft);
+  border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; white-space: nowrap;
 }
 
 .table-card { margin-top: 20px; }
+.table-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
+.table-card-header h2 { font-size: 18px; color: var(--primary); font-weight: 800; margin: 0; }
+.select-all { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
 
-.table-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-.table-card-header h2 {
-  font-size: 18px;
-  color: var(--primary);
-  font-weight: 800;
-  margin: 0;
-}
-
-.select-all {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-soft);
-  cursor: pointer;
-}
-
-.table-container { overflow-x: auto; }
-
-.data-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-}
-
-.data-table th {
-  text-align: left;
-  color: var(--text-muted);
-  font-size: 11px;
-  padding: 12px;
-  border-bottom: 2px solid var(--bg);
-  background: #f1f5f9;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.data-table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--bg);
-  font-size: 13px;
-}
-
+.table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.data-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.data-table th { text-align: left; color: var(--text-muted); font-size: 11px; padding: 12px; border-bottom: 2px solid var(--bg); background: #f1f5f9; font-weight: 800; letter-spacing: 0.5px; }
+.data-table td { padding: 14px 12px; border-bottom: 1px solid var(--bg); font-size: 13px; }
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--primary); }
-
 .selected-row { background-color: rgba(241, 180, 76, 0.05); }
-
 .socio-name { display: block; font-weight: 700; color: var(--primary); }
 .socio-dni { font-size: 11px; color: var(--text-muted); }
 .monto-cell { font-weight: 800; color: var(--text-main); }
 
-.empty-state {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 40px;
-  font-size: 13px;
-}
+.empty-state { text-align: center; color: var(--text-muted); padding: 40px; font-size: 13px; }
+.skeleton-row td { height: 52px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-.skeleton-row td {
-  height: 52px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite;
-}
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.badge-estado {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-}
+.badge-estado { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; white-space: nowrap; }
 .badge-pendiente { background: rgba(241, 180, 76, 0.15); color: #9c6e1e; }
 .badge-vencida   { background: #fee2e2; color: #991b1b; }
 .badge-pagada    { background: #dcfce7; color: #166534; }
 .badge-exenta    { background: #f1f5f9; color: #64748b; }
 
-/* ─── CUPÓN COBRADOR — estilo Boca ─────────────────────────────────────── */
-.cupon-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.cupon-controls {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
+.cupon-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+.cupon-controls { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .btn-cupon {
   background: linear-gradient(135deg, #003087 0%, #001f5c 100%);
-  color: #f5c518;
-  border: 2px solid #f5c518;
-  border-radius: 10px;
-  padding: 11px 20px;
-  font-weight: 800;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-  box-shadow: 0 3px 10px rgba(0, 48, 135, 0.35);
+  color: #f5c518; border: 2px solid #f5c518; border-radius: 10px;
+  padding: 11px 20px; font-weight: 800; font-size: 13px; cursor: pointer;
+  white-space: nowrap; letter-spacing: 0.3px;
+  box-shadow: 0 3px 10px rgba(0,48,135,0.35);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
+.btn-cupon:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,48,135,0.45); filter: brightness(1.08); }
+.btn-cupon:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 6px rgba(0,48,135,0.3); }
+.btn-cupon:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-cupon-inner { display: flex; align-items: center; gap: 8px; }
+.cupon-icon { width: 16px; height: 16px; flex-shrink: 0; color: #f5c518; }
 
-.btn-cupon:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 48, 135, 0.45);
-  filter: brightness(1.08);
-}
-
-.btn-cupon:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 48, 135, 0.3);
-}
-
-.btn-cupon:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.btn-cupon-inner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cupon-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  color: #f5c518;
-}
-
-/* ─── CUPÓN FILA — estilo Boca compacto ────────────────────────────────── */
 .btn-cupon-row {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
   background: linear-gradient(135deg, #003087 0%, #001f5c 100%);
-  border: 1.5px solid #f5c518;
-  border-radius: 8px;
-  cursor: pointer;
+  border: 1.5px solid #f5c518; border-radius: 8px; cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
-  box-shadow: 0 2px 6px rgba(0, 48, 135, 0.25);
+  box-shadow: 0 2px 6px rgba(0,48,135,0.25);
 }
+.btn-cupon-row:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,48,135,0.4); filter: brightness(1.1); }
+.btn-cupon-row:active:not(:disabled) { transform: translateY(0); }
+.btn-cupon-row:disabled { opacity: 0.4; cursor: not-allowed; }
+.cupon-row-icon { width: 15px; height: 15px; color: #f5c518; flex-shrink: 0; }
 
-.btn-cupon-row:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 48, 135, 0.4);
-  filter: brightness(1.1);
-}
-
-.btn-cupon-row:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.btn-cupon-row:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.cupon-row-icon {
-  width: 15px;
-  height: 15px;
-  color: #f5c518;
-  flex-shrink: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────────────── */
-
-.summary-title {
-  font-size: 18px;
-  font-weight: 900;
-  margin-bottom: 20px;
-  color: var(--primary);
-}
-
-.total-adeudado-box {
-  background: var(--bg);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  border-left: 4px solid var(--accent);
-}
-
-.adeudado-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  display: block;
-  margin-bottom: 4px;
-}
-
-.adeudado-amount {
-  font-size: 24px;
-  font-weight: 900;
-  color: var(--text-main);
-  display: block;
-}
-
-.method-label {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.method-buttons {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.btn-method {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.btn-method.active {
-  border: 2px solid #003b7a;
-  color: #003b7a;
-}
-
+.summary-card { overflow: hidden; box-sizing: border-box; width: 100%; }
+.summary-title { font-size: 18px; font-weight: 900; margin-bottom: 20px; color: var(--primary); }
+.total-adeudado-box { background: var(--bg); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid var(--accent); }
+.adeudado-label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.adeudado-amount { font-size: 24px; font-weight: 900; color: var(--text-main); display: block; }
+.method-label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; }
+.method-buttons { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+.btn-method { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 600; color: var(--text-main); width: 100%; box-sizing: border-box; }
+.btn-method.active { border: 2px solid #003b7a; color: #003b7a; }
 .helper-text { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--text-soft);
-  margin-bottom: 8px;
-}
-
-.total-to-pay {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 2px dashed var(--border);
-  gap: 12px;
-}
-
+.detail-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-soft); margin-bottom: 8px; }
+.total-to-pay { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed var(--border); gap: 12px; flex-wrap: wrap; }
 .total-val { font-size: 26px; font-weight: 900; color: var(--primary); }
+.btn-confirmar { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800; margin-top: 20px; background: #cbd5e1; color: #64748b; cursor: not-allowed; font-size: 14px; box-sizing: border-box; }
+.btn-confirmar:not(:disabled) { background: var(--accent); color: var(--primary); cursor: pointer; }
+.footer-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px; }
 
-.btn-confirmar {
-  width: 100%;
-  padding: 16px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 800;
-  margin-top: 20px;
-  background: #cbd5e1;
-  color: #64748b;
-  cursor: not-allowed;
-  font-size: 14px;
-}
-
-.btn-confirmar:not(:disabled) {
-  background: var(--accent);
-  color: var(--primary);
-  cursor: pointer;
-}
-
-.footer-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 12px;
-}
-
-.paginador {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 16px 0 4px;
-}
-
-.btn-pag {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 700;
-  cursor: pointer;
-  color: var(--primary);
-}
+.paginador { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 16px 0 4px; flex-wrap: wrap; }
+.btn-pag { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-weight: 700; cursor: pointer; color: var(--primary); }
 .btn-pag:disabled { opacity: 0.4; cursor: not-allowed; }
-
 .pag-info { font-size: 13px; font-weight: 600; color: var(--text-soft); }
 .pag-total { color: var(--text-muted); font-weight: 400; }
 
+/* ── RESPONSIVO ───────────────────────── */
 @media (max-width: 1100px) {
   .cobranzas-page { padding: 20px 24px; }
   .dashboard-layout { grid-template-columns: 1fr; }
-  .sidebar-column { order: -1; }
+  .sidebar-column { order: -1; width: 100%; min-width: 0; max-width: 100%; }
+  .summary-card { width: 100%; box-sizing: border-box; max-width: 100%; }
   .method-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
   .cobranzas-page { padding: 16px; }
-  .page-header h1 { font-size: 28px; }
-  .input-action-group { grid-template-columns: 1fr; }
-  .btn-buscar, .btn-limpiar { min-height: 44px; padding: 0 16px; }
-  .method-buttons { grid-template-columns: 1fr; }
+  .page-header h1 { font-size: 1.6rem; }
+
+  /* Búsqueda: input full width, botones en fila */
+  .input-action-group { grid-template-columns: 1fr 1fr; }
+  .input-action-group input { grid-column: 1 / -1; }
+  .btn-buscar, .btn-limpiar { min-height: 44px; }
+
+  /* Cupones */
+  .cupon-controls { flex-direction: column; align-items: stretch; }
+  .cupon-controls .field-container { width: 100%; }
+  .btn-cupon { width: 100%; justify-content: center; }
+
+  /* Sidebar / resumen */
+  .method-buttons { grid-template-columns: repeat(2, 1fr); }
   .total-to-pay { flex-direction: column; align-items: flex-start; }
+  .total-val { font-size: 22px; }
+  .adeudado-amount { font-size: 20px; }
+
+  /* Paginador */
+  .paginador { flex-direction: column; gap: 10px; }
+  .paginador .btn-pag { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .input-action-group { grid-template-columns: 1fr; }
+  .method-buttons { grid-template-columns: 1fr; }
+  .total-val { font-size: 18px; }
+  .btn-confirmar { font-size: 13px; padding: 14px; }
 }
 </style>

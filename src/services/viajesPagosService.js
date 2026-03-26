@@ -12,4 +12,7 @@ export const viajesPagosService = {
   crear(payload) {
     return http.post("/viajes-pagos", payload)
   },
+   actualizar(id, payload) {                              // 👈 nuevo
+    return http.put(`/viajes-pagos/${id}`, payload)
+  },
 }

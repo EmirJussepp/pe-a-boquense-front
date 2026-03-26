@@ -298,7 +298,70 @@ onMounted(cargarMetricas)
 .hover-indicator { position: absolute; bottom: 0; left: 0; width: 0; height: 4px; background: var(--accent); transition: width 0.4s ease; }
 .module-card:hover .hover-indicator { width: 100%; }
 
-@media (max-width: 900px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px)  { .inicio-page { padding: 16px 16px 32px; } .metrics-grid { grid-template-columns: repeat(2, 1fr); } .modules-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px)  { .modules-grid { grid-template-columns: 1fr; } }
+/* ── RESPONSIVO ─────────────────────────────────────────────── */
+
+/* Tablet grande */
+@media (max-width: 1100px) {
+  .modules-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+  .modules-grid  { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .module-card   { height: 200px; }
+}
+
+/* Mobile landscape / tablet chico */
+@media (max-width: 768px) {
+  .inicio-page { padding: 16px 16px 32px; }
+
+  .welcome-section { padding: 10px 0 20px; }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card  { padding: 14px 14px; gap: 10px; }
+  .metric-icon  { width: 40px; height: 40px; border-radius: 10px; }
+  .metric-value { font-size: 22px; }
+
+  .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .module-card  { height: 180px; }
+  .text-info h3 { font-size: 1.1rem; }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .inicio-page { padding: 12px 12px 28px; }
+
+  .welcome-title    { letter-spacing: -0.02em; }
+  .welcome-subtitle { font-size: 0.9rem; }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .metric-card  { padding: 12px 12px; gap: 8px; }
+  .metric-icon  { width: 36px; height: 36px; border-radius: 8px; }
+  .metric-label { font-size: 10px; }
+  .metric-value { font-size: 20px; }
+  .metric-arrow { display: none; }
+
+  .modules-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .module-card  { height: 160px; }
+  .module-content { padding: 14px; }
+  .text-info h3 { font-size: 1rem; }
+  .text-info p  { font-size: 0.78rem; }
+}
+
+/* Mobile muy chico */
+@media (max-width: 360px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .modules-grid { grid-template-columns: 1fr; }
+  .module-card  { height: 150px; }
+}
 </style>

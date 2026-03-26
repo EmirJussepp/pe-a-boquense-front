@@ -1,14 +1,22 @@
 <template>
   <div class="layout">
+
+    <!-- Overlay mobile -->
+    <div
+      v-if="mobileOpen"
+      class="mobile-overlay"
+      @click="mobileOpen = false"
+    />
+
     <aside
       class="sidebar"
-      :class="{ 'is-collapsed': sidebarCollapsed }"
-      @mouseenter="sidebarCollapsed = false"
-      @mouseleave="sidebarCollapsed = true"
+      :class="{ 'is-collapsed': sidebarCollapsed, 'mobile-open': mobileOpen }"
+      @mouseenter="!isMobile && (sidebarCollapsed = false)"
+      @mouseleave="!isMobile && (sidebarCollapsed = true)"
     >
       <div class="sidebar-inner">
         <div class="brand">
-          <div v-if="!sidebarCollapsed" class="brand-text">
+          <div v-if="!sidebarCollapsed || mobileOpen" class="brand-text">
             <span class="brand-peña">PEÑA</span>
             <span class="brand-boquense">BOQUENSE</span>
             <span class="brand-san-francisco">SAN FRANCISCO</span>
@@ -17,124 +25,122 @@
         </div>
 
         <nav class="nav-container">
-          <RouterLink to="/inicio" class="nav-item">
+          <RouterLink to="/inicio" class="nav-item" @click="mobileOpen = false">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LayoutDashboard :size="20" /></div>
-              <span class="nav-text" v-if="!sidebarCollapsed">Inicio</span>
+              <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Inicio</span>
             </div>
           </RouterLink>
 
-          <!-- Socios: admin y cobrador -->
+          <!-- Socios -->
           <div class="nav-group" v-if="auth.puedeVerSocios">
             <button class="nav-item" @click.stop="handleGroupClick('socios')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><Users :size="20" /></div>
-                <span class="nav-text" v-if="!sidebarCollapsed">Socios</span>
+                <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Socios</span>
               </div>
               <ChevronDown
-                v-if="!sidebarCollapsed"
+                v-if="!sidebarCollapsed || mobileOpen"
                 :size="14"
                 :class="{ rotate: openSubmenus.socios }"
               />
             </button>
-            <div v-if="openSubmenus.socios && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/socios/activos" class="submenu-item">Activos</RouterLink>
-              <RouterLink to="/socios/baja" class="submenu-item">Bajas</RouterLink>
-              <!-- Importar y nuevo solo para admin -->
+            <div v-if="openSubmenus.socios && (!sidebarCollapsed || mobileOpen)" class="submenu">
+              <RouterLink to="/socios/activos" class="submenu-item" @click="mobileOpen = false">Activos</RouterLink>
+              <RouterLink to="/socios/baja" class="submenu-item" @click="mobileOpen = false">Bajas</RouterLink>
               <template v-if="auth.isAdmin">
-                <RouterLink to="/socios/nuevo" class="submenu-item">Nuevo socio</RouterLink>
-                <RouterLink to="/socios/importar-excel" class="submenu-item">Importar Excel</RouterLink>
+                <RouterLink to="/socios/nuevo" class="submenu-item" @click="mobileOpen = false">Nuevo socio</RouterLink>
+                <RouterLink to="/socios/importar-excel" class="submenu-item" @click="mobileOpen = false">Importar Excel</RouterLink>
               </template>
             </div>
           </div>
 
-          <!-- Cuotas: admin y cobrador -->
+          <!-- Cuotas -->
           <div class="nav-group" v-if="auth.puedeVerCuotas">
             <button class="nav-item" @click.stop="handleGroupClick('cuotas')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><CreditCard :size="20" /></div>
-                <span class="nav-text" v-if="!sidebarCollapsed">Cuotas</span>
+                <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Cuotas</span>
               </div>
               <ChevronDown
-                v-if="!sidebarCollapsed"
+                v-if="!sidebarCollapsed || mobileOpen"
                 :size="14"
                 :class="{ rotate: openSubmenus.cuotas }"
               />
             </button>
-            <div v-if="openSubmenus.cuotas && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/cuotas/cobranzas" class="submenu-item">Cobranzas</RouterLink>
-              <RouterLink v-if="auth.isAdmin" to="/cuotas/reportes" class="submenu-item">Reportes</RouterLink>
+            <div v-if="openSubmenus.cuotas && (!sidebarCollapsed || mobileOpen)" class="submenu">
+              <RouterLink to="/cuotas/cobranzas" class="submenu-item" @click="mobileOpen = false">Cobranzas</RouterLink>
+              <RouterLink v-if="auth.isAdmin" to="/cuotas/reportes" class="submenu-item" @click="mobileOpen = false">Reportes</RouterLink>
             </div>
           </div>
 
-          <!-- Movimientos: solo admin -->
+          <!-- Movimientos -->
           <div class="nav-group" v-if="auth.puedeVerMovimientos">
             <button class="nav-item" @click.stop="handleGroupClick('movimientos')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><ArrowLeftRight :size="20" /></div>
-                <span class="nav-text" v-if="!sidebarCollapsed">Movimientos</span>
+                <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Movimientos</span>
               </div>
               <ChevronDown
-                v-if="!sidebarCollapsed"
+                v-if="!sidebarCollapsed || mobileOpen"
                 :size="14"
                 :class="{ rotate: openSubmenus.movimientos }"
               />
             </button>
-            <div v-if="openSubmenus.movimientos && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/movimientos" class="submenu-item">Listado</RouterLink>
-              <RouterLink to="/movimientos/reportes" class="submenu-item">Reporte</RouterLink>
+            <div v-if="openSubmenus.movimientos && (!sidebarCollapsed || mobileOpen)" class="submenu">
+              <RouterLink to="/movimientos" class="submenu-item" @click="mobileOpen = false">Listado</RouterLink>
+              <RouterLink to="/movimientos/reportes" class="submenu-item" @click="mobileOpen = false">Reporte</RouterLink>
             </div>
           </div>
 
-          <!-- Viajes: admin y rol viajes -->
-          <RouterLink v-if="auth.puedeVerViajes" to="/viajes" class="nav-item">
+          <!-- Viajes -->
+          <RouterLink v-if="auth.puedeVerViajes" to="/viajes" class="nav-item" @click="mobileOpen = false">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Plane :size="20" /></div>
-              <span class="nav-text" v-if="!sidebarCollapsed">Viajes</span>
+              <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Viajes</span>
             </div>
           </RouterLink>
 
-          <!-- Beneficios: admin, viajes y alquileres -->
-          <RouterLink v-if="auth.puedeVerBeneficios" to="/beneficios" class="nav-item">
+          <!-- Beneficios -->
+          <RouterLink v-if="auth.puedeVerBeneficios" to="/beneficios" class="nav-item" @click="mobileOpen = false">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Gift :size="20" /></div>
-              <span class="nav-text" v-if="!sidebarCollapsed">Beneficios</span>
+              <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Beneficios</span>
             </div>
           </RouterLink>
 
-          <!-- Alquileres: admin y rol alquileres -->
+          <!-- Alquileres -->
           <div class="nav-group" v-if="auth.puedeVerAlquileres">
             <button class="nav-item" @click.stop="handleGroupClick('alquileres')">
               <div class="nav-item-left">
                 <div class="nav-icon-box"><Key :size="20" /></div>
-                <span class="nav-text" v-if="!sidebarCollapsed">Alquileres</span>
+                <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Alquileres</span>
               </div>
               <ChevronDown
-                v-if="!sidebarCollapsed"
+                v-if="!sidebarCollapsed || mobileOpen"
                 :size="14"
                 :class="{ rotate: openSubmenus.alquileres }"
               />
             </button>
-            <div v-if="openSubmenus.alquileres && !sidebarCollapsed" class="submenu">
-              <RouterLink to="/alquileres" class="submenu-item">Listado</RouterLink>
-              <RouterLink to="/alquileres/calendario" class="submenu-item">Calendario</RouterLink>
+            <div v-if="openSubmenus.alquileres && (!sidebarCollapsed || mobileOpen)" class="submenu">
+              <RouterLink to="/alquileres" class="submenu-item" @click="mobileOpen = false">Listado</RouterLink>
+              <RouterLink to="/alquileres/calendario" class="submenu-item" @click="mobileOpen = false">Calendario</RouterLink>
             </div>
           </div>
         </nav>
 
         <div class="sidebar-footer">
-          <!-- Configuración: solo admin -->
-          <RouterLink v-if="auth.isAdmin" to="/configuracion" class="nav-item">
+          <RouterLink v-if="auth.isAdmin" to="/configuracion" class="nav-item" @click="mobileOpen = false">
             <div class="nav-item-left">
               <div class="nav-icon-box"><Settings :size="20" /></div>
-              <span class="nav-text" v-if="!sidebarCollapsed">Configuración</span>
+              <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Configuración</span>
             </div>
           </RouterLink>
 
           <button class="logout-item" @click.stop="logout">
             <div class="nav-item-left">
               <div class="nav-icon-box"><LogOut :size="20" /></div>
-              <span v-if="!sidebarCollapsed">Cerrar Sesión</span>
+              <span v-if="!sidebarCollapsed || mobileOpen">Cerrar Sesión</span>
             </div>
           </button>
         </div>
@@ -143,6 +149,10 @@
 
     <main class="main-wrapper">
       <div class="topbar">
+        <!-- Hamburguesa solo en mobile -->
+        <button class="hamburger" @click="mobileOpen = !mobileOpen" aria-label="Menú">
+          <span /><span /><span />
+        </button>
         <div class="topbar-end">
           <NotificationBell v-if="auth.puedeVerCuotas" />
         </div>
@@ -155,10 +165,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue"
+import { ref, watch, onMounted, onUnmounted } from "vue"
 import { useAuthStore } from "../../stores/auth"
 import { useRouter, useRoute } from "vue-router"
-import logoChico from "../../assets/logo_peña.png"
 import {
   LayoutDashboard,
   Users,
@@ -178,6 +187,24 @@ const route = useRoute()
 const router = useRouter()
 
 const sidebarCollapsed = ref(true)
+const mobileOpen = ref(false)
+const isMobile = ref(false)
+
+const MOBILE_BP = 768
+
+function checkMobile() {
+  isMobile.value = window.innerWidth <= MOBILE_BP
+  if (!isMobile.value) mobileOpen.value = false
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener("resize", checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile)
+})
 
 const initialSubmenus = () => ({
   socios: false,
@@ -197,12 +224,13 @@ watch(
   () => route.path,
   () => {
     sidebarCollapsed.value = true
+    mobileOpen.value = false
     openSubmenus.value = initialSubmenus()
   },
 )
 
 function handleGroupClick(menu) {
-  if (sidebarCollapsed.value) {
+  if (!isMobile.value && sidebarCollapsed.value) {
     sidebarCollapsed.value = false
     openSubmenus.value[menu] = true
     return
@@ -220,6 +248,7 @@ function handleGroupClick(menu) {
   overflow: hidden;
 }
 
+/* ── SIDEBAR ─────────────────────────────────────────── */
 .sidebar {
   width: 260px;
   height: 100vh;
@@ -244,6 +273,7 @@ function handleGroupClick(menu) {
   padding: 24px 14px;
 }
 
+/* ── BRAND ───────────────────────────────────────────── */
 .brand {
   display: flex;
   align-items: center;
@@ -299,6 +329,7 @@ function handleGroupClick(menu) {
   justify-content: center;
 }
 
+/* ── NAV ─────────────────────────────────────────────── */
 .nav-container {
   flex-grow: 1;
   display: flex;
@@ -383,6 +414,7 @@ function handleGroupClick(menu) {
   color: #ff8a8a;
 }
 
+/* ── MAIN ────────────────────────────────────────────── */
 .main-wrapper {
   flex-grow: 1;
   min-width: 0;
@@ -415,7 +447,66 @@ function handleGroupClick(menu) {
   transition: all 0.3s ease;
 }
 
-.rotate {
-  transform: rotate(180deg);
+.rotate { transform: rotate(180deg); }
+
+/* ── HAMBURGUESA (oculta en desktop) ─────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-right: auto;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.hamburger:hover { background: rgba(255,255,255,0.1); }
+.hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  transition: 0.2s;
+}
+
+/* ── MOBILE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Mostrar hamburguesa */
+  .hamburger { display: flex; }
+
+  /* Sidebar fuera de flujo, tipo drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px !important; /* siempre expandida cuando aparece */
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+  }
+
+  /* Al abrirse desliza desde la izquierda */
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Overlay oscuro detrás del drawer */
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+
+  /* El main ocupa todo el ancho */
+  .main-wrapper { width: 100vw; }
 }
 </style>

@@ -5,7 +5,7 @@
     <section class="page-head card">
       <div class="head-left">
         <div class="avatar-lg">{{ initials }}</div>
-        <div>
+        <div class="head-info">
           <p class="eyebrow">Socios</p>
           <h1>{{ fullName }}</h1>
           <div class="head-badges">
@@ -181,8 +181,16 @@ onMounted(loadSocio)
 <style scoped>
 .detalle-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
 
-.page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.head-left { display: flex; align-items: center; gap: 18px; }
+.page-head {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.head-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1; }
+.head-info  { min-width: 0; }
 .avatar-lg {
   width: 64px; height: 64px; flex-shrink: 0;
   background: var(--primary); color: var(--accent, #f1b44c);
@@ -190,7 +198,7 @@ onMounted(loadSocio)
   font-size: 22px; font-weight: 900;
 }
 .eyebrow { margin: 0 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
-.page-head h1 { margin: 0 0 8px; font-size: 1.8rem; font-weight: 900; color: var(--primary); }
+.page-head h1 { margin: 0 0 8px; font-size: clamp(1.3rem, 3vw, 1.8rem); font-weight: 900; color: var(--primary); word-break: break-word; }
 .head-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 .head-actions { display: flex; gap: 10px; flex-shrink: 0; }
 
@@ -226,21 +234,32 @@ onMounted(loadSocio)
 .detalle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 24px; }
 .detalle-item { display: flex; flex-direction: column; gap: 4px; }
 .detalle-item label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 700; }
-.detalle-item strong { font-size: 14px; color: var(--text-main); font-weight: 600; }
+.detalle-item strong { font-size: 14px; color: var(--text-main); font-weight: 600; word-break: break-word; }
 .mono { font-family: monospace; }
 .text-danger { color: #dc2626; }
 
+/* ── RESPONSIVO ───────────────────────── */
 @media (max-width: 900px) {
   .detalle-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-head { flex-direction: column; align-items: flex-start; }
 }
+
 @media (max-width: 768px) {
   .detalle-page { padding: 16px; }
+  .detalle-card { padding: 16px; }
 }
+
 @media (max-width: 600px) {
-  .detalle-grid { grid-template-columns: 1fr; }
-  .head-actions { width: 100%; flex-direction: column; }
-  .head-actions button { width: 100%; }
+  .page-head { flex-direction: column; align-items: stretch; padding: 16px; }
+  .head-left  { flex-direction: row; }
+  .head-actions { width: 100%; flex-direction: row; }
+  .head-actions button { flex: 1; }
   .avatar-lg { width: 48px; height: 48px; font-size: 16px; }
+  .detalle-grid { grid-template-columns: repeat(2, 1fr); gap: 14px 16px; }
+}
+
+@media (max-width: 400px) {
+  .detalle-grid { grid-template-columns: 1fr; }
+  .head-actions { flex-direction: column; }
+  .head-actions button { width: 100%; }
 }
 </style>

@@ -22,29 +22,28 @@
 
         <p v-if="fileError" class="error-text">⚠️ {{ fileError }}</p>
 
-        <!-- DESPUÉS -->
-<div class="help-box">
-  <div class="help-header">
-    <strong>Orden esperado de columnas</strong>
-    <span class="help-hint">Las columnas deben ir en este orden exacto. Las marcadas con * son obligatorias.</span>
-  </div>
-  <ol>
-    <li><strong>nombre</strong> *</li>
-    <li><strong>apellido</strong> *</li>
-    <li><strong>dni</strong> *</li>
-    <li><strong>tipoSocioPena</strong> * — ej: ACTIVO, VITALICIO</li>
-    <li>localidad — nombre de localidad existente</li>
-    <li><strong>cobrador</strong> * — nombre exacto del cobrador</li>
-    <li>tipoSocioBoca — ej: ADHERENTE, ACTIVO, No Socio</li>
-    <li>alias</li>
-    <li>email</li>
-    <li>telefono</li>
-    <li>direccion</li>
-    <li>numSocioBoca — número entero</li>
-    <li>fechaAntiguedad — formato YYYY-MM-DD</li>
-    <li>fechaInicio — formato YYYY-MM-DD</li>
-  </ol>
-</div>
+        <div class="help-box">
+          <div class="help-header">
+            <strong>Orden esperado de columnas</strong>
+            <span class="help-hint">Las columnas deben ir en este orden exacto. Las marcadas con * son obligatorias.</span>
+          </div>
+          <ol>
+            <li><strong>nombre</strong> *</li>
+            <li><strong>apellido</strong> *</li>
+            <li><strong>dni</strong> *</li>
+            <li><strong>tipoSocioPena</strong> * — ej: ACTIVO, VITALICIO</li>
+            <li>localidad — nombre de localidad existente</li>
+            <li><strong>cobrador</strong> * — nombre exacto del cobrador</li>
+            <li>tipoSocioBoca — ej: ADHERENTE, ACTIVO, No Socio</li>
+            <li>alias</li>
+            <li>email</li>
+            <li>telefono</li>
+            <li>direccion</li>
+            <li>numSocioBoca — número entero</li>
+            <li>fechaAntiguedad — formato YYYY-MM-DD</li>
+            <li>fechaInicio — formato YYYY-MM-DD</li>
+          </ol>
+        </div>
 
         <div class="actions-row">
           <button
@@ -200,47 +199,76 @@ function volver() { router.push("/socios/activos") }
 
 <style scoped>
 .import-page { display: flex; flex-direction: column; gap: 16px; padding: 28px 32px; }
-.page-head, .upload-card, .result-card { padding: 22px; }
-.page-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+
+.page-head {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.upload-card, .result-card { padding: 22px; }
 .head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .eyebrow { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
-.page-head h1 { margin: 0 0 4px; font-size: 2rem; font-weight: 900; color: var(--primary); }
+.page-head h1 { margin: 0 0 4px; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; color: var(--primary); }
 .page-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; }
+
 .upload-block { display: flex; flex-direction: column; gap: 16px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.field input[type="file"] { font-size: 13px; }
+
 .help-box { border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: #f8fafc; }
-.help-box strong { display: block; margin-bottom: 10px; font-size: 13px; }
+.help-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.help-box strong { display: block; font-size: 13px; }
+.help-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 .help-box ol { margin: 0; padding-left: 18px; color: var(--text-muted); font-size: 13px; }
+.help-box ol li { margin-bottom: 4px; }
+.help-box ol li strong { color: var(--primary); display: inline; }
+
 .actions-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.actions-row button { width: 100%; max-width: 240px; }
+
 .file-name { margin: 0; font-size: 13px; color: var(--text-muted); }
 .file-size { margin-left: 6px; font-size: 12px; }
+
 .import-banner { padding: 14px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 .import-banner.success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .import-banner.warning { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+
 .result-head { display: grid; grid-template-columns: repeat(2, minmax(0, 220px)); gap: 16px; margin-bottom: 20px; }
 .result-stat { border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: #f8fafc; }
 .result-stat span { display: block; color: var(--text-muted); margin-bottom: 8px; font-size: 13px; }
 .result-stat strong { font-size: 1.8rem; color: var(--text-main); }
 .stat-success { border-color: #bbf7d0; background: #f0fdf4; }
-.help-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
-.help-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; }
-.help-box ol li { margin-bottom: 4px; }
-.help-box ol li strong { color: var(--primary); }
 .stat-success strong { color: #15803d; }
 .stat-error { border-color: #fecaca; background: #fff5f5; }
 .stat-error strong { color: #dc2626; }
+
 .preview-block, .errors-block { margin-top: 18px; }
 .preview-block h2, .errors-block h2 { margin: 0 0 12px; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
-.table-scroll { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.data-table { width: 100%; border-collapse: collapse; min-width: 540px; }
 .data-table th { text-align: left; padding: 10px 12px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 800; background: #f8fafc; border-bottom: 2px solid var(--border); }
 .data-table td { padding: 12px; border-bottom: 1px solid var(--bg); font-size: 13px; }
+
 .error-list { margin: 0; padding-left: 18px; color: #991b1b; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .error-text { color: #dc2626; margin: 0; font-size: 13px; font-weight: 600; }
-@media (max-width: 920px) {
-  .page-head { flex-direction: column; align-items: stretch; }
-  .result-head { grid-template-columns: 1fr; }
-}
+
+/* ── RESPONSIVO ───────────────────────── */
 @media (max-width: 768px) {
   .import-page { padding: 16px; }
+  .page-head { flex-direction: column; align-items: stretch; padding: 16px; }
+  .upload-card, .result-card { padding: 16px; }
+  .head-actions button { width: 100%; }
+  .actions-row button { max-width: 100%; }
+  .result-head { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .result-head { grid-template-columns: 1fr; }
+  .result-stat strong { font-size: 1.4rem; }
 }
 </style>
