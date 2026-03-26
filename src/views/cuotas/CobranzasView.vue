@@ -55,7 +55,6 @@
             <div class="cupon-controls">
               <div class="field-container" style="margin: 0">
                 <label class="field-label">Período</label>
-                <!-- FIX: el @change recibe el Event, se usa event.target.value directamente -->
                 <input
                   v-model="periodoSeleccionadoDisplay"
                   type="month"
@@ -63,7 +62,7 @@
                   @change="onPeriodoChange"
                 />
               </div>
-              <button type="button" class="btn-cupon" :disabled="descargandoCobrador" @click="descargarCuponCobrador">
+              <button type="button" class="btn-cupon" :disabled="descargandoCobrador" @click="imprimirCuponesCobrador">
                 <span class="btn-cupon-inner">
                   <svg class="cupon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <path d="M17 17H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"/>
@@ -145,12 +144,12 @@
                     </span>
                   </td>
                   <td>
-                    <!-- Boca-themed coupon button per row -->
+                    <!-- Botón cupón por fila -->
                     <button
                       class="btn-cupon-row"
                       :disabled="descargandoSocio === cuota.socioId"
-                      @click="descargarCuponSocio(cuota.socioId)"
-                      title="Descargar cupones del socio"
+                      @click="imprimirCuponSocio(cuota)"
+                      title="Imprimir cupón del socio"
                     >
                       <span v-if="descargandoSocio === cuota.socioId" class="cupon-spinner">⏳</span>
                       <svg v-else class="cupon-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -236,6 +235,7 @@ import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
+import LogoPena from "../../assets/logochico.png"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -261,35 +261,272 @@ const cobradorSeleccionadoId = ref(null)
 
 const paginacion = ref({ total: 0, page: 1, pageSize: 20, totalPages: 1 })
 
-// ─── FIX PERÍODO ────────────────────────────────────────────────────────────
-// periodoSeleccionado: string YYYYMM (usado en llamadas API)
-// periodoSeleccionadoDisplay: string YYYY-MM (usado por el <input type="month">)
+// ─── PERÍODO ────────────────────────────────────────────────────────────────
 const periodoSeleccionado = ref((() => {
   const now = new Date()
   return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`
 })())
 
-// Computed inverso: de YYYYMM → YYYY-MM para el input
 const periodoSeleccionadoDisplay = computed({
   get() {
     const v = periodoSeleccionado.value
     return v.length === 6 ? `${v.slice(0, 4)}-${v.slice(4, 6)}` : v
   },
   set(val) {
-    // val llega como YYYY-MM desde el v-model del input type=month
     periodoSeleccionado.value = val.replace("-", "")
   }
 })
 
-// Handler para el evento @change (por si el v-model no alcanza en todos los browsers)
 function onPeriodoChange(event) {
-  const val = event.target.value  // "YYYY-MM"
+  const val = event.target.value
   periodoSeleccionado.value = val.replace("-", "")
 }
 // ────────────────────────────────────────────────────────────────────────────
 
 const descargandoCobrador = ref(false)
 const descargandoSocio = ref(null)
+
+// ─── CUPÓN: tema y config del club ──────────────────────────────────────────
+const THEME = { blue: '#003a70', yellow: '#f6c011', text: '#0b3c5d' }
+const CLUB = {
+  nombreLinea1: 'ASOCIACIÓN CIVIL',
+  nombreLinea2: 'PEÑA BOQUENSE SAN FRANCISCO',
+  nombreLinea3: 'ANTONIO UBALDO RATTÍN'
+}
+
+const logoDataUrl = ref('')
+const ensureLogoDataUrl = async () => {
+  if (logoDataUrl.value) return
+  try {
+    const resp = await fetch(LogoPena, { cache: 'force-cache' })
+    const blob = await resp.blob()
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader()
+      r.onload = () => res(r.result)
+      r.onerror = rej
+      r.readAsDataURL(blob)
+    })
+    logoDataUrl.value = String(dataUrl || '')
+  } catch {
+    logoDataUrl.value = LogoPena
+  }
+}
+
+/* ====== Estilos del cupón (2 columnas, ancho seguro) ====== */
+const CUPON_STYLES = `
+  *{box-sizing:border-box}
+  :root{ --blue:${THEME.blue}; --yellow:${THEME.yellow}; --text:${THEME.text}; }
+  @page{ size: A4 portrait; margin: 8mm }
+  html,body{
+    width:210mm;max-width:210mm;margin:0 auto;color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
+    background:#f7f9fc;
+  }
+
+  .ticket{
+    max-width:740px;
+    margin:0 auto 20px;
+    border:2px solid var(--blue);
+    border-radius:10px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    page-break-inside:avoid;
+  }
+
+  /* Header principal */
+  .hdr{display:grid;grid-template-columns:auto 1fr;position:relative}
+  .hdr-left{display:flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:10px 14px}
+  .escudo{
+    width:60px;height:auto;flex-shrink:0;
+    background:none;border:none;border-radius:0;
+    display:grid;place-items:center;overflow:visible;
+  }
+  .escudo img{width:60px;height:auto;display:block;object-fit:contain}
+  .club{line-height:1.1;text-transform:uppercase}
+  .club .l1{display:block;font-weight:700;opacity:.95;font-size:.7rem}
+  .club .l2{display:block;font-weight:1000;letter-spacing:.4px;font-size:.9rem}
+  .club .l3{display:block;font-weight:800;opacity:.95;font-size:.8rem}
+  .hdr-right{display:flex;align-items:center;justify-content:flex-end;
+    padding:8px 12px;background:#f8fafc;gap:10px}
+  .comprob span{display:block;font-size:.7rem;color:#475569;font-weight:800}
+  .comprob strong{display:block;font-size:1rem;color:var(--blue);letter-spacing:.5px}
+  .faja{position:absolute;left:0;right:0;bottom:-1px;height:5px;background:var(--yellow)}
+
+  /* Stub header (lado socio) */
+  .hdr-stub{
+    display:block;background:var(--blue);color:#fff;padding:12px 8px;text-align:center;position:relative;
+  }
+  .hdr-stub .escudo img{width:45px;margin-bottom:4px}
+  .hdr-stub .club .l1{font-size:.6rem}
+  .hdr-stub .club .l2{font-size:.8rem;letter-spacing:.25px}
+  .hdr-stub .club .l3{font-size:.7rem}
+  .hdr-stub .pill{
+    display:inline-block;background:var(--yellow);color:var(--blue);
+    font-weight:1000;border-radius:999px;padding:3px 10px;font-size:.7rem;margin:6px 0 3px;
+  }
+  .hdr-stub .sub{font-size:.8rem;font-weight:900;letter-spacing:.2px;margin-top:2px;color:#dbeafe}
+  .hdr-stub .faja{position:absolute;left:0;right:0;bottom:-1px;height:4px;background:var(--yellow)}
+
+  /* Distribución */
+  .cup-body{display:flex;align-items:stretch;gap:4px}
+  .lado-cobrador{flex:2;min-width:0}
+  .lado-socio{flex:0.8;min-width:190px;background:#fcfdff;border-left:1px dashed #cbd5e1}
+
+  /* Contenido */
+  .body{padding:12px 16px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 14px;margin-bottom:10px}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #e6e9f2}
+  .lbl{color:#64748b;font-weight:900;font-size:.9rem}
+  .val{font-weight:900;font-size:.9rem}
+  .mono{font-variant-numeric:tabular-nums}
+  .importe .lbl{color:var(--blue)}
+  .importe .val{font-size:1.1rem;color:var(--blue)}
+
+  /* Firmas */
+  .firmas{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:30px; margin:20px 0 6px; padding-top:6px;
+  }
+  .firma-box .linea{height:1.3px;background:#475569;margin:28px 0 8px}
+  .firma-box .label{font-size:.85rem;color:#475569;text-align:center}
+
+  /* Stub socio */
+  .stub{padding:10px 12px}
+  .stub .kvg{display:grid;gap:8px}
+  .stub .kv{display:flex;justify-content:space-between;gap:6px}
+  .stub .kv .k{font-size:.78rem;color:#64748b;font-weight:900}
+  .stub .kv .v{font-weight:1000;font-size:.85rem}
+  .stub .monto{font-size:.95rem;color:var(--blue)}
+
+  @media print{
+    body{margin:0;zoom:100%;}
+    .ticket{border:none;border-bottom:1px dashed #ddd;border-radius:0;page-break-inside:avoid;}
+  }
+`
+
+// Helpers para el cupón
+const safe = (s) => String(s ?? '').replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))
+const fechaCorta = (v) => {
+  if (!v) return '—'
+  const d = new Date(v)
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR')
+}
+const formatoPeriodoCupon = (periodo) => {
+  const value = String(periodo ?? '')
+  return value.length === 6
+    ? `${value.slice(4, 6)}/${value.slice(0, 4)}`
+    : value
+}
+
+const buildCuponHTML = (cuota) => {
+  const LOGO = logoDataUrl.value || LogoPena
+
+  const header = `
+    <div class="hdr">
+      <div class="hdr-left">
+        <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
+        <div class="club">
+          <span class="l1">${safe(CLUB.nombreLinea1)}</span>
+          <span class="l2">${safe(CLUB.nombreLinea2)}</span>
+          <span class="l3">${safe(CLUB.nombreLinea3)}</span>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <div class="comprob">
+          <span>COMPROBANTE</span>
+          <strong>#${String(cuota.id).padStart(8,'0')}</strong>
+        </div>
+      </div>
+      <div class="faja"></div>
+    </div>
+  `
+
+  const headerStub = `
+    <div class="hdr-stub">
+      <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
+      <div class="club">
+        <span class="l1">${safe(CLUB.nombreLinea1)}</span>
+        <span class="l2">${safe(CLUB.nombreLinea2)}</span>
+        <span class="l3">${safe(CLUB.nombreLinea3)}</span>
+      </div>
+      <div class="pill">RECIBO PARA EL SOCIO</div>
+      <div class="sub">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</div>
+      <div class="faja"></div>
+    </div>
+  `
+
+  return `
+  <section class="ticket">
+    <div class="cup-body">
+      <!-- Izquierda: talón del cobrador -->
+      <div class="lado-cobrador">
+        ${header}
+        <div class="body">
+          <div class="grid">
+            <div class="row"><span class="lbl">Socio</span><span class="val">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</span></div>
+            <div class="row"><span class="lbl">DNI</span><span class="val mono">${safe(cuota.socioDni)}</span></div>
+            <div class="row"><span class="lbl">Período</span><span class="val">${formatoPeriodoCupon(cuota.periodo)}</span></div>
+            <div class="row"><span class="lbl">Vencimiento</span><span class="val mono">${fechaCorta(cuota.fechaVencimiento)}</span></div>
+            <div class="row importe"><span class="lbl">TOTAL</span><span class="val mono">$ ${formatMoney(cuota.montoAPagar)}</span></div>
+          </div>
+          <div class="firmas">
+            <div class="firma-box"><div class="linea"></div><div class="label">Firma del socio</div></div>
+            <div class="firma-box"><div class="linea"></div><div class="label">Firma del cobrador</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derecha: recibo del socio -->
+      <div class="lado-socio">
+        ${headerStub}
+        <div class="stub">
+          <div class="kvg">
+            <div class="kv">
+              <span class="k">Período</span>
+              <span class="v">${formatoPeriodoCupon(cuota.periodo)}</span>
+            </div>
+            <div class="kv">
+              <span class="k">Monto</span>
+              <span class="v mono monto">$ ${formatMoney(cuota.montoAPagar)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>`
+}
+
+const printHTML = (html) => {
+  const iframe = document.createElement('iframe')
+  Object.assign(iframe.style, { position: 'fixed', right: '0', bottom: '0', width: '0', height: '0', border: '0' })
+  iframe.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(iframe)
+  const win = iframe.contentWindow
+  const doc = win.document
+  doc.open(); doc.write(html); doc.close()
+  const fallback = setTimeout(() => { try { win.focus(); win.print() } catch {} }, 1500)
+  win.addEventListener('afterprint', () => { clearTimeout(fallback); setTimeout(() => document.body.removeChild(iframe), 300) })
+}
+
+const wrapCuponesHTML = (ticketsHTML, titulo) => `
+  <!doctype html><html lang="es"><head>
+    <meta charset="utf-8"><title>${titulo}</title>
+    <style>${CUPON_STYLES}</style>
+  </head><body>
+    ${ticketsHTML}
+    <script>
+      (async () => {
+        try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e){}
+        try {
+          const imgs = Array.from(document.images);
+          await Promise.all(imgs.map(img => img.decode ? img.decode().catch(()=>{}) : Promise.resolve()));
+        } catch(e){}
+        window.print();
+      })();
+    <\/script>
+  </body></html>`
+// ─── FIN CUPÓN ──────────────────────────────────────────────────────────────
 
 const pageTitle = computed(() =>
   auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
@@ -512,102 +749,47 @@ async function pagarSeleccionadas() {
   }
 }
 
-async function descargarCuponCobrador() {
-  const cobradorId = auth.isAdmin ? cobradorSeleccionadoId.value : auth.cobradorId
-  if (!cobradorId) {
-    toast.error("Seleccioná un cobrador para generar los cupones.")
+// ─── IMPRIMIR CUPÓN INDIVIDUAL (por fila) ───────────────────────────────────
+async function imprimirCuponSocio(cuota) {
+  descargandoSocio.value = cuota.socioId
+  try {
+    await ensureLogoDataUrl()
+    const html = wrapCuponesHTML(
+      buildCuponHTML(cuota),
+      `Cupón ${String(cuota.id).padStart(8, '0')}`
+    )
+    printHTML(html)
+  } catch {
+    toast.error("No se pudo generar el cupón.")
+  } finally {
+    descargandoSocio.value = null
+  }
+}
+
+// ─── IMPRIMIR CUPONES DEL COBRADOR (todas las cuotas cargadas) ──────────────
+async function imprimirCuponesCobrador() {
+  if (!cuotas.value.length) {
+    toast.info("No hay cuotas cargadas para imprimir. Realizá una búsqueda primero.")
     return
   }
   descargandoCobrador.value = true
   try {
-    const response = await cuotasService.descargarCuponesCobrador(cobradorId, periodoSeleccionado.value)
-
-    // Si el backend devolvió JSON en lugar de PDF, significa que no hay cuotas o hubo un error de negocio
-    const contentType = response.headers?.["content-type"] ?? ""
-    if (contentType.includes("application/json")) {
-      // Intentamos leer el mensaje del body
-      const text = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.readAsText(new Blob([response.data]))
-      })
-      let mensaje = "No hay cuotas para el período seleccionado."
-      try {
-        const json = JSON.parse(text)
-        if (json?.message || json?.error) mensaje = json.message ?? json.error
-      } catch { /* ignorar */ }
-      toast.info(mensaje)
+    await ensureLogoDataUrl()
+    // Imprime solo las cuotas pendientes (no pagadas/exentas)
+    const pendientes = cuotas.value.filter(c => !isPaid(c))
+    if (!pendientes.length) {
+      toast.info("No hay cuotas pendientes para el período seleccionado.")
       return
     }
-
-    // Verificar que el blob tenga contenido real
-    if (!response.data || response.data.byteLength === 0) {
-      toast.info("No hay cuotas para el período seleccionado.")
-      return
-    }
-
-    const blob = new Blob([response.data], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `cupones_cobrador_${cobradorId}_${periodoSeleccionado.value}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (err) {
-    // El backend puede tirar 404 / 204 cuando no hay datos
-    const status = err?.response?.status
-    if (status === 404 || status === 204 || status === 400) {
-      toast.info("No hay cuotas para el período seleccionado.")
-    } else {
-      toast.error("No se pudieron generar los cupones.")
-    }
+    const html = wrapCuponesHTML(
+      pendientes.map(buildCuponHTML).join(''),
+      `Cupones cobrador – ${formatPeriodo(periodoSeleccionado.value)}`
+    )
+    printHTML(html)
+  } catch {
+    toast.error("No se pudieron generar los cupones.")
   } finally {
     descargandoCobrador.value = false
-  }
-}
-
-async function descargarCuponSocio(socioId) {
-  descargandoSocio.value = socioId
-  try {
-    const response = await cuotasService.descargarCuponesSocio(socioId)
-
-    const contentType = response.headers?.["content-type"] ?? ""
-    if (contentType.includes("application/json")) {
-      const text = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.readAsText(new Blob([response.data]))
-      })
-      let mensaje = "No hay cuotas pendientes para este socio."
-      try {
-        const json = JSON.parse(text)
-        if (json?.message || json?.error) mensaje = json.message ?? json.error
-      } catch { /* ignorar */ }
-      toast.info(mensaje)
-      return
-    }
-
-    if (!response.data || response.data.byteLength === 0) {
-      toast.info("No hay cuotas pendientes para este socio.")
-      return
-    }
-
-    const blob = new Blob([response.data], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `cupones_socio_${socioId}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (err) {
-    const status = err?.response?.status
-    if (status === 404 || status === 204 || status === 400) {
-      toast.info("No hay cuotas pendientes para este socio.")
-    } else {
-      toast.error("No se pudieron generar los cupones del socio.")
-    }
-  } finally {
-    descargandoSocio.value = null
   }
 }
 
@@ -646,6 +828,7 @@ async function cargarCobradores() {
 onMounted(async () => {
   await Promise.all([cargarMetodosPago(), cargarCobradores()])
   await buscarCuotas()
+  ensureLogoDataUrl().catch(() => {})
 })
 </script>
 
@@ -879,9 +1062,8 @@ onMounted(async () => {
 }
 
 .btn-cupon {
-  /* Gradiente azul boquense con ribete dorado */
   background: linear-gradient(135deg, #003087 0%, #001f5c 100%);
-  color: #f5c518;               /* amarillo Boca */
+  color: #f5c518;
   border: 2px solid #f5c518;
   border-radius: 10px;
   padding: 11px 20px;

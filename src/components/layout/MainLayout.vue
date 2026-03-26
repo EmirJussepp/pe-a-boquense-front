@@ -8,12 +8,12 @@
     >
       <div class="sidebar-inner">
         <div class="brand">
-          <div class="logo-wrapper">
-            <img :src="logoChico" alt="Logo" class="brand-logo" />
+          <div v-if="!sidebarCollapsed" class="brand-text">
+            <span class="brand-peña">PEÑA</span>
+            <span class="brand-boquense">BOQUENSE</span>
+            <span class="brand-san-francisco">SAN FRANCISCO</span>
           </div>
-          <div class="brand-text" v-if="!sidebarCollapsed">
-            <strong class="brand-name">GestionaTuPeña</strong>
-          </div>
+          <div v-else class="brand-icon">PB</div>
         </div>
 
         <nav class="nav-container">
@@ -142,6 +142,11 @@
     </aside>
 
     <main class="main-wrapper">
+      <div class="topbar">
+        <div class="topbar-end">
+          <NotificationBell v-if="auth.puedeVerCuotas" />
+        </div>
+      </div>
       <div class="content-viewport">
         <RouterView />
       </div>
@@ -153,7 +158,7 @@
 import { ref, watch } from "vue"
 import { useAuthStore } from "../../stores/auth"
 import { useRouter, useRoute } from "vue-router"
-import logoChico from "../../assets/logochico.png"
+import logoChico from "../../assets/logo_peña.png"
 import {
   LayoutDashboard,
   Users,
@@ -166,6 +171,7 @@ import {
   LogOut,
   Settings,
 } from "lucide-vue-next"
+import NotificationBell from "../notifications/NotificationBell.vue"
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -241,32 +247,56 @@ function handleGroupClick(menu) {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   margin-bottom: 40px;
   padding: 0 10px;
-  height: 40px;
+  min-height: 44px;
 }
 
-.logo-wrapper {
-  background: #f1b44c;
-  min-width: 36px;
-  height: 36px;
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  gap: 2px;
+}
+
+.brand-peña {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.brand-boquense {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #f1b44c;
+  text-transform: uppercase;
+}
+
+.brand-san-francisco {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
+  background: rgba(241, 180, 76, 0.15);
+  border: 1px solid rgba(241, 180, 76, 0.35);
+  color: #f1b44c;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.brand-logo {
-  width: 20px;
-  height: 20px;
-}
-
-.brand-name {
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 .nav-container {
@@ -360,6 +390,23 @@ function handleGroupClick(menu) {
   display: flex;
   flex-direction: column;
   background-color: var(--bg);
+}
+
+.topbar {
+  height: 50px;
+  flex-shrink: 0;
+  background: var(--primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 16px;
+}
+
+.topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .content-viewport {

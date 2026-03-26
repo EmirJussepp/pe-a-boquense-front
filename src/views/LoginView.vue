@@ -22,7 +22,7 @@
 
       <section class="login-card glass-card">
         <div class="login-card-top">
-          <img :src="logo3byte" alt="3Byte" class="login-logo" />
+          <img :src="logo3byte" alt="Peña Boquense" class="login-logo" />
           <div>
             <h2>Iniciar sesión</h2>
             <p>Accedé con tu usuario para entrar al panel.</p>
@@ -59,6 +59,11 @@
       </section>
 
     </div>
+
+    <div class="powered-by">
+      <span>Desarrollado por</span>
+      <img :src="logoDesarrollador" alt="3BYTE" class="powered-logo" />
+    </div>
   </div>
 </template>
 
@@ -66,7 +71,8 @@
 import { reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "../stores/auth"
-import logo3byte from "../assets/logo3byte.png"
+import logo3byte from "../assets/logo_peña.png"
+import logoDesarrollador from "../assets/logochico.png"
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -92,8 +98,9 @@ async function onSubmit() {
 .login-page {
   min-height: 100vh;
   display: grid;
+  grid-template-rows: 1fr auto;
   place-items: center;
-  padding: 32px;
+  padding: 32px 32px 20px;
   background: var(--bg);
 }
 
@@ -210,6 +217,32 @@ async function onSubmit() {
   background: rgba(239, 68, 68, 0.08);
   border-radius: 8px;
   border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.powered-by {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+  padding: 12px 0 0;
+}
+
+.powered-by:hover {
+  opacity: 1;
+}
+
+.powered-by span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.powered-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
 }
 
 @media (max-width: 900px) {

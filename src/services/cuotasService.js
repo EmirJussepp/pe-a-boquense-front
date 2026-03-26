@@ -24,4 +24,8 @@ descargarCuponesSocio(socioId) {
     responseType: "arraybuffer",
   })
 },
+
+morosos(meses = 3) {
+  return http.get("/cuotas/morosos", { params: { meses } })
+},
 }
