@@ -16,19 +16,11 @@
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
 
-        <button
-          v-if="auth.isAdmin"
-          class="btn-secondary"
-          @click="irImportarExcel"
-        >
+        <button v-if="auth.isAdmin" class="btn-secondary" @click="irImportarExcel">
           Importar Excel
         </button>
 
-        <button
-          v-if="auth.isAdmin"
-          class="btn-primary"
-          @click="nuevoSocio"
-        >
+        <button v-if="auth.isAdmin" class="btn-primary" @click="nuevoSocio">
           + Nuevo socio
         </button>
       </div>
@@ -57,11 +49,7 @@
 
         <div class="filters-actions">
           <button class="btn-primary" @click="applyFilters">Buscar</button>
-          <button
-            class="btn-secondary"
-            @click="clearFilters"
-            :disabled="!hasActiveFilters"
-          >
+          <button class="btn-secondary" @click="clearFilters" :disabled="!hasActiveFilters">
             Limpiar
           </button>
         </div>
@@ -126,9 +114,7 @@
                     <div class="avatar">{{ initials(socio) }}</div>
                     <div class="socio-info">
                       <strong>{{ fullName(socio) }}</strong>
-                      <span v-if="socio.alias" class="socio-alias">
-                        {{ socio.alias }}
-                      </span>
+                      <span v-if="socio.alias" class="socio-alias">{{ socio.alias }}</span>
                     </div>
                   </div>
                 </td>
@@ -143,29 +129,18 @@
                 </td>
 
                 <td>
-                  <span
-                    v-if="socio.tipoSocioPenaNombre"
-                    class="badge badge-tipo"
-                  >
+                  <span v-if="socio.tipoSocioPenaNombre" class="badge badge-tipo">
                     {{ socio.tipoSocioPenaNombre }}
                   </span>
                   <span v-else class="text-muted">—</span>
                 </td>
 
                 <td>
-                  <div
-                    v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca"
-                    class="boca-cell"
-                  >
-                    <span
-                      v-if="socio.tipoSocioBocaNombre"
-                      class="badge badge-boca"
-                    >
+                  <div v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca" class="boca-cell">
+                    <span v-if="socio.tipoSocioBocaNombre" class="badge badge-boca">
                       {{ socio.tipoSocioBocaNombre }}
                     </span>
-                    <span v-if="socio.numSocioBoca" class="boca-num">
-                      {{ socio.numSocioBoca }}
-                    </span>
+                    <span v-if="socio.numSocioBoca" class="boca-num">{{ socio.numSocioBoca }}</span>
                   </div>
                   <span v-else class="text-muted">—</span>
                 </td>
@@ -179,31 +154,11 @@
 
                 <td>
                   <div class="row-actions">
-                    <button
-                      class="btn-action"
-                      @click="verSocio(socio)"
-                      title="Ver detalle"
-                    >
-                      👁️
-                    </button>
-
-                    <button
-                      v-if="auth.isAdmin"
-                      class="btn-action"
-                      @click="editarSocio(socio)"
-                      title="Editar"
-                    >
+                    <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
+                    <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
                       <Pencil :size="14" />
                     </button>
-
-                    <button
-                      v-if="auth.isAdmin"
-                      class="btn-action danger"
-                      @click="darDeBaja(socio)"
-                      title="Dar de baja"
-                    >
-                      ⛔
-                    </button>
+                    <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
                   </div>
                 </td>
               </tr>
@@ -212,48 +167,21 @@
         </div>
 
         <div class="mobile-cards mobile-only">
-          <article
-            v-for="socio in rows"
-            :key="`mobile-${socio.socioId}`"
-            class="socio-card"
-          >
+          <article v-for="socio in rows" :key="`mobile-${socio.socioId}`" class="socio-card">
             <div class="socio-card-head">
               <div class="socio-cell">
                 <div class="avatar">{{ initials(socio) }}</div>
                 <div class="socio-info">
                   <strong>{{ fullName(socio) }}</strong>
-                  <span v-if="socio.alias" class="socio-alias">
-                    {{ socio.alias }}
-                  </span>
+                  <span v-if="socio.alias" class="socio-alias">{{ socio.alias }}</span>
                 </div>
               </div>
-
               <div class="row-actions">
-                <button
-                  class="btn-action"
-                  @click="verSocio(socio)"
-                  title="Ver detalle"
-                >
-                  👁️
-                </button>
-
-                <button
-                  v-if="auth.isAdmin"
-                  class="btn-action"
-                  @click="editarSocio(socio)"
-                  title="Editar"
-                >
+                <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
+                <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
                   <Pencil :size="14" />
                 </button>
-
-                <button
-                  v-if="auth.isAdmin"
-                  class="btn-action danger"
-                  @click="darDeBaja(socio)"
-                  title="Dar de baja"
-                >
-                  ⛔
-                </button>
+                <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
               </div>
             </div>
 
@@ -262,57 +190,35 @@
                 <span class="info-label">DNI</span>
                 <span class="info-value mono">{{ socio.dni || "—" }}</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">Email</span>
                 <span class="info-value">{{ socio.email || "—" }}</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">Teléfono</span>
                 <span class="info-value">{{ socio.telefono || "—" }}</span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">Membresía</span>
                 <span class="info-value">
-                  <span
-                    v-if="socio.tipoSocioPenaNombre"
-                    class="badge badge-tipo"
-                  >
-                    {{ socio.tipoSocioPenaNombre }}
-                  </span>
+                  <span v-if="socio.tipoSocioPenaNombre" class="badge badge-tipo">{{ socio.tipoSocioPenaNombre }}</span>
                   <span v-else class="text-muted">—</span>
                 </span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">Boca</span>
                 <span class="info-value">
-                  <div
-                    v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca"
-                    class="boca-cell"
-                  >
-                    <span
-                      v-if="socio.tipoSocioBocaNombre"
-                      class="badge badge-boca"
-                    >
-                      {{ socio.tipoSocioBocaNombre }}
-                    </span>
-                    <span v-if="socio.numSocioBoca" class="boca-num">
-                      {{ socio.numSocioBoca }}
-                    </span>
+                  <div v-if="socio.tipoSocioBocaNombre || socio.numSocioBoca" class="boca-cell">
+                    <span v-if="socio.tipoSocioBocaNombre" class="badge badge-boca">{{ socio.tipoSocioBocaNombre }}</span>
+                    <span v-if="socio.numSocioBoca" class="boca-num">{{ socio.numSocioBoca }}</span>
                   </div>
                   <span v-else class="text-muted">—</span>
                 </span>
               </div>
-
               <div class="info-row">
                 <span class="info-label">Cobrador</span>
                 <span class="info-value">
-                  <span v-if="socio.cobradorNombre" class="cobrador-tag">
-                    {{ socio.cobradorNombre }}
-                  </span>
+                  <span v-if="socio.cobradorNombre" class="cobrador-tag">{{ socio.cobradorNombre }}</span>
                   <span v-else class="text-muted">—</span>
                 </span>
               </div>
@@ -321,45 +227,12 @@
         </div>
       </template>
 
-      <div class="pager">
-        <span class="pager-text">
-          Página <strong>{{ page }}</strong> de <strong>{{ totalPages }}</strong>
-        </span>
-
-        <div class="pager-btns">
-          <button
-            class="btn-secondary"
-            :disabled="loading || page <= 1"
-            @click="goToFirst"
-          >
-            «
-          </button>
-
-          <button
-            class="btn-secondary"
-            :disabled="loading || page <= 1"
-            @click="prevPage"
-          >
-            ‹ Anterior
-          </button>
-
-          <button
-            class="btn-secondary"
-            :disabled="loading || page >= totalPages"
-            @click="nextPage"
-          >
-            Siguiente ›
-          </button>
-
-          <button
-            class="btn-secondary"
-            :disabled="loading || page >= totalPages"
-            @click="goToLast"
-          >
-            »
-          </button>
-        </div>
-      </div>
+      <PaginadorComponent
+        :paginacion="{ page, totalPages, total }"
+        label="socios"
+        :loading="loading"
+        @cambiar="(p) => { page = p; loadSocios() }"
+      />
     </section>
   </div>
 </template>
@@ -371,6 +244,7 @@ import { sociosService } from "../../services/sociosService"
 import { useToast } from "../../composables/useToast"
 import { useAuthStore } from "../../stores/auth"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
+import PaginadorComponent from "../../components/ui/PaginadorComponent.vue"
 import { AlertTriangle, FolderOpen, Pencil } from "lucide-vue-next"
 
 const router = useRouter()
@@ -387,13 +261,10 @@ const pageSize = ref(10)
 const total = ref(0)
 const totalPages = ref(1)
 
-const hasActiveFilters = computed(() => {
-  return !!search.value.trim() || pageSize.value !== 10
-})
+const hasActiveFilters = computed(() => !!search.value.trim() || pageSize.value !== 10)
 
 function normalizePage(data) {
   const content = data?.data ?? data?.content ?? data?.items ?? []
-
   return {
     data: Array.isArray(content) ? content : [],
     total: Number(data?.total ?? data?.totalElements ?? content?.length ?? 0),
@@ -424,16 +295,13 @@ function initials(socio) {
 async function loadSocios() {
   loading.value = true
   errorMsg.value = ""
-
   try {
     const { data } = await sociosService.activos({
       page: page.value,
       pageSize: pageSize.value,
       search: search.value.trim() || undefined,
     })
-
     const parsed = normalizePage(data)
-
     rows.value = parsed.data
     total.value = parsed.total
     totalPages.value = Math.max(parsed.totalPages || 1, 1)
@@ -446,76 +314,20 @@ async function loadSocios() {
   }
 }
 
-function applyFilters() {
-  page.value = 1
-  loadSocios()
-}
-
-function clearFilters() {
-  search.value = ""
-  pageSize.value = 10
-  page.value = 1
-  loadSocios()
-}
-
-function refreshCurrentPage() {
-  loadSocios()
-}
-
-function prevPage() {
-  if (page.value > 1) {
-    page.value--
-    loadSocios()
-  }
-}
-
-function nextPage() {
-  if (page.value < totalPages.value) {
-    page.value++
-    loadSocios()
-  }
-}
-
-function goToFirst() {
-  if (page.value !== 1) {
-    page.value = 1
-    loadSocios()
-  }
-}
-
-function goToLast() {
-  if (page.value !== totalPages.value) {
-    page.value = totalPages.value
-    loadSocios()
-  }
-}
-
-function irImportarExcel() {
-  router.push("/socios/importar-excel")
-}
-
-function nuevoSocio() {
-  router.push("/socios/nuevo")
-}
-
-function verSocio(socio) {
-  router.push(`/socios/${socio.socioId}`)
-}
+function applyFilters() { page.value = 1; loadSocios() }
+function clearFilters() { search.value = ""; pageSize.value = 10; page.value = 1; loadSocios() }
+function refreshCurrentPage() { loadSocios() }
+function irImportarExcel() { router.push("/socios/importar-excel") }
+function nuevoSocio() { router.push("/socios/nuevo") }
+function verSocio(socio) { router.push(`/socios/${socio.socioId}`) }
 
 function editarSocio(socio) {
-  if (!auth.isAdmin) {
-    toast.warning("No tenés permiso para editar socios.")
-    return
-  }
-
+  if (!auth.isAdmin) { toast.warning("No tenés permiso para editar socios."); return }
   router.push(`/socios/${socio.socioId}/editar`)
 }
 
 async function darDeBaja(socio) {
-  if (!auth.isAdmin) {
-    toast.warning("No tenés permiso para dar de baja socios.")
-    return
-  }
+  if (!auth.isAdmin) { toast.warning("No tenés permiso para dar de baja socios."); return }
 
   const ok = await confirmModal.value.open({
     title: "Dar de baja",
@@ -529,11 +341,7 @@ async function darDeBaja(socio) {
   try {
     await sociosService.darDeBaja(socio.socioId)
     toast.success(`${fullName(socio)} fue dado de baja correctamente.`)
-
-    if (rows.value.length === 1 && page.value > 1) {
-      page.value--
-    }
-
+    if (rows.value.length === 1 && page.value > 1) page.value--
     await loadSocios()
   } catch (error) {
     console.error("Error dando de baja socio:", error)
@@ -541,25 +349,15 @@ async function darDeBaja(socio) {
   }
 }
 
-watch(pageSize, () => {
-  page.value = 1
-  loadSocios()
-})
+watch(pageSize, () => { page.value = 1; loadSocios() })
 
 let debounceTimer = null
-
 watch(search, () => {
   clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    page.value = 1
-    loadSocios()
-  }, 400)
+  debounceTimer = setTimeout(() => { page.value = 1; loadSocios() }, 400)
 })
 
-onBeforeUnmount(() => {
-  clearTimeout(debounceTimer)
-})
-
+onBeforeUnmount(() => clearTimeout(debounceTimer))
 onMounted(loadSocios)
 </script>
 
@@ -579,9 +377,7 @@ onMounted(loadSocios)
   gap: 16px;
 }
 
-.page-head-copy {
-  min-width: 0;
-}
+.page-head-copy { min-width: 0; }
 
 .eyebrow {
   margin: 0 0 4px;
@@ -645,13 +441,8 @@ onMounted(loadSocios)
   width: 100%;
 }
 
-.field-grow {
-  min-width: 0;
-}
-
-.field-sm {
-  width: 100%;
-}
+.field-grow { min-width: 0; }
+.field-sm { width: 100%; }
 
 .filters-actions {
   display: flex;
@@ -674,13 +465,9 @@ onMounted(loadSocios)
   color: var(--text-muted);
 }
 
-.meta-chip strong {
-  color: var(--primary);
-}
+.meta-chip strong { color: var(--primary); }
 
-.table-wrap {
-  padding: 22px;
-}
+.table-wrap { padding: 22px; }
 
 .table-top {
   display: flex;
@@ -708,9 +495,7 @@ onMounted(loadSocios)
   color: var(--text-muted);
 }
 
-.table-scroll {
-  overflow-x: auto;
-}
+.table-scroll { overflow-x: auto; }
 
 .data-table {
   width: 100%;
@@ -738,9 +523,7 @@ onMounted(loadSocios)
   font-size: 13px;
 }
 
-.data-table tbody tr:hover {
-  background: rgba(0, 59, 122, 0.02);
-}
+.data-table tbody tr:hover { background: rgba(0, 59, 122, 0.02); }
 
 .socio-cell {
   display: flex;
@@ -777,10 +560,7 @@ onMounted(loadSocios)
   line-height: 1.3;
 }
 
-.socio-alias {
-  font-size: 11px;
-  color: var(--text-muted);
-}
+.socio-alias { font-size: 11px; color: var(--text-muted); }
 
 .contact-cell {
   display: flex;
@@ -788,10 +568,7 @@ onMounted(loadSocios)
   gap: 2px;
 }
 
-.contact-cell span {
-  font-size: 13px;
-  word-break: break-word;
-}
+.contact-cell span { font-size: 13px; word-break: break-word; }
 
 .badge {
   display: inline-flex;
@@ -803,15 +580,8 @@ onMounted(loadSocios)
   font-weight: 800;
 }
 
-.badge-tipo {
-  background: rgba(0, 59, 122, 0.08);
-  color: var(--primary);
-}
-
-.badge-boca {
-  background: rgba(241, 180, 76, 0.15);
-  color: #9c6e1e;
-}
+.badge-tipo { background: rgba(0, 59, 122, 0.08); color: var(--primary); }
+.badge-boca { background: rgba(241, 180, 76, 0.15); color: #9c6e1e; }
 
 .cobrador-tag {
   display: inline-flex;
@@ -824,20 +594,9 @@ onMounted(loadSocios)
   font-weight: 800;
 }
 
-.mono {
-  font-family: monospace;
-  font-size: 12px;
-  color: var(--text-soft);
-}
-
-.text-muted {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.th-actions {
-  text-align: center;
-}
+.mono { font-family: monospace; font-size: 12px; color: var(--text-soft); }
+.text-muted { color: var(--text-muted); font-size: 12px; }
+.th-actions { text-align: center; }
 
 .row-actions {
   display: flex;
@@ -866,34 +625,13 @@ onMounted(loadSocios)
   transform: translateY(-1px);
 }
 
-.btn-action.danger {
-  border-color: #fecaca;
-  background: #fff5f5;
-  color: #dc2626;
-}
+.btn-action.danger { border-color: #fecaca; background: #fff5f5; color: #dc2626; }
+.btn-action.danger:hover { background: #fee2e2; }
 
-.btn-action.danger:hover {
-  background: #fee2e2;
-}
+.boca-cell { display: flex; flex-direction: column; gap: 4px; }
+.boca-num { font-size: 11px; color: var(--text-muted); font-family: monospace; }
 
-.boca-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.boca-num {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: monospace;
-}
-
-.skeleton-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+.skeleton-wrap { display: flex; flex-direction: column; gap: 10px; }
 .skeleton-row {
   height: 68px;
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -903,42 +641,16 @@ onMounted(loadSocios)
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.empty-state {
-  min-height: 220px;
-  display: grid;
-  place-items: center;
-}
+.empty-state { min-height: 220px; display: grid; place-items: center; }
+.empty-box { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; color: var(--text-muted); }
+.empty-icon { opacity: 0.6; }
+.error-state .empty-box { color: #dc2626; }
 
-.empty-box {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  color: var(--text-muted);
-}
-
-.empty-icon {
-  opacity: 0.6;
-}
-
-.error-state .empty-box {
-  color: #dc2626;
-}
-
-.mobile-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+.mobile-cards { display: flex; flex-direction: column; gap: 12px; }
 
 .socio-card {
   border: 1px solid var(--border);
@@ -955,11 +667,7 @@ onMounted(loadSocios)
   margin-bottom: 12px;
 }
 
-.socio-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.socio-card-body { display: flex; flex-direction: column; gap: 10px; }
 
 .info-row {
   display: flex;
@@ -969,149 +677,39 @@ onMounted(loadSocios)
   border-top: 1px solid var(--bg);
 }
 
-.info-label {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
+.info-label { font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); }
+.info-value { font-size: 13px; color: var(--text-soft); word-break: break-word; }
 
-.info-value {
-  font-size: 13px;
-  color: var(--text-soft);
-  word-break: break-word;
-}
+.desktop-only { display: block; }
+.mobile-only { display: none; }
 
-.pager {
-  margin-top: 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.pager-text {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.pager-text strong {
-  color: var(--primary);
-}
-
-.pager-btns {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.desktop-only {
-  display: block;
-}
-
-.mobile-only {
-  display: none;
-}
-
-.data-table th:nth-child(1) {
-  width: 260px;
-}
-.data-table th:nth-child(2) {
-  width: 110px;
-}
-.data-table th:nth-child(3) {
-  width: 190px;
-}
-.data-table th:nth-child(4) {
-  width: 130px;
-}
-.data-table th:nth-child(5) {
-  width: 130px;
-}
-.data-table th:nth-child(6) {
-  width: 130px;
-}
-.data-table th:nth-child(7) {
-  width: 110px;
-}
+.data-table th:nth-child(1) { width: 260px; }
+.data-table th:nth-child(2) { width: 110px; }
+.data-table th:nth-child(3) { width: 190px; }
+.data-table th:nth-child(4) { width: 130px; }
+.data-table th:nth-child(5) { width: 130px; }
+.data-table th:nth-child(6) { width: 130px; }
+.data-table th:nth-child(7) { width: 110px; }
 
 @media (max-width: 980px) {
-  .page-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .head-actions {
-    justify-content: stretch;
-  }
-
-  .filters-top {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-actions {
-    width: 100%;
-  }
-
-  .filters-actions button {
-    flex: 1;
-  }
-
-  .pager {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .page-head { flex-direction: column; align-items: stretch; }
+  .head-actions { justify-content: stretch; }
+  .filters-top { grid-template-columns: 1fr; }
+  .filters-actions { width: 100%; }
+  .filters-actions button { flex: 1; }
 }
 
 @media (max-width: 768px) {
-  .socios-page {
-    padding: 16px;
-  }
-
-  .desktop-only {
-    display: none;
-  }
-
-  .mobile-only {
-    display: flex;
-  }
-
-  .table-wrap,
-  .filters,
-  .page-head {
-    padding: 16px;
-  }
-
-  .pager-btns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-  }
-
-  .pager-btns button {
-    width: 100%;
-  }
+  .socios-page { padding: 16px; }
+  .desktop-only { display: none; }
+  .mobile-only { display: flex; }
+  .table-wrap, .filters, .page-head { padding: 16px; }
 }
 
 @media (max-width: 640px) {
-  .head-actions {
-    flex-direction: column;
-  }
-
-  .head-actions button,
-  .filters-actions button {
-    width: 100%;
-  }
-
-  .socio-card-head {
-    flex-direction: column;
-  }
-
-  .row-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
+  .head-actions { flex-direction: column; }
+  .head-actions button, .filters-actions button { width: 100%; }
+  .socio-card-head { flex-direction: column; }
+  .row-actions { width: 100%; justify-content: flex-start; }
 }
 </style>

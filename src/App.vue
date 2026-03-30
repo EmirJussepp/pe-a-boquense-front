@@ -1,7 +1,7 @@
 <template>
   <div class="nav-progress-bar" :class="{ active: navigating }" />
   <router-view v-slot="{ Component, route }">
-    <Transition :name="route.meta.transition ?? 'fade-page'" mode="out-in">
+    <Transition mode="out-in">
       <component :is="Component" :key="route.path" />
     </Transition>
   </router-view>

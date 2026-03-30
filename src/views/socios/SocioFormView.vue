@@ -168,8 +168,8 @@ async function cargarSelectores() {
     if (r1.status === "fulfilled") cobradores.value = r1.value.data ?? []
     if (r2.status === "fulfilled") tiposSocioPena.value = r2.value.data ?? []
     if (r3.status === "fulfilled") tiposSocioBoca.value = r3.value.data ?? []
-  } catch {
-    error.value = "No se pudieron cargar algunos datos del formulario."
+  } catch (err) {
+    error.value = err?.response?.data?.error || "No se pudieron cargar algunos datos del formulario."
   }
 }
 
@@ -198,8 +198,8 @@ async function cargarSocio() {
         provincia: data.localidadProvincia ?? "",
       }
     }
-  } catch {
-    error.value = "No se pudo cargar el socio."
+  } catch (err) {
+    error.value = err?.response?.data?.error || "No se pudo cargar el socio."
   }
 }
 
@@ -215,8 +215,12 @@ async function guardar() {
       toast.success("Socio creado correctamente.")
     }
     router.push("/socios/activos")
-  } catch {
-    error.value = "No se pudo guardar el socio. Revisá los datos e intentá de nuevo."
+  } catch (err) {
+    error.value =
+      err?.response?.data?.error ||
+      err?.response?.data?.message ||
+      err?.message ||
+      "No se pudo guardar el socio. Revisá los datos e intentá de nuevo."
   } finally {
     loading.value = false
   }
@@ -265,7 +269,6 @@ onMounted(async () => {
 
 .form-actions { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
 
-/* ── RESPONSIVO ───────────────────────── */
 @media (max-width: 900px) {
   .page-head { flex-direction: column; align-items: stretch; }
   .head-actions button { flex: 1; }

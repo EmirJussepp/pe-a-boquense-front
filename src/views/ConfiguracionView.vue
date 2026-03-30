@@ -316,8 +316,15 @@
           </div>
           <div v-if="!usuarioModal.editando" class="field">
             <label>Contraseña <span class="required">*</span></label>
+
             <input v-model="usuarioModal.form.password" type="password" placeholder="Mínimo 6 caracteres..." required minlength="6" />
           </div>
+
+<!-- 👈 agregá este bloque justo debajo -->
+<div v-if="!usuarioModal.editando" class="field">
+  <label>Confirmar contraseña <span class="required">*</span></label>
+  <input v-model="usuarioModal.form.confirmPassword" type="password" placeholder="Repetí la contraseña..." required />
+</div>
           <div v-if="usuarioModal.editando" class="field">
             <label>Estado</label>
             <div class="toggle-group">
@@ -470,7 +477,12 @@ const listas = reactive({
 })
 
 const usuarioModal = reactive({ abierto: false, editando: false, itemId: null, saving: false, form: {} })
-function defaultUsuarioForm() { return { nombre: "", email: "", password: "", activo: true, admin: false, cobrador: false, rolViajes: false, rolAlquileres: false } }
+function defaultUsuarioForm() {
+  return {
+    nombre: "", email: "", password: "", confirmPassword: "",  // 👈
+    activo: true, admin: false, cobrador: false, rolViajes: false, rolAlquileres: false
+  }
+}
 function abrirUsuarioModal(usuario = null) {
   usuarioModal.abierto = true; usuarioModal.editando = !!usuario; usuarioModal.itemId = usuario?.usuarioId ?? null
   usuarioModal.form = usuario ? { nombre: usuario.nombre, email: usuario.email, activo: usuario.activo, admin: usuario.admin, cobrador: usuario.cobrador, rolViajes: usuario.rolViajes, rolAlquileres: usuario.rolAlquileres } : defaultUsuarioForm()
@@ -481,6 +493,15 @@ async function guardarUsuario() {
   if (!String(f.nombre ?? "").trim()) { error.value = "El nombre es obligatorio."; return }
   if (!String(f.email ?? "").trim() || !f.email.includes("@")) { error.value = "Ingresá un email válido."; return }
   if (!usuarioModal.editando && (!f.password || f.password.length < 6)) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
+  if (!usuarioModal.editando && (!f.password || f.password.length < 6)) {
+  error.value = "La contraseña debe tener al menos 6 caracteres."
+  return
+}
+// 👈 agregar esto
+if (!usuarioModal.editando && f.password !== f.confirmPassword) {
+  error.value = "Las contraseñas no coinciden."
+  return
+}
   usuarioModal.saving = true
   try {
     if (usuarioModal.editando) {
