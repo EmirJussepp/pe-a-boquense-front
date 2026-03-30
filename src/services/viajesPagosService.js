@@ -15,4 +15,8 @@ export const viajesPagosService = {
    actualizar(id, payload) {                              // 👈 nuevo
     return http.put(`/viajes-pagos/${id}`, payload)
   },
+   eliminar(id) {                              // 👈 nuevo
+    return http.delete(`/viajes-pagos/${id}`)
+  },
+
 }

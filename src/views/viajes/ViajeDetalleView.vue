@@ -14,7 +14,9 @@
 
       <div class="head-actions">
         <button class="btn-secondary" @click="volver">Volver</button>
-        <button v-if="viaje" class="btn-secondary" @click="editarViaje"><Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar</button>
+        <button v-if="viaje" class="btn-secondary" @click="editarViaje">
+          <Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar
+        </button>
         <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pago</button>
       </div>
     </section>
@@ -49,12 +51,7 @@
         <div class="filters-top">
           <div class="field field-grow">
             <label>Buscar pago</label>
-            <input
-              v-model="search"
-              type="text"
-              placeholder="Nombre, apellido o DNI..."
-              @keyup.enter="applyFilters"
-            />
+            <input v-model="search" type="text" placeholder="Nombre, apellido o DNI..." @keyup.enter="applyFilters" />
           </div>
           <div class="field field-sm">
             <label>Por página</label>
@@ -79,7 +76,9 @@
 
       <!-- RESUMEN POR MÉTODO DE PAGO -->
       <section v-if="resumenPorMetodo.length" class="card metodos-card">
-        <h3 class="metodos-title"><CreditCard :size="16" style="vertical-align:-2px;margin-right:6px" />Recaudación por método de pago</h3>
+        <h3 class="metodos-title">
+          <CreditCard :size="16" style="vertical-align:-2px;margin-right:6px" />Recaudación por método de pago
+        </h3>
         <div class="metodos-grid">
           <div v-for="item in resumenPorMetodo" :key="item.metodoPagoId" class="metodo-item">
             <span class="metodo-nombre">{{ item.nombre }}</span>
@@ -141,12 +140,13 @@
                   <td class="money-cell">$ {{ formatoMoneda(p.monto) }}</td>
                   <td>
                     <div class="row-actions">
-                      <button class="btn-action" @click="abrirEdicion(p)" title="Editar pago"><Pencil :size="14" /></button>
-                      <button
-                        class="btn-action btn-action-danger"
-                        title="Eliminar pago (próximamente)"
-                        disabled
-                      ><Trash2 :size="14" /></button>
+                      <button class="btn-action" @click="abrirEdicion(p)" title="Editar pago">
+                        <Pencil :size="14" />
+                      </button>
+                      <button class="btn-action btn-action-danger" title="Eliminar pago"
+                        :disabled="eliminandoId === p.viajePagoId" @click="eliminarPago(p)">
+                        <Trash2 :size="14" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -163,13 +163,20 @@
                   <span class="mono">{{ p.dni || "—" }}</span>
                 </div>
                 <div class="pago-card-actions-head">
-                  <button class="btn-action" @click="abrirEdicion(p)" title="Editar"><Pencil :size="14" /></button>
-                  <button class="btn-action btn-action-danger" title="Próximamente" disabled><Trash2 :size="14" /></button>
+                  <button class="btn-action" @click="abrirEdicion(p)" title="Editar">
+                    <Pencil :size="14" />
+                  </button>
+                  <button class="btn-action btn-action-danger" title="Próximamente" disabled>
+                    <Trash2 :size="14" />
+                  </button>
                 </div>
               </div>
-              <div class="info-row"><span class="info-label">Método</span><span class="info-value">{{ metodoNombre(p.metodoPagoId) }}</span></div>
-              <div class="info-row"><span class="info-label">Cobrador</span><span class="info-value">{{ cobradorNombre(p.cobradorId) }}</span></div>
-              <div class="info-row"><span class="info-label">Monto</span><span class="info-value money-cell">$ {{ formatoMoneda(p.monto) }}</span></div>
+              <div class="info-row"><span class="info-label">Método</span><span class="info-value">{{
+                metodoNombre(p.metodoPagoId) }}</span></div>
+              <div class="info-row"><span class="info-label">Cobrador</span><span class="info-value">{{
+                cobradorNombre(p.cobradorId) }}</span></div>
+              <div class="info-row"><span class="info-label">Monto</span><span class="info-value money-cell">$ {{
+                  formatoMoneda(p.monto) }}</span></div>
             </article>
           </div>
         </template>
@@ -179,7 +186,8 @@
           <div class="pager-btns">
             <button class="btn-secondary" :disabled="loadingPagos || page <= 1" @click="goToFirst">«</button>
             <button class="btn-secondary" :disabled="loadingPagos || page <= 1" @click="prevPage">‹ Anterior</button>
-            <button class="btn-secondary" :disabled="loadingPagos || page >= totalPages" @click="nextPage">Siguiente ›</button>
+            <button class="btn-secondary" :disabled="loadingPagos || page >= totalPages" @click="nextPage">Siguiente
+              ›</button>
             <button class="btn-secondary" :disabled="loadingPagos || page >= totalPages" @click="goToLast">»</button>
           </div>
         </div>
@@ -200,7 +208,9 @@
           <div class="modal-box card">
             <div class="modal-head">
               <h2>Editar pago</h2>
-              <button class="btn-icon close-btn" @click="cerrarEdicion"><X :size="16" /></button>
+              <button class="btn-icon close-btn" @click="cerrarEdicion">
+                <X :size="16" />
+              </button>
             </div>
 
             <div class="modal-body">
@@ -224,13 +234,15 @@
                 <div class="field">
                   <label>Método de pago</label>
                   <select v-model.number="editForm.metodoPagoId">
-                    <option v-for="m in metodosPago" :key="m.metodoPagoId" :value="m.metodoPagoId">{{ m.nombre }}</option>
+                    <option v-for="m in metodosPago" :key="m.metodoPagoId" :value="m.metodoPagoId">{{ m.nombre }}
+                    </option>
                   </select>
                 </div>
                 <div class="field">
                   <label>Cobrador</label>
                   <select v-model.number="editForm.cobradorId">
-                    <option v-for="c in cobradores" :key="c.cobradorId ?? c.cobradoresId" :value="Number(c.cobradorId ?? c.cobradoresId)">{{ c.nombre }}</option>
+                    <option v-for="c in cobradores" :key="c.cobradorId ?? c.cobradoresId"
+                      :value="Number(c.cobradorId ?? c.cobradoresId)">{{ c.nombre }}</option>
                   </select>
                 </div>
               </div>
@@ -285,6 +297,27 @@ const cobradores = ref([])
 // Todos los pagos del viaje (sin paginar) para calcular el resumen por método
 const todosPagos = ref([])
 
+
+// --- Soft delete ---
+const eliminandoId = ref(null)
+
+async function eliminarPago(pago) {
+  const confirmado = confirm(`¿Eliminar el pago de ${nombreCompletoPago(pago)}?`)
+  if (!confirmado) return
+
+  eliminandoId.value = pago.viajePagoId
+  try {
+    await viajesPagosService.eliminar(pago.viajePagoId)
+    toast.success("Pago eliminado correctamente.")
+    await loadPagos()
+      await loadTodosPagos()   
+  } catch (e) {
+    toast.error(e?.response?.data?.message ?? "No se pudo eliminar el pago.")
+  } finally {
+    eliminandoId.value = null
+  }
+}
+
 const hasActiveFilters = computed(() => !!search.value.trim() || pageSize.value !== 10)
 const tableStatusText = computed(() => {
   if (!total.value) return "Sin resultados para mostrar."
@@ -310,11 +343,11 @@ const resumenPorMetodo = computed(() => {
   return [...mapa.values()].sort((a, b) => b.total - a.total)
 })
 
-const editando      = ref(false)
+const editando = ref(false)
 const pagoEnEdicion = ref(null)
-const savingEdit    = ref(false)
-const editError     = ref("")
-const editForm      = reactive({
+const savingEdit = ref(false)
+const editError = ref("")
+const editForm = reactive({
   viajeId: null, monto: "", nombre: "", apellido: "", dni: "", metodoPagoId: null, cobradorId: null,
 })
 
@@ -372,14 +405,14 @@ async function loadTodosPagos() {
 
 function applyFilters() { page.value = 1; loadPagos() }
 function clearFilters() { search.value = ""; pageSize.value = 10; page.value = 1; loadPagos() }
-function prevPage()  { if (page.value > 1) { page.value--; loadPagos() } }
-function nextPage()  { if (page.value < totalPages.value) { page.value++; loadPagos() } }
+function prevPage() { if (page.value > 1) { page.value--; loadPagos() } }
+function nextPage() { if (page.value < totalPages.value) { page.value++; loadPagos() } }
 function goToFirst() { if (page.value !== 1) { page.value = 1; loadPagos() } }
-function goToLast()  { if (page.value !== totalPages.value) { page.value = totalPages.value; loadPagos() } }
+function goToLast() { if (page.value !== totalPages.value) { page.value = totalPages.value; loadPagos() } }
 
-function volver()      { router.push("/viajes") }
+function volver() { router.push("/viajes") }
 function editarViaje() { if (!viaje.value?.viajeBomboneraId) return; router.push(`/viajes/${viaje.value.viajeBomboneraId}/editar`) }
-function nuevoPago()   { if (!viaje.value?.viajeBomboneraId) return; router.push(`/viajes/${viaje.value.viajeBomboneraId}/pago`) }
+function nuevoPago() { if (!viaje.value?.viajeBomboneraId) return; router.push(`/viajes/${viaje.value.viajeBomboneraId}/pago`) }
 
 function metodoNombre(id) { const item = metodosPago.value.find(m => Number(m.metodoPagoId) === Number(id)); return item?.nombre || `#${id}` }
 function cobradorNombre(id) { const item = cobradores.value.find(c => Number(c.cobradorId ?? c.cobradoresId ?? c.id) === Number(id)); return item?.nombre || `#${id}` }
@@ -410,11 +443,17 @@ function cerrarEdicion() { editando.value = false; pagoEnEdicion.value = null; e
 async function guardarEdicion() {
   if (!pagoEnEdicion.value) return
   savingEdit.value = true; editError.value = ""
-  try { await viajesPagosService.actualizar(pagoEnEdicion.value.viajePagoId, { ...editForm }); cerrarEdicion(); await loadPagos() }
-  catch (e) { editError.value = e?.response?.data?.message ?? "Error al guardar. Intentá de nuevo." }
-  finally { savingEdit.value = false }
+  try {
+    await viajesPagosService.actualizar(pagoEnEdicion.value.viajePagoId, { ...editForm })
+    cerrarEdicion()
+    await loadPagos()
+    await loadTodosPagos()   // 👈 esta línea faltaba
+  } catch (e) {
+    editError.value = e?.response?.data?.message ?? "Error al guardar. Intentá de nuevo."
+  } finally {
+    savingEdit.value = false
+  }
 }
-
 watch(pageSize, () => { page.value = 1; loadPagos() })
 let debounceTimer = null
 watch(search, () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { page.value = 1; loadPagos() }, 400) })
@@ -423,112 +462,501 @@ onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await
 </script>
 
 <style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.page-head { padding: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-.page-head-copy { min-width: 0; }
-.eyebrow { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 800; }
-.page-head h1 { margin: 0 0 4px; font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 900; color: var(--primary); }
-.page-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
-.head-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-.loading-card, .empty-card { padding: 22px; }
+.page-head {
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-head-copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.page-head h1 {
+  margin: 0 0 4px;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.head-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.loading-card,
+.empty-card {
+  padding: 22px;
+}
 
 /* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.stat-card { padding: 18px; }
-.stat-label { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
-.stat-value { margin: 0; font-size: 1.5rem; font-weight: 900; color: var(--primary); line-height: 1.2; }
-.stat-text { font-size: 1rem; font-weight: 800; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  padding: 18px;
+}
+
+.stat-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.stat-text {
+  font-size: 1rem;
+  font-weight: 800;
+}
 
 /* Filters */
-.filters { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.filters-top { display: grid; grid-template-columns: minmax(0, 1fr) 140px auto; gap: 12px; align-items: end; }
-.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.field label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.field-grow { min-width: 0; }
-.field-sm { width: 100%; }
-.filters-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.filters-meta { display: flex; gap: 10px; flex-wrap: wrap; }
-.meta-chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 12px; color: var(--text-muted); }
-.meta-chip strong { color: var(--primary); }
+.filters {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filters-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.field-grow {
+  min-width: 0;
+}
+
+.field-sm {
+  width: 100%;
+}
+
+.filters-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.meta-chip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.meta-chip strong {
+  color: var(--primary);
+}
 
 /* Table */
-.table-wrap { padding: 22px; }
-.table-top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; justify-content: space-between; flex-wrap: wrap; }
-.table-top h2 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); }
-.table-top-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.count-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.table-status { margin: 0; font-size: 12px; color: var(--text-muted); }
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.data-table { width: 100%; min-width: 680px; border-collapse: collapse; table-layout: fixed; }
-.data-table th { text-align: left; padding: 10px 14px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 800; background: #f8fafc; border-bottom: 2px solid var(--border); }
-.data-table td { padding: 14px; border-bottom: 1px solid var(--bg); vertical-align: middle; font-size: 13px; }
-.data-table tbody tr:hover { background: rgba(0,59,122,0.02); }
-.th-actions { text-align: center; }
-.row-actions { display: flex; gap: 6px; justify-content: center; }
+.table-wrap {
+  padding: 22px;
+}
+
+.table-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.table-top h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.table-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.count-badge {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.table-status {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 800;
+  background: #f8fafc;
+  border-bottom: 2px solid var(--border);
+}
+
+.data-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--bg);
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 59, 122, 0.02);
+}
+
+.th-actions {
+  text-align: center;
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
 
 /* Botones de acción en tabla */
 .btn-action {
-  width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
-  background: white; cursor: pointer; font-size: 14px;
-  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
 }
-.btn-action:hover:not(:disabled) { background: var(--bg); border-color: var(--primary); transform: translateY(-1px); }
-.btn-action-danger { border-color: #fecaca; background: #fff5f5; }
-.btn-action-danger:hover:not(:disabled) { background: #fee2e2; }
-.btn-action:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.money-cell { font-weight: 800; color: var(--primary); }
-.mono { font-family: monospace; font-size: 12px; color: var(--text-soft); }
+.btn-action:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.btn-action-danger {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.btn-action-danger:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.money-cell {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.mono {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-soft);
+}
 
 /* Resumen por método de pago */
-.metodos-card { padding: 20px; }
-.metodos-title { margin: 0 0 16px; font-size: 15px; font-weight: 800; color: var(--primary); }
-.metodos-grid { display: flex; flex-direction: column; gap: 10px; }
+.metodos-card {
+  padding: 20px;
+}
+
+.metodos-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.metodos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .metodo-item {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 12px; padding: 12px 16px;
-  background: var(--bg); border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-radius: 10px;
   border-left: 4px solid var(--accent);
 }
-.metodo-nombre { font-size: 14px; font-weight: 700; color: var(--primary); }
-.metodo-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-.metodo-cantidad { font-size: 12px; color: var(--text-muted); font-weight: 600; }
-.metodo-monto { font-size: 16px; font-weight: 900; color: var(--primary); }
+
+.metodo-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.metodo-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.metodo-cantidad {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.metodo-monto {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--primary);
+}
 
 /* Skeleton */
-.skeleton-wrap { display: flex; flex-direction: column; gap: 10px; }
-.skeleton-row { height: 68px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 12px; }
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-.empty-state { min-height: 220px; display: grid; place-items: center; }
-.empty-box { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; color: var(--text-muted); }
-.empty-icon { opacity: 0.6; }
-.error-state .empty-box { color: #dc2626; }
+.skeleton-row {
+  height: 68px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.empty-state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.empty-box {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  opacity: 0.6;
+}
+
+.error-state .empty-box {
+  color: #dc2626;
+}
 
 /* Mobile cards */
-.mobile-cards { display: flex; flex-direction: column; gap: 12px; }
-.pago-card { border: 1px solid var(--border); border-radius: 16px; padding: 14px; background: white; display: flex; flex-direction: column; gap: 8px; }
-.pago-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.pasajero-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pasajero-info strong { font-size: 14px; font-weight: 700; color: var(--primary); }
-.pago-card-actions-head { display: flex; gap: 6px; flex-shrink: 0; }
-.info-row { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid var(--bg); }
-.info-label { font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); }
-.info-value { font-size: 13px; color: var(--text-soft); word-break: break-word; }
+.mobile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pago-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pago-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pasajero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pasajero-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.pago-card-actions-head {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bg);
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.info-value {
+  font-size: 13px;
+  color: var(--text-soft);
+  word-break: break-word;
+}
 
 /* Pager */
-.pager { margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.pager-text { font-size: 13px; color: var(--text-muted); }
-.pager-text strong { color: var(--primary); }
-.pager-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.pager {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-.desktop-only { display: block; }
-.mobile-only  { display: none; }
+.pager-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pager-text strong {
+  color: var(--primary);
+}
+
+.pager-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
 
 /* Modal */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
 .modal-box {
   width: min(520px, 100%);
   max-height: 90vh;
@@ -538,53 +966,188 @@ onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await
   gap: 0;
   padding: 0;
 }
-.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
-.modal-head h2 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary); }
-.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 0; }
-.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); flex-wrap: wrap; }
-.error-msg { color: #e53e3e; font-size: 13px; margin: 12px 0 0; }
-.btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 6px; }
-.btn-icon:hover { background: var(--bg); }
-.close-btn { font-size: 1.1rem; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.error-msg {
+  color: #e53e3e;
+  font-size: 13px;
+  margin: 12px 0 0;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.btn-icon:hover {
+  background: var(--bg);
+}
+
+.close-btn {
+  font-size: 1.1rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
 /* ── RESPONSIVO ─────────────────────────── */
 @media (max-width: 1100px) {
-  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 980px) {
-  .page-head { flex-direction: column; align-items: stretch; }
-  .head-actions { justify-content: stretch; }
-  .filters-top { grid-template-columns: 1fr; }
-  .filters-actions { width: 100%; }
-  .filters-actions button { flex: 1; }
-  .pager { flex-direction: column; align-items: stretch; }
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .head-actions {
+    justify-content: stretch;
+  }
+
+  .filters-top {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-actions {
+    width: 100%;
+  }
+
+  .filters-actions button {
+    flex: 1;
+  }
+
+  .pager {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 768px) {
-  .desktop-only { display: none; }
-  .mobile-only { display: flex; }
-  .page-head, .filters, .table-wrap { padding: 16px; }
-  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .pager-btns { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
-  .pager-btns button { width: 100%; }
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: flex;
+  }
+
+  .page-head,
+  .filters,
+  .table-wrap {
+    padding: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .pager-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .pager-btns button {
+    width: 100%;
+  }
 
   /* Modal como sheet desde abajo en mobile */
-  .modal-backdrop { align-items: flex-end; padding: 0; }
-  .modal-box { width: 100%; max-height: 92vh; border-radius: 16px 16px 0 0; }
-  .modal-grid { grid-template-columns: 1fr; }
-  .modal-foot { flex-direction: column; }
-  .modal-foot button { width: 100%; }
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-foot {
+    flex-direction: column;
+  }
+
+  .modal-foot button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
-  .head-actions { flex-direction: column; }
-  .head-actions button, .filters-actions button { width: 100%; }
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat-card { padding: 14px; }
-  .stat-value { font-size: 1.2rem; }
+  .head-actions {
+    flex-direction: column;
+  }
+
+  .head-actions button,
+  .filters-actions button {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
 }
 </style>
