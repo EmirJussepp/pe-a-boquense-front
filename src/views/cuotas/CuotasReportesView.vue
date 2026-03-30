@@ -8,17 +8,17 @@
       </div>
 
       <button class="btn-export" @click="exportarExcel" :disabled="loadingAny">
-        <span class="export-icon">📥</span>
+        <Download :size="16" class="export-icon" />
         Exportar Excel
       </button>
     </header>
 
     <div v-if="errores.length" class="error-banner">
-      <span class="error-icon">⚠️</span>
+      <AlertTriangle class="error-icon" :size="16" />
       <div class="error-list">
         <span v-for="errorItem in errores" :key="errorItem">{{ errorItem }}</span>
       </div>
-      <button class="error-close" @click="errores = []">✕</button>
+      <button class="error-close" @click="errores = []"><X :size="14" /></button>
     </div>
 
     <section class="card filter-card">
@@ -91,18 +91,18 @@
                 <tr>
                   <th>#</th>
                   <th @click="ordenarDeudores('apellido')" class="sortable">
-                    SOCIO <span class="sort-icon">{{ getIcono("apellido") }}</span>
+                    SOCIO <component :is="sortIcon('apellido')" :size="12" class="sort-icon" />
                   </th>
                   <th>DNI</th>
                   <th>COBRADOR</th>
                   <th @click="ordenarDeudores('cuotasPendientes')" class="sortable">
-                    PEND. <span class="sort-icon">{{ getIcono("cuotasPendientes") }}</span>
+                    PEND. <component :is="sortIcon('cuotasPendientes')" :size="12" class="sort-icon" />
                   </th>
                   <th @click="ordenarDeudores('cuotasVencidas')" class="sortable">
-                    VENC. <span class="sort-icon">{{ getIcono("cuotasVencidas") }}</span>
+                    VENC. <component :is="sortIcon('cuotasVencidas')" :size="12" class="sort-icon" />
                   </th>
                   <th @click="ordenarDeudores('deudaEmitidaTotal')" class="sortable">
-                    DEUDA TOTAL <span class="sort-icon">{{ getIcono("deudaEmitidaTotal") }}</span>
+                    DEUDA TOTAL <component :is="sortIcon('deudaEmitidaTotal')" :size="12" class="sort-icon" />
                   </th>
                 </tr>
               </thead>
@@ -180,6 +180,7 @@ import { reportesService } from "../../services/reportesService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import * as XLSX from "xlsx"
+import { AlertTriangle, X, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-vue-next"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -243,9 +244,9 @@ function ordenarDeudores(columna) {
   if (ordenCol.value === columna) { ordenDir.value = ordenDir.value === "asc" ? "desc" : "asc"; return }
   ordenCol.value = columna; ordenDir.value = "desc"
 }
-function getIcono(columna) {
-  if (ordenCol.value !== columna) return "↕"
-  return ordenDir.value === "asc" ? "↑" : "↓"
+function sortIcon(columna) {
+  if (ordenCol.value !== columna) return ArrowUpDown
+  return ordenDir.value === "asc" ? ArrowUp : ArrowDown
 }
 
 const totalCuotas = computed(() => {
@@ -356,7 +357,7 @@ onMounted(async () => { await cargarCobradores(); await cargarTodo() })
 .hero-description { color: var(--text-muted); font-size: 14px; margin: 0; }
 
 .error-banner { display: flex; align-items: flex-start; gap: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; color: #991b1b; font-size: 13px; }
-.error-icon { font-size: 16px; flex-shrink: 0; }
+.error-icon { flex-shrink: 0; }
 .error-list { display: flex; flex-direction: column; gap: 4px; flex: 1; font-weight: 600; }
 .error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 14px; flex-shrink: 0; padding: 0 4px; }
 

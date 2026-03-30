@@ -130,7 +130,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>Eliminar alquiler</h3>
-          <button class="modal-close" type="button" @click="cerrarModal">✕</button>
+          <button class="modal-close" type="button" @click="cerrarModal"><X :size="16" /></button>
         </div>
         <div class="modal-body">
           <p>¿Confirmas que querés eliminar el alquiler de <strong>{{ modalEliminar.alquiler?.nombre || "este cliente" }}</strong>?</p>
@@ -152,6 +152,7 @@ import { computed, onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 import { alquileresService } from "../../services/alquileresService"
 import { useToast } from "../../composables/useToast"
+import { X } from "lucide-vue-next"
 
 const router = useRouter()
 const toast = useToast()

@@ -28,4 +28,10 @@ descargarCuponesSocio(socioId) {
 morosos(meses = 3) {
   return http.get("/cuotas/morosos", { params: { meses } })
 },
+
+listarCuponesPeriodo(periodo, cobradorId = null) {
+  const params = {}
+  if (cobradorId) params.cobradorId = cobradorId
+  return http.get(`/cupones/periodo/${periodo}`, { params })
+},
 }

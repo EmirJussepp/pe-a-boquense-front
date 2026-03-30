@@ -9,9 +9,9 @@
     </section>
 
     <div v-if="error" class="error-banner">
-      <span>⚠️</span>
+      <AlertTriangle :size="16" style="flex-shrink:0" />
       <span class="error-msg">{{ error }}</span>
-      <button class="error-close" @click="error = null">✕</button>
+      <button class="error-close" @click="error = null"><X :size="14" /></button>
     </div>
 
     <transition name="toast">
@@ -21,7 +21,7 @@
     <div class="tabs-bar">
       <button v-for="tab in tabs" :key="tab.key" class="tab-btn" :class="{ active: tabActivo === tab.key }"
         @click="cambiarTab(tab.key)">
-        <span>{{ tab.icon }}</span>
+        <component :is="tab.icon" :size="18" />
         <span class="tab-label">{{ tab.label }}</span>
       </button>
     </div>
@@ -267,7 +267,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>{{ modal.editando ? "Editar" : "Nuevo" }} — {{ tabLabel }}</h3>
-          <button class="modal-close" @click="cerrarModal">✕</button>
+          <button class="modal-close" @click="cerrarModal"><X :size="16" /></button>
         </div>
         <form @submit.prevent="guardarModal" class="modal-form">
           <div class="field">
@@ -301,7 +301,7 @@
       <div class="modal-card modal-card-lg">
         <div class="modal-header">
           <h3>{{ usuarioModal.editando ? "Editar usuario" : "Nuevo usuario" }}</h3>
-          <button class="modal-close" @click="cerrarUsuarioModal">✕</button>
+          <button class="modal-close" @click="cerrarUsuarioModal"><X :size="16" /></button>
         </div>
         <form @submit.prevent="guardarUsuario" class="modal-form">
           <div class="form-grid-2">
@@ -366,7 +366,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>Cambiar contraseña — {{ pwModal.nombre }}</h3>
-          <button class="modal-close" @click="cerrarPwModal">✕</button>
+          <button class="modal-close" @click="cerrarPwModal"><X :size="16" /></button>
         </div>
         <form @submit.prevent="guardarPassword" class="modal-form">
           <div class="field">
@@ -392,7 +392,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>{{ modal.editando ? "Editar cobrador" : "Nuevo cobrador" }}</h3>
-          <button class="modal-close" @click="cerrarModal">✕</button>
+          <button class="modal-close" @click="cerrarModal"><X :size="16" /></button>
         </div>
         <form @submit.prevent="guardarModal" class="modal-form">
           <div class="form-grid-2">
@@ -438,14 +438,15 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue"
 import { http } from "../services/http"
+import { Users, Trophy, Home, CreditCard, Receipt, Lock, AlertTriangle, X } from "lucide-vue-next"
 
 const tabs = [
-  { key: "tipos-socio-pena", label: "Tipos Socio Peña", icon: "👥" },
-  { key: "tipos-socio-boca", label: "Tipos Socio Boca", icon: "🏟️" },
-  { key: "salones", label: "Salones", icon: "🏠" },
-  { key: "metodos-pago", label: "Métodos de Pago", icon: "💳" },
-  { key: "cobradores", label: "Cobradores", icon: "🧾" },
-  { key: "usuarios", label: "Usuarios", icon: "🔐" },
+  { key: "tipos-socio-pena", label: "Tipos Socio Peña", icon: Users },
+  { key: "tipos-socio-boca", label: "Tipos Socio Boca", icon: Trophy },
+  { key: "salones", label: "Salones", icon: Home },
+  { key: "metodos-pago", label: "Métodos de Pago", icon: CreditCard },
+  { key: "cobradores", label: "Cobradores", icon: Receipt },
+  { key: "usuarios", label: "Usuarios", icon: Lock },
 ]
 
 const config = {
@@ -488,7 +489,7 @@ async function guardarUsuario() {
       await http.post("/usuarios", { nombre: f.nombre.trim(), email: f.email.trim(), password: f.password, admin: f.admin, cobrador: f.cobrador, rolViajes: f.rolViajes, rolAlquileres: f.rolAlquileres })
     }
     const wasEditing = usuarioModal.editando; cerrarUsuarioModal(); await cargarTab("usuarios")
-    mostrarToast(wasEditing ? "✅ Usuario actualizado." : "✅ Usuario creado correctamente.")
+    mostrarToast(wasEditing ? "Usuario actualizado." : "Usuario creado correctamente.")
   } catch (e) {
     error.value = e?.response?.data?.error ?? "No se pudo guardar el usuario."
   } finally { usuarioModal.saving = false }
@@ -502,7 +503,7 @@ async function guardarPassword() {
   if (pwModal.newPassword.length < 6) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
   if (pwModal.newPassword !== pwModal.confirm) { error.value = "Las contraseñas no coinciden."; return }
   pwModal.saving = true
-  try { await http.patch(`/usuarios/${pwModal.itemId}/password`, { newPassword: pwModal.newPassword }); cerrarPwModal(); mostrarToast("✅ Contraseña actualizada correctamente.") }
+  try { await http.patch(`/usuarios/${pwModal.itemId}/password`, { newPassword: pwModal.newPassword }); cerrarPwModal(); mostrarToast("Contraseña actualizada correctamente.") }
   catch { error.value = "No se pudo cambiar la contraseña." }
   finally { pwModal.saving = false }
 }
@@ -548,7 +549,7 @@ function buildPayload() {
 async function guardarModal() {
   const validacion = validarModal(); if (validacion) { error.value = validacion; return }
   modal.saving = true; error.value = null; const { endpoint } = config[tabActivo.value]
-  try { const payload = buildPayload(); if (modal.editando) { await http.put(`${endpoint}/${modal.itemId}`, payload) } else { await http.post(endpoint, payload) }; cerrarModal(); await cargarTab(tabActivo.value); mostrarToast(`✅ ${modal.editando ? "Cambios guardados." : "Creado correctamente."}`) }
+  try { const payload = buildPayload(); if (modal.editando) { await http.put(`${endpoint}/${modal.itemId}`, payload) } else { await http.post(endpoint, payload) }; cerrarModal(); await cargarTab(tabActivo.value); mostrarToast(modal.editando ? "Cambios guardados." : "Creado correctamente.") }
   catch { error.value = "No se pudo guardar. Revisá los datos e intentá de nuevo." }
   finally { modal.saving = false }
 }

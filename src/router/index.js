@@ -46,6 +46,12 @@ const routes = [
         component: () => import("../views/cuotas/CuotasReportesView.vue"),
         meta: { perms: [PERMS.CUOTAS_VER] },
       },
+      {
+        path: "cuotas/cupones-periodo",
+        name: "cuotas-cupones-periodo",
+        component: () => import("../views/cuotas/CuponesPeriodoView.vue"),
+        meta: { perms: [PERMS.CUOTAS_VER] },
+      },
 
       // ── Viajes ──────────────────────────────────────────
       // ── Viajes ──────────────────────────────────────────

@@ -81,14 +81,14 @@
 
       <div v-else-if="errorMsg" class="empty-state error-state">
         <div class="empty-box">
-          <span class="empty-icon">⚠️</span>
+          <AlertTriangle class="empty-icon" :size="28" />
           <p>{{ errorMsg }}</p>
         </div>
       </div>
 
       <div v-else-if="!rows.length" class="empty-state">
         <div class="empty-box">
-          <span class="empty-icon">🗂️</span>
+          <FolderOpen class="empty-icon" :size="28" />
           <p>No se encontraron socios dados de baja.</p>
         </div>
       </div>
@@ -258,6 +258,7 @@ import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue"
 import { sociosService } from "../../services/sociosService"
 import { useToast } from "../../composables/useToast"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
+import { AlertTriangle, FolderOpen } from "lucide-vue-next"
 
 const toast = useToast()
 const confirmModal = ref(null)
@@ -394,7 +395,6 @@ async function reactivar(socio) {
   if (!id) return
 
   const ok = await confirmModal.value.open({
-    icon: "↩️",
     title: "Reactivar socio",
     message: `¿Confirmás reactivar a ${fullName(socio)}? Volverá a la lista de socios activos.`,
     confirmLabel: "Reactivar",
@@ -780,7 +780,7 @@ onMounted(loadSocios)
 }
 
 .empty-icon {
-  font-size: 28px;
+  opacity: 0.6;
 }
 
 .error-state .empty-box {

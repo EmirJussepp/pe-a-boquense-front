@@ -8,7 +8,7 @@
           class="toast-item"
           :class="t.tipo"
         >
-          <span class="toast-icon">{{ icons[t.tipo] }}</span>
+          <component :is="icons[t.tipo]" :size="16" class="toast-icon" />
           <span class="toast-text">{{ t.texto }}</span>
         </div>
       </TransitionGroup>
@@ -18,14 +18,15 @@
 
 <script setup>
 import { useToast } from "../../composables/useToast"
+import { Check, X, Info, AlertTriangle } from "lucide-vue-next"
 
 const { toasts } = useToast()
 
 const icons = {
-  success: "✓",
-  error: "✕",
-  info: "ℹ",
-  warning: "⚠",
+  success: Check,
+  error: X,
+  info: Info,
+  warning: AlertTriangle,
 }
 </script>
 
@@ -61,8 +62,6 @@ const icons = {
 .toast-item.warning { background: #9c6e1e; color: white; }
 
 .toast-icon {
-  font-size: 15px;
-  font-weight: 900;
   flex-shrink: 0;
 }
 

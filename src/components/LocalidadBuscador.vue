@@ -17,8 +17,8 @@
         @focus="onFocus"
         @blur="onBlur"
       />
-      <span v-if="buscando" class="input-spinner">⏳</span>
-      <button v-if="valorSeleccionado" class="btn-clear" type="button" @click="limpiar">✕</button>
+      <Loader v-if="buscando" :size="14" class="input-spinner" />
+      <button v-if="valorSeleccionado" class="btn-clear" type="button" @click="limpiar"><X :size="14" /></button>
     </div>
 
     <!-- Valor seleccionado -->
@@ -54,6 +54,7 @@
 <script setup>
 import { ref, watch } from "vue"
 import { http } from "../services/http"
+import { X, Loader } from "lucide-vue-next"
 
 const props = defineProps({
   modelValue: { type: Number, default: null },
@@ -189,7 +190,8 @@ function moverArriba() {
 }
 .buscador-input:focus { outline: none; border-color: var(--primary); background: white; }
 
-.input-spinner { position: absolute; right: 10px; font-size: 12px; }
+.input-spinner { position: absolute; right: 10px; animation: spin 1s linear infinite; color: var(--text-muted, #94a3b8); }
+@keyframes spin { to { transform: rotate(360deg); } }
 .btn-clear {
   position: absolute; right: 8px;
   background: none; border: none; cursor: pointer;

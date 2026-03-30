@@ -1,6 +1,10 @@
 <template>
   <div class="nav-progress-bar" :class="{ active: navigating }" />
-  <router-view />
+  <router-view v-slot="{ Component, route }">
+    <Transition :name="route.meta.transition ?? 'fade-page'" mode="out-in">
+      <component :is="Component" :key="route.path" />
+    </Transition>
+  </router-view>
   <ToastContainer />
 </template>
 
@@ -34,5 +38,19 @@ router.afterEach(() => { navigating.value = false })
 .nav-progress-bar.active {
   transform: scaleX(0.85);
   opacity: 1;
+}
+
+/* ── Transición de páginas ───────────────────────────── */
+.fade-page-enter-active,
+.fade-page-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.fade-page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.fade-page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

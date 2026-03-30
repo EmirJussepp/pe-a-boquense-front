@@ -20,7 +20,7 @@
           <input type="file" accept=".xlsx,.xls" @change="onFileChange" />
         </div>
 
-        <p v-if="fileError" class="error-text">⚠️ {{ fileError }}</p>
+        <p v-if="fileError" class="error-text"><AlertTriangle :size="14" style="vertical-align:-2px;margin-right:4px" />{{ fileError }}</p>
 
         <div class="help-box">
           <div class="help-header">
@@ -56,7 +56,7 @@
         </div>
 
         <p v-if="selectedFile && !fileError" class="file-name">
-          📄 <strong>{{ selectedFile.name }}</strong>
+          <FileText :size="14" style="vertical-align:-2px;margin-right:4px" /><strong>{{ selectedFile.name }}</strong>
           <span class="file-size">({{ fileSizeLabel }})</span>
         </p>
 
@@ -66,10 +66,10 @@
 
     <section v-if="resultado" class="card result-card">
       <div v-if="importadoOk" class="import-banner success">
-        ✅ Se importaron <strong>{{ resultado.cantidadValidos }}</strong> socios correctamente.
+        <CheckCircle :size="16" style="vertical-align:-3px;margin-right:6px" />Se importaron <strong>{{ resultado.cantidadValidos }}</strong> socios correctamente.
       </div>
       <div v-else-if="resultado.errores?.length" class="import-banner warning">
-        ⚠️ No se importó ningún socio. Corregí los errores y volvé a intentar.
+        <AlertTriangle :size="16" style="vertical-align:-3px;margin-right:6px" />No se importó ningún socio. Corregí los errores y volvé a intentar.
       </div>
 
       <div class="result-head">
@@ -126,6 +126,7 @@ import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 import { sociosService } from "../../services/sociosService"
 import { useToast } from "../../composables/useToast"
+import { AlertTriangle, CheckCircle, FileText } from "lucide-vue-next"
 
 const router = useRouter()
 const toast = useToast()

@@ -14,7 +14,7 @@
 
       <div class="head-actions">
         <button class="btn-secondary" @click="volver">Volver</button>
-        <button v-if="viaje" class="btn-secondary" @click="editarViaje">✏️ Editar</button>
+        <button v-if="viaje" class="btn-secondary" @click="editarViaje"><Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar</button>
         <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pago</button>
       </div>
     </section>
@@ -79,7 +79,7 @@
 
       <!-- RESUMEN POR MÉTODO DE PAGO -->
       <section v-if="resumenPorMetodo.length" class="card metodos-card">
-        <h3 class="metodos-title">💳 Recaudación por método de pago</h3>
+        <h3 class="metodos-title"><CreditCard :size="16" style="vertical-align:-2px;margin-right:6px" />Recaudación por método de pago</h3>
         <div class="metodos-grid">
           <div v-for="item in resumenPorMetodo" :key="item.metodoPagoId" class="metodo-item">
             <span class="metodo-nombre">{{ item.nombre }}</span>
@@ -106,14 +106,14 @@
 
         <div v-else-if="errorMsg" class="empty-state error-state">
           <div class="empty-box">
-            <span class="empty-icon">⚠️</span>
+            <AlertTriangle class="empty-icon" :size="28" />
             <p>{{ errorMsg }}</p>
           </div>
         </div>
 
         <div v-else-if="!rows.length" class="empty-state">
           <div class="empty-box">
-            <span class="empty-icon">💳</span>
+            <CreditCard class="empty-icon" :size="28" />
             <p>No hay pagos registrados para este viaje.</p>
           </div>
         </div>
@@ -141,12 +141,12 @@
                   <td class="money-cell">$ {{ formatoMoneda(p.monto) }}</td>
                   <td>
                     <div class="row-actions">
-                      <button class="btn-action" @click="abrirEdicion(p)" title="Editar pago">✏️</button>
+                      <button class="btn-action" @click="abrirEdicion(p)" title="Editar pago"><Pencil :size="14" /></button>
                       <button
                         class="btn-action btn-action-danger"
                         title="Eliminar pago (próximamente)"
                         disabled
-                      >🗑️</button>
+                      ><Trash2 :size="14" /></button>
                     </div>
                   </td>
                 </tr>
@@ -163,8 +163,8 @@
                   <span class="mono">{{ p.dni || "—" }}</span>
                 </div>
                 <div class="pago-card-actions-head">
-                  <button class="btn-action" @click="abrirEdicion(p)" title="Editar">✏️</button>
-                  <button class="btn-action btn-action-danger" title="Próximamente" disabled>🗑️</button>
+                  <button class="btn-action" @click="abrirEdicion(p)" title="Editar"><Pencil :size="14" /></button>
+                  <button class="btn-action btn-action-danger" title="Próximamente" disabled><Trash2 :size="14" /></button>
                 </div>
               </div>
               <div class="info-row"><span class="info-label">Método</span><span class="info-value">{{ metodoNombre(p.metodoPagoId) }}</span></div>
@@ -188,7 +188,7 @@
 
     <section v-else class="card empty-card">
       <div class="empty-box">
-        <span class="empty-icon">🚌</span>
+        <Bus class="empty-icon" :size="28" />
         <p>No se pudo cargar el viaje.</p>
       </div>
     </section>
@@ -200,7 +200,7 @@
           <div class="modal-box card">
             <div class="modal-head">
               <h2>Editar pago</h2>
-              <button class="btn-icon close-btn" @click="cerrarEdicion">✕</button>
+              <button class="btn-icon close-btn" @click="cerrarEdicion"><X :size="16" /></button>
             </div>
 
             <div class="modal-body">
@@ -259,6 +259,7 @@ import { viajesPagosService } from "../../services/viajesPagosService"
 import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
+import { AlertTriangle, CreditCard, Bus, X, Pencil, Trash2 } from "lucide-vue-next"
 
 const route = useRoute()
 const router = useRouter()
@@ -503,7 +504,7 @@ onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await
 
 .empty-state { min-height: 220px; display: grid; place-items: center; }
 .empty-box { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; color: var(--text-muted); }
-.empty-icon { font-size: 28px; }
+.empty-icon { opacity: 0.6; }
 .error-state .empty-box { color: #dc2626; }
 
 /* Mobile cards */

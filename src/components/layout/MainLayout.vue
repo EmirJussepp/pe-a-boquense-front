@@ -70,6 +70,7 @@
             </button>
             <div v-if="openSubmenus.cuotas && (!sidebarCollapsed || mobileOpen)" class="submenu">
               <RouterLink to="/cuotas/cobranzas" class="submenu-item" @click="mobileOpen = false">Cobranzas</RouterLink>
+              <RouterLink to="/cuotas/cupones-periodo" class="submenu-item" @click="mobileOpen = false">Cupones por Período</RouterLink>
               <RouterLink v-if="auth.isAdmin" to="/cuotas/reportes" class="submenu-item" @click="mobileOpen = false">Reportes</RouterLink>
             </div>
           </div>
@@ -440,6 +441,7 @@ function handleGroupClick(menu) {
   align-items: center;
   gap: 8px;
 }
+
 
 .content-viewport {
   flex-grow: 1;

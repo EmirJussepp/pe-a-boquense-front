@@ -29,7 +29,7 @@
 
     <!-- ERROR -->
     <div v-if="error" class="error-banner">
-      <span>⚠️</span>
+      <AlertTriangle :size="16" style="flex-shrink:0" />
       <span>{{ error }}</span>
     </div>
 
@@ -44,7 +44,7 @@
 
       <!-- DATOS PERSONALES -->
       <section class="card detalle-card">
-        <h2 class="section-title">👤 Datos personales</h2>
+        <h2 class="section-title"><User :size="18" style="vertical-align:-3px;margin-right:6px" />Datos personales</h2>
         <div class="detalle-grid">
           <div class="detalle-item">
             <label>DNI</label>
@@ -98,7 +98,7 @@
 
       <!-- MEMBRESÍA -->
       <section class="card detalle-card">
-        <h2 class="section-title">🏟️ Membresía</h2>
+        <h2 class="section-title"><Trophy :size="18" style="vertical-align:-3px;margin-right:6px" />Membresía</h2>
         <div class="detalle-grid">
           <div class="detalle-item">
             <label>Cobrador</label>
@@ -124,6 +124,7 @@
 import { computed, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { sociosService } from "../../services/sociosService"
+import { AlertTriangle, User, Trophy } from "lucide-vue-next"
 
 const route = useRoute()
 const router = useRouter()

@@ -150,7 +150,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>Eliminar movimiento</h3>
-          <button class="modal-close" type="button" @click="cerrarModal">✕</button>
+          <button class="modal-close" type="button" @click="cerrarModal"><X :size="16" /></button>
         </div>
         <div class="modal-body">
           <p>
@@ -178,6 +178,7 @@ import { useRouter } from "vue-router"
 import { movimientosService } from "../../services/movimientosService"
 import { useAuthStore } from "../../stores/auth"
 import { useToast } from "../../composables/useToast"
+import { X } from "lucide-vue-next"
 
 const router = useRouter()
 const auth = useAuthStore()

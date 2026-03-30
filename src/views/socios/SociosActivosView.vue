@@ -92,14 +92,14 @@
 
       <div v-else-if="errorMsg" class="empty-state error-state">
         <div class="empty-box">
-          <span class="empty-icon">⚠️</span>
+          <AlertTriangle class="empty-icon" :size="28" />
           <p>{{ errorMsg }}</p>
         </div>
       </div>
 
       <div v-else-if="!rows.length" class="empty-state">
         <div class="empty-box">
-          <span class="empty-icon">🗂️</span>
+          <FolderOpen class="empty-icon" :size="28" />
           <p>No se encontraron socios activos.</p>
         </div>
       </div>
@@ -193,7 +193,7 @@
                       @click="editarSocio(socio)"
                       title="Editar"
                     >
-                      ✏️
+                      <Pencil :size="14" />
                     </button>
 
                     <button
@@ -243,7 +243,7 @@
                   @click="editarSocio(socio)"
                   title="Editar"
                 >
-                  ✏️
+                  <Pencil :size="14" />
                 </button>
 
                 <button
@@ -371,6 +371,7 @@ import { sociosService } from "../../services/sociosService"
 import { useToast } from "../../composables/useToast"
 import { useAuthStore } from "../../stores/auth"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
+import { AlertTriangle, FolderOpen, Pencil } from "lucide-vue-next"
 
 const router = useRouter()
 const toast = useToast()
@@ -517,7 +518,6 @@ async function darDeBaja(socio) {
   }
 
   const ok = await confirmModal.value.open({
-    icon: "⚠️",
     title: "Dar de baja",
     message: `¿Confirmás dar de baja a ${fullName(socio)}? Pasará a la lista de socios inactivos.`,
     confirmLabel: "Dar de baja",
@@ -927,7 +927,7 @@ onMounted(loadSocios)
 }
 
 .empty-icon {
-  font-size: 28px;
+  opacity: 0.6;
 }
 
 .error-state .empty-box {

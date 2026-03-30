@@ -14,9 +14,9 @@
     </section>
 
     <div v-if="error" class="error-banner">
-      <span>⚠️</span>
+      <AlertTriangle :size="16" style="flex-shrink:0" />
       <span class="error-msg">{{ error }}</span>
-      <button class="error-close" @click="error = null">✕</button>
+      <button class="error-close" @click="error = null"><X :size="14" /></button>
     </div>
 
     <form class="card form-card" @submit.prevent="guardar">
@@ -126,6 +126,7 @@ import { sociosService } from "../../services/sociosService"
 import { http } from "../../services/http"
 import { useToast } from "../../composables/useToast"
 import LocalidadBuscador from "../../components/LocalidadBuscador.vue"
+import { AlertTriangle, X } from "lucide-vue-next"
 
 const router = useRouter()
 const route = useRoute()

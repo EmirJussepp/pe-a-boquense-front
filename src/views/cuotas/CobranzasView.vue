@@ -12,9 +12,9 @@
     </header>
 
     <div v-if="error" class="error-banner">
-      <span class="error-icon">⚠️</span>
+      <AlertTriangle class="error-icon" :size="16" />
       <span class="error-msg">{{ error }}</span>
-      <button class="error-close" type="button" @click="error = null">✕</button>
+      <button class="error-close" type="button" @click="error = null"><X :size="14" /></button>
     </div>
 
     <div class="dashboard-layout">
@@ -48,30 +48,6 @@
             </div>
           </form>
 
-          <div v-if="auth.isAdmin ? cobradorSeleccionadoId : auth.cobradorId" class="cupon-section">
-            <h3 class="card-subtitle">GENERAR CUPONES</h3>
-            <div class="cupon-controls">
-              <div class="field-container" style="margin: 0">
-                <label class="field-label">Período</label>
-                <input
-                  v-model="periodoSeleccionadoDisplay"
-                  type="month"
-                  class="dark-input"
-                  @change="onPeriodoChange"
-                />
-              </div>
-              <button type="button" class="btn-cupon" :disabled="descargandoCobrador" @click="imprimirCuponesCobrador">
-                <span class="btn-cupon-inner">
-                  <svg class="cupon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="M17 17H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"/>
-                    <path d="M7 17v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2"/>
-                    <line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/>
-                  </svg>
-                  {{ descargandoCobrador ? "Generando..." : "Cupones del cobrador" }}
-                </span>
-              </button>
-            </div>
-          </div>
         </section>
 
         <section class="card table-card">
@@ -90,19 +66,19 @@
                   <th>SEL.</th>
                   <th @click="establecerOrden('socioApellido')" class="sortable">
                     SOCIO / DNI
-                    <span class="sort-icon">{{ getIconoOrden("socioApellido") }}</span>
+                    <component :is="sortIcon('socioApellido')" :size="12" class="sort-icon" />
                   </th>
                   <th @click="establecerOrden('periodo')" class="sortable">
                     PERÍODO
-                    <span class="sort-icon">{{ getIconoOrden("periodo") }}</span>
+                    <component :is="sortIcon('periodo')" :size="12" class="sort-icon" />
                   </th>
                   <th @click="establecerOrden('fechaVencimiento')" class="sortable">
                     VENCIMIENTO
-                    <span class="sort-icon">{{ getIconoOrden("fechaVencimiento") }}</span>
+                    <component :is="sortIcon('fechaVencimiento')" :size="12" class="sort-icon" />
                   </th>
                   <th @click="establecerOrden('montoAPagar')" class="sortable">
                     MONTO
-                    <span class="sort-icon">{{ getIconoOrden("montoAPagar") }}</span>
+                    <component :is="sortIcon('montoAPagar')" :size="12" class="sort-icon" />
                   </th>
                   <th>ESTADO</th>
                   <th>CUPÓN</th>
@@ -148,7 +124,7 @@
                       @click="imprimirCuponSocio(cuota)"
                       title="Imprimir cupón del socio"
                     >
-                      <span v-if="descargandoSocio === cuota.socioId" class="cupon-spinner">⏳</span>
+                      <Loader v-if="descargandoSocio === cuota.socioId" :size="15" class="cupon-spinner" />
                       <svg v-else class="cupon-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 17H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"/>
                         <path d="M7 17v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2"/>
@@ -159,14 +135,7 @@
                 </tr>
               </tbody>
             </table>
-            <div v-if="paginacion.totalPages > 1" class="paginador">
-              <button class="btn-pag" :disabled="paginacion.page === 1" @click="cambiarPagina(paginacion.page - 1)">‹ Anterior</button>
-              <span class="pag-info">
-                Página {{ paginacion.page }} de {{ paginacion.totalPages }}
-                <span class="pag-total">({{ paginacion.total }} cuotas)</span>
-              </span>
-              <button class="btn-pag" :disabled="paginacion.page === paginacion.totalPages" @click="cambiarPagina(paginacion.page + 1)">Siguiente ›</button>
-            </div>
+            <PaginadorComponent :paginacion="paginacion" label="cuotas" @cambiar="cambiarPagina" />
           </div>
         </section>
       </main>
@@ -188,7 +157,7 @@
             <div v-else class="method-buttons">
               <button v-for="metodo in metodosPago" :key="metodo.id" type="button" class="btn-method"
                 :class="{ active: metodoPagoId === metodo.id }" @click="metodoPagoId = metodo.id">
-                <span v-if="metodo.icono" class="method-icon">{{ metodo.icono }}</span>
+                <component :is="metodo.icono" :size="15" class="method-icon" />
                 {{ metodo.nombre }}
               </button>
             </div>
@@ -228,7 +197,9 @@ import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
-import LogoPena from "../../assets/logochico.png"
+import PaginadorComponent from "../../components/ui/PaginadorComponent.vue"
+import { useCuponPrinting } from "../../composables/useCuponPrinting"
+import { AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Banknote, Building2, CreditCard, Smartphone, QrCode, Wallet, Loader } from "lucide-vue-next"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -251,222 +222,11 @@ const error = ref(null)
 const cobradores = ref([])
 const cobradorSeleccionadoId = ref(null)
 
-const paginacion = ref({ total: 0, page: 1, pageSize: 20, totalPages: 1 })
+const paginacion = ref({ total: 0, page: 1, pageSize: 10, totalPages: 1 })
 
-const periodoSeleccionado = ref((() => {
-  const now = new Date()
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`
-})())
-
-const periodoSeleccionadoDisplay = computed({
-  get() {
-    const v = periodoSeleccionado.value
-    return v.length === 6 ? `${v.slice(0, 4)}-${v.slice(4, 6)}` : v
-  },
-  set(val) {
-    periodoSeleccionado.value = val.replace("-", "")
-  }
-})
-
-function onPeriodoChange(event) {
-  const val = event.target.value
-  periodoSeleccionado.value = val.replace("-", "")
-}
-
-const descargandoCobrador = ref(false)
 const descargandoSocio = ref(null)
 
-const THEME = { blue: '#003a70', yellow: '#f6c011', text: '#0b3c5d' }
-const CLUB = {
-  nombreLinea1: 'ASOCIACIÓN CIVIL',
-  nombreLinea2: 'PEÑA BOQUENSE SAN FRANCISCO',
-  nombreLinea3: 'ANTONIO UBALDO RATTÍN'
-}
-
-const logoDataUrl = ref('')
-const ensureLogoDataUrl = async () => {
-  if (logoDataUrl.value) return
-  try {
-    const resp = await fetch(LogoPena, { cache: 'force-cache' })
-    const blob = await resp.blob()
-    const dataUrl = await new Promise((res, rej) => {
-      const r = new FileReader()
-      r.onload = () => res(r.result)
-      r.onerror = rej
-      r.readAsDataURL(blob)
-    })
-    logoDataUrl.value = String(dataUrl || '')
-  } catch {
-    logoDataUrl.value = LogoPena
-  }
-}
-
-const CUPON_STYLES = `
-  *{box-sizing:border-box}
-  :root{ --blue:${THEME.blue}; --yellow:${THEME.yellow}; --text:${THEME.text}; }
-  @page{ size: A4 portrait; margin: 8mm }
-  html,body{
-    width:210mm;max-width:210mm;margin:0 auto;color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
-    background:#f7f9fc;
-  }
-  .ticket{
-    max-width:740px;
-    margin:0 auto 20px;
-    border:2px solid var(--blue);
-    border-radius:10px;
-    overflow:hidden;
-    background:#fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
-    page-break-inside:avoid;
-  }
-  .hdr{display:grid;grid-template-columns:auto 1fr;position:relative}
-  .hdr-left{display:flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:10px 14px}
-  .escudo{width:60px;height:auto;flex-shrink:0;background:none;border:none;border-radius:0;display:grid;place-items:center;overflow:visible;}
-  .escudo img{width:60px;height:auto;display:block;object-fit:contain}
-  .club{line-height:1.1;text-transform:uppercase}
-  .club .l1{display:block;font-weight:700;opacity:.95;font-size:.7rem}
-  .club .l2{display:block;font-weight:1000;letter-spacing:.4px;font-size:.9rem}
-  .club .l3{display:block;font-weight:800;opacity:.95;font-size:.8rem}
-  .hdr-right{display:flex;align-items:center;justify-content:flex-end;padding:8px 12px;background:#f8fafc;gap:10px}
-  .comprob span{display:block;font-size:.7rem;color:#475569;font-weight:800}
-  .comprob strong{display:block;font-size:1rem;color:var(--blue);letter-spacing:.5px}
-  .faja{position:absolute;left:0;right:0;bottom:-1px;height:5px;background:var(--yellow)}
-  .hdr-stub{display:block;background:var(--blue);color:#fff;padding:12px 8px;text-align:center;position:relative;}
-  .hdr-stub .escudo img{width:45px;margin-bottom:4px}
-  .hdr-stub .club .l1{font-size:.6rem}
-  .hdr-stub .club .l2{font-size:.8rem;letter-spacing:.25px}
-  .hdr-stub .club .l3{font-size:.7rem}
-  .hdr-stub .pill{display:inline-block;background:var(--yellow);color:var(--blue);font-weight:1000;border-radius:999px;padding:3px 10px;font-size:.7rem;margin:6px 0 3px;}
-  .hdr-stub .sub{font-size:.8rem;font-weight:900;letter-spacing:.2px;margin-top:2px;color:#dbeafe}
-  .hdr-stub .faja{position:absolute;left:0;right:0;bottom:-1px;height:4px;background:var(--yellow)}
-  .cup-body{display:flex;align-items:stretch;gap:4px}
-  .lado-cobrador{flex:2;min-width:0}
-  .lado-socio{flex:0.8;min-width:190px;background:#fcfdff;border-left:1px dashed #cbd5e1}
-  .body{padding:12px 16px}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 14px;margin-bottom:10px}
-  .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #e6e9f2}
-  .lbl{color:#64748b;font-weight:900;font-size:.9rem}
-  .val{font-weight:900;font-size:.9rem}
-  .mono{font-variant-numeric:tabular-nums}
-  .importe .lbl{color:var(--blue)}
-  .importe .val{font-size:1.1rem;color:var(--blue)}
-  .firmas{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:20px 0 6px;padding-top:6px;}
-  .firma-box .linea{height:1.3px;background:#475569;margin:28px 0 8px}
-  .firma-box .label{font-size:.85rem;color:#475569;text-align:center}
-  .stub{padding:10px 12px}
-  .stub .kvg{display:grid;gap:8px}
-  .stub .kv{display:flex;justify-content:space-between;gap:6px}
-  .stub .kv .k{font-size:.78rem;color:#64748b;font-weight:900}
-  .stub .kv .v{font-weight:1000;font-size:.85rem}
-  .stub .monto{font-size:.95rem;color:var(--blue)}
-  @media print{body{margin:0;zoom:100%;}.ticket{border:none;border-bottom:1px dashed #ddd;border-radius:0;page-break-inside:avoid;}}
-`
-
-const safe = (s) => String(s ?? '').replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))
-const fechaCorta = (v) => {
-  if (!v) return '—'
-  const d = new Date(v)
-  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR')
-}
-const formatoPeriodoCupon = (periodo) => {
-  const value = String(periodo ?? '')
-  return value.length === 6 ? `${value.slice(4, 6)}/${value.slice(0, 4)}` : value
-}
-
-const buildCuponHTML = (cuota) => {
-  const LOGO = logoDataUrl.value || LogoPena
-  const header = `
-    <div class="hdr">
-      <div class="hdr-left">
-        <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
-        <div class="club">
-          <span class="l1">${safe(CLUB.nombreLinea1)}</span>
-          <span class="l2">${safe(CLUB.nombreLinea2)}</span>
-          <span class="l3">${safe(CLUB.nombreLinea3)}</span>
-        </div>
-      </div>
-      <div class="hdr-right">
-        <div class="comprob">
-          <span>COMPROBANTE</span>
-          <strong>#${String(cuota.id).padStart(8,'0')}</strong>
-        </div>
-      </div>
-      <div class="faja"></div>
-    </div>`
-  const headerStub = `
-    <div class="hdr-stub">
-      <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
-      <div class="club">
-        <span class="l1">${safe(CLUB.nombreLinea1)}</span>
-        <span class="l2">${safe(CLUB.nombreLinea2)}</span>
-        <span class="l3">${safe(CLUB.nombreLinea3)}</span>
-      </div>
-      <div class="pill">RECIBO PARA EL SOCIO</div>
-      <div class="sub">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</div>
-      <div class="faja"></div>
-    </div>`
-  return `
-  <section class="ticket">
-    <div class="cup-body">
-      <div class="lado-cobrador">
-        ${header}
-        <div class="body">
-          <div class="grid">
-            <div class="row"><span class="lbl">Socio</span><span class="val">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</span></div>
-            <div class="row"><span class="lbl">DNI</span><span class="val mono">${safe(cuota.socioDni)}</span></div>
-            <div class="row"><span class="lbl">Período</span><span class="val">${formatoPeriodoCupon(cuota.periodo)}</span></div>
-            <div class="row"><span class="lbl">Vencimiento</span><span class="val mono">${fechaCorta(cuota.fechaVencimiento)}</span></div>
-            <div class="row importe"><span class="lbl">TOTAL</span><span class="val mono">$ ${formatMoney(cuota.montoAPagar)}</span></div>
-          </div>
-          <div class="firmas">
-            <div class="firma-box"><div class="linea"></div><div class="label">Firma del socio</div></div>
-            <div class="firma-box"><div class="linea"></div><div class="label">Firma del cobrador</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="lado-socio">
-        ${headerStub}
-        <div class="stub">
-          <div class="kvg">
-            <div class="kv"><span class="k">Período</span><span class="v">${formatoPeriodoCupon(cuota.periodo)}</span></div>
-            <div class="kv"><span class="k">Monto</span><span class="v mono monto">$ ${formatMoney(cuota.montoAPagar)}</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>`
-}
-
-const printHTML = (html) => {
-  const iframe = document.createElement('iframe')
-  Object.assign(iframe.style, { position: 'fixed', right: '0', bottom: '0', width: '0', height: '0', border: '0' })
-  iframe.setAttribute('aria-hidden', 'true')
-  document.body.appendChild(iframe)
-  const win = iframe.contentWindow
-  const doc = win.document
-  doc.open(); doc.write(html); doc.close()
-  const fallback = setTimeout(() => { try { win.focus(); win.print() } catch {} }, 1500)
-  win.addEventListener('afterprint', () => { clearTimeout(fallback); setTimeout(() => document.body.removeChild(iframe), 300) })
-}
-
-const wrapCuponesHTML = (ticketsHTML, titulo) => `
-  <!doctype html><html lang="es"><head>
-    <meta charset="utf-8"><title>${titulo}</title>
-    <style>${CUPON_STYLES}</style>
-  </head><body>
-    ${ticketsHTML}
-    <script>
-      (async () => {
-        try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e){}
-        try {
-          const imgs = Array.from(document.images);
-          await Promise.all(imgs.map(img => img.decode ? img.decode().catch(()=>{}) : Promise.resolve()));
-        } catch(e){}
-        window.print();
-      })();
-    <\/script>
-  </body></html>`
+const { ensureLogoDataUrl, buildCuponHTML, printHTML, wrapCuponesHTML } = useCuponPrinting()
 
 const pageTitle = computed(() =>
   auth.isCobrador && !auth.isAdmin ? "Tus cobranzas" : "Gestión de Cuotas"
@@ -491,14 +251,12 @@ function normalizeCuota(item) {
 
 function resolveMetodoIcono(nombre) {
   const value = String(nombre || "").toLowerCase()
-  if (value.includes("efectivo")) return "💵"
-  if (value.includes("transfer")) return "🏦"
-  if (value.includes("tarjeta")) return "💳"
-  if (value.includes("debito")) return "💳"
-  if (value.includes("crédito") || value.includes("credito")) return "💳"
-  if (value.includes("mercado pago")) return "💙"
-  if (value.includes("qr")) return "📱"
-  return "💰"
+  if (value.includes("efectivo")) return Banknote
+  if (value.includes("transfer")) return Building2
+  if (value.includes("tarjeta") || value.includes("debito") || value.includes("crédito") || value.includes("credito")) return CreditCard
+  if (value.includes("mercado pago")) return Smartphone
+  if (value.includes("qr")) return QrCode
+  return Wallet
 }
 
 function normalizeMetodoPago(item) {
@@ -545,9 +303,9 @@ function establecerOrden(columna) {
   if (ordenColumna.value === columna) { ordenSentido.value = ordenSentido.value === "asc" ? "desc" : "asc"; return }
   ordenColumna.value = columna; ordenSentido.value = "asc"
 }
-function getIconoOrden(columna) {
-  if (ordenColumna.value !== columna) return "↕"
-  return ordenSentido.value === "asc" ? "↑" : "↓"
+function sortIcon(columna) {
+  if (ordenColumna.value !== columna) return ArrowUpDown
+  return ordenSentido.value === "asc" ? ArrowUp : ArrowDown
 }
 function isPaid(cuota) { return cuota?.estado === "PAGADA" || cuota?.estado === "EXENTA" }
 function formatMoney(value) {
@@ -603,7 +361,7 @@ function cambiarPagina(nuevaPagina) { paginacion.value.page = nuevaPagina; busca
 async function pagarSeleccionadas() {
   if (!selectedIds.value.length || !metodoPagoId.value) return
   const ok = await confirmModal.value.open({
-    icon: "💳", title: "Confirmar pago",
+    title: "Confirmar pago",
     message: `¿Confirmás el pago de ${resumenPagoTexto.value}`,
     confirmLabel: "Confirmar pago", variant: "success",
   })
@@ -628,17 +386,6 @@ async function imprimirCuponSocio(cuota) {
   finally { descargandoSocio.value = null }
 }
 
-async function imprimirCuponesCobrador() {
-  if (!cuotas.value.length) { toast.info("No hay cuotas cargadas para imprimir. Realizá una búsqueda primero."); return }
-  descargandoCobrador.value = true
-  try {
-    await ensureLogoDataUrl()
-    const pendientes = cuotas.value.filter(c => !isPaid(c))
-    if (!pendientes.length) { toast.info("No hay cuotas pendientes para el período seleccionado."); return }
-    printHTML(wrapCuponesHTML(pendientes.map(buildCuponHTML).join(''), `Cupones cobrador – ${formatPeriodo(periodoSeleccionado.value)}`))
-  } catch { toast.error("No se pudieron generar los cupones.") }
-  finally { descargandoCobrador.value = false }
-}
 
 function limpiarBusqueda() { filtroBusqueda.value = ""; buscarCuotas() }
 
@@ -694,7 +441,7 @@ onMounted(async () => {
   background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
   padding: 14px 18px; margin-bottom: 20px; color: #991b1b; font-size: 13px; font-weight: 600;
 }
-.error-icon { font-size: 16px; flex-shrink: 0; }
+.error-icon { flex-shrink: 0; }
 .error-msg { flex: 1; }
 .error-close { background: none; border: none; color: #991b1b; cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0; }
 
@@ -793,6 +540,8 @@ onMounted(async () => {
 .btn-cupon-row:active:not(:disabled) { transform: translateY(0); }
 .btn-cupon-row:disabled { opacity: 0.4; cursor: not-allowed; }
 .cupon-row-icon { width: 15px; height: 15px; color: #f5c518; flex-shrink: 0; }
+.cupon-spinner { flex-shrink: 0; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .summary-card { overflow: hidden; box-sizing: border-box; width: 100%; }
 .summary-title { font-size: 18px; font-weight: 900; margin-bottom: 20px; color: var(--primary); }

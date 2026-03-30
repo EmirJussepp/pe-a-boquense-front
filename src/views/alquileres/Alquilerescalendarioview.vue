@@ -54,7 +54,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>{{ formatearFechaLarga(diaSeleccionado.fecha) }}</h3>
-          <button class="modal-close" type="button" @click="diaSeleccionado = null">✕</button>
+          <button class="modal-close" type="button" @click="diaSeleccionado = null"><X :size="16" /></button>
         </div>
 
         <div v-if="!diaSeleccionado.alquileres.length" class="empty-state-sm">
@@ -96,6 +96,7 @@
 import { computed, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { alquileresService } from "../../services/alquileresService"
+import { X } from "lucide-vue-next"
 
 const router = useRouter()
 

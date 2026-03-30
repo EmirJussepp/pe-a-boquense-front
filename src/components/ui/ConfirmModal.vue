@@ -3,7 +3,9 @@
     <Transition name="modal">
       <div v-if="visible" class="modal-overlay" @click.self="cancel">
         <div class="modal-box">
-          <div class="modal-icon">{{ config.icon }}</div>
+          <div class="modal-icon">
+            <component :is="iconComponent" :size="42" :stroke-width="1.5" />
+          </div>
           <h3 class="modal-title">{{ config.title }}</h3>
           <p class="modal-msg">{{ config.message }}</p>
           <div class="modal-actions">
@@ -23,22 +25,30 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue"
+import { ref, reactive, computed } from "vue"
+import { AlertTriangle, CheckCircle, CreditCard, Info } from "lucide-vue-next"
+
+const variantIcons = {
+  danger: AlertTriangle,
+  success: CheckCircle,
+  warning: AlertTriangle,
+  info: Info,
+}
 
 const visible = ref(false)
 const config = reactive({
-  icon: "⚠️",
   title: "",
   message: "",
   confirmLabel: "Confirmar",
   variant: "danger",
 })
 
+const iconComponent = computed(() => variantIcons[config.variant] ?? AlertTriangle)
+
 let resolveFn = null
 
 function open(options = {}) {
   Object.assign(config, {
-    icon: options.icon ?? "⚠️",
     title: options.title ?? "",
     message: options.message ?? "",
     confirmLabel: options.confirmLabel ?? "Confirmar",
@@ -83,7 +93,7 @@ defineExpose({ open })
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
-.modal-icon { font-size: 42px; margin-bottom: 14px; line-height: 1; }
+.modal-icon { display: flex; justify-content: center; margin-bottom: 14px; }
 .modal-title { margin: 0 0 10px; font-size: 18px; font-weight: 800; color: #0f172a; }
 .modal-msg { margin: 0 0 26px; color: #64748b; font-size: 14px; line-height: 1.6; }
 .modal-actions { display: flex; gap: 12px; justify-content: center; }
