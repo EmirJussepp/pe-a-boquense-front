@@ -16,9 +16,21 @@ http.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+    // 🔥 AGREGÁ ESTO
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]))
+      const email = payload.email
+
+      if (email) {
+        config.headers["X-Cliente-Email"] = email
+      }
+    } catch (e) {
+      console.warn("No se pudo extraer email del token")
+    }
   }
 
   return config
+  
 })
 
 http.interceptors.response.use(
