@@ -445,6 +445,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue"
 import { http } from "../services/http"
+import { usuariosService } from "../services/usuariosService"
 import { Users, Trophy, Home, CreditCard, Receipt, Lock, AlertTriangle, X } from "lucide-vue-next"
 
 const tabs = [
@@ -505,9 +506,9 @@ if (!usuarioModal.editando && f.password !== f.confirmPassword) {
   usuarioModal.saving = true
   try {
     if (usuarioModal.editando) {
-      await http.put(`/usuarios/${usuarioModal.itemId}`, { nombre: f.nombre.trim(), email: f.email.trim(), activo: f.activo, admin: f.admin, cobrador: f.cobrador, rolViajes: f.rolViajes, rolAlquileres: f.rolAlquileres })
+      await usuariosService.actualizar(usuarioModal.itemId, { nombre: f.nombre.trim(), email: f.email.trim(), activo: f.activo, admin: f.admin, cobrador: f.cobrador, rolViajes: f.rolViajes, rolAlquileres: f.rolAlquileres })
     } else {
-      await http.post("/usuarios", { nombre: f.nombre.trim(), email: f.email.trim(), password: f.password, admin: f.admin, cobrador: f.cobrador, rolViajes: f.rolViajes, rolAlquileres: f.rolAlquileres })
+      await usuariosService.crear({ nombre: f.nombre.trim(), email: f.email.trim(), password: f.password, admin: f.admin, cobrador: f.cobrador, rolViajes: f.rolViajes, rolAlquileres: f.rolAlquileres })
     }
     const wasEditing = usuarioModal.editando; cerrarUsuarioModal(); await cargarTab("usuarios")
     mostrarToast(wasEditing ? "Usuario actualizado." : "Usuario creado correctamente.")
@@ -524,7 +525,7 @@ async function guardarPassword() {
   if (pwModal.newPassword.length < 6) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
   if (pwModal.newPassword !== pwModal.confirm) { error.value = "Las contraseñas no coinciden."; return }
   pwModal.saving = true
-  try { await http.patch(`/usuarios/${pwModal.itemId}/password`, { newPassword: pwModal.newPassword }); cerrarPwModal(); mostrarToast("Contraseña actualizada correctamente.") }
+  try { await usuariosService.cambiarPassword(pwModal.itemId, pwModal.newPassword); cerrarPwModal(); mostrarToast("Contraseña actualizada correctamente.") }
   catch { error.value = "No se pudo cambiar la contraseña." }
   finally { pwModal.saving = false }
 }
@@ -543,7 +544,7 @@ async function cargarTab(tab) {
 }
 async function cargarUsuariosCobrador() {
   loadingUsuarios.value = true
-  try { const { data } = await http.get("/usuarios"); const lista = Array.isArray(data) ? data : []; usuariosCobrador.value = lista.filter(u => u.cobrador === true) }
+  try { const { data } = await usuariosService.listar(); const lista = Array.isArray(data) ? data : []; usuariosCobrador.value = lista.filter(u => u.cobrador === true) }
   catch { usuariosCobrador.value = [] }
   finally { loadingUsuarios.value = false }
 }

@@ -68,7 +68,8 @@ const routes = [
       // ── Movimientos ─────────────────────────────────────
       { path: "movimientos",           name: "movimientos",          component: () => import("../views/movimientos/MovimientosView.vue"),        meta: { perms: [PERMS.MOVIMIENTOS_VER] } },
       { path: "movimientos/reportes",  name: "movimientos-reportes", component: () => import("../views/movimientos/MovimientosReporteView.vue"), meta: { perms: [PERMS.MOVIMIENTOS_VER] } },
-      { path: "movimientos/nuevo",     name: "movimientos-nuevo",    component: () => import("../views/movimientos/MovimientosFormView.vue"),    meta: { perms: [PERMS.MOVIMIENTOS_GESTIONAR] } },
+      { path: "movimientos/nuevo",      name: "movimientos-nuevo",    component: () => import("../views/movimientos/MovimientosFormView.vue"),    meta: { perms: [PERMS.MOVIMIENTOS_GESTIONAR] } },
+      { path: "movimientos/:id/editar", name: "movimientos-editar",   component: () => import("../views/movimientos/MovimientosFormView.vue"),    meta: { perms: [PERMS.MOVIMIENTOS_GESTIONAR] } },
 
       // ── Configuración ───────────────────────────────────
       { path: "configuracion", name: "configuracion", component: () => import("../views/ConfiguracionView.vue"), meta: { perms: [PERMS.ALL] } },

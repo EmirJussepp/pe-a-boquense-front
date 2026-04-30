@@ -12,4 +12,12 @@ export const metodosPagoService = {
   crear(payload) {
     return http.post("/metodos-pago", payload)
   },
+
+  actualizar(id, payload) {
+    return http.put(`/metodos-pago/${id}`, payload)
+  },
+
+  eliminar(id) {
+    return http.delete(`/metodos-pago/${id}`)
+  },
 }

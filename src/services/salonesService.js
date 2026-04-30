@@ -8,4 +8,8 @@ export const salonesService = {
   obtener(id) {
     return http.get(`/salones/${id}`)
   },
+
+  eliminar(id) {
+    return http.delete(`/salones/${id}`)
+  },
 }
