@@ -17,7 +17,8 @@
         <button v-if="viaje" class="btn-secondary" @click="editarViaje">
           <Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar
         </button>
-        <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pago</button>
+        <button v-if="viaje" class="btn-secondary" @click="abrirWhatsApp">📲 WhatsApp</button>
+        <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pasajero</button>
       </div>
     </section>
 
@@ -134,7 +135,7 @@
               <tbody>
                 <tr v-for="p in rows" :key="p.viajePagoId">
                   <td>{{ nombreCompletoPago(p) }}</td>
-                  <td class="mono">{{ p.dni || "—" }}</td>
+                  <td class="mono">{{ p.pasajeroDni || "—" }}</td>
                   <td>{{ metodoNombre(p.metodoPagoId) }}</td>
                   <td>{{ cobradorNombre(p.cobradorId) }}</td>
                   <td class="money-cell">$ {{ formatoMoneda(p.monto) }}</td>
@@ -160,7 +161,7 @@
               <div class="pago-card-head">
                 <div class="pasajero-info">
                   <strong>{{ nombreCompletoPago(p) }}</strong>
-                  <span class="mono">{{ p.dni || "—" }}</span>
+                  <span class="mono">{{ p.pasajeroDni || "—" }}</span>
                 </div>
                 <div class="pago-card-actions-head">
                   <button class="btn-action" @click="abrirEdicion(p)" title="Editar">
@@ -201,6 +202,39 @@
       </div>
     </section>
 
+    <!-- Modal WhatsApp -->
+    <teleport to="body">
+      <transition name="fade">
+        <div v-if="modalWa" class="modal-backdrop" @click.self="modalWa = false">
+          <div class="modal-box card">
+            <div class="modal-head">
+              <h2>📲 Lista de pasajeros</h2>
+              <button class="btn-icon close-btn" @click="modalWa = false"><X :size="16" /></button>
+            </div>
+            <div class="modal-body">
+              <div v-if="loadingWa" class="wa-empty">Cargando...</div>
+              <div v-else-if="!listadoWa.length" class="wa-empty">
+                No hay pasajeros con datos para este viaje.
+              </div>
+              <div v-else class="wa-lista">
+                <div v-for="(p, i) in listadoWa" :key="i" class="wa-item">
+                  <div class="wa-info">
+                    <strong>{{ p.apellido ? `${p.apellido}, ${p.nombre}` : p.nombre }}</strong>
+                    <span v-if="p.telefono" class="wa-tel">{{ p.telefono }}</span>
+                    <span v-else class="wa-sin-tel">Sin teléfono</span>
+                  </div>
+                  <a v-if="p.whatsappLink" :href="p.whatsappLink" target="_blank" rel="noopener" class="btn-wa">
+                    💬 WhatsApp
+                  </a>
+                  <span v-else class="btn-wa btn-wa-disabled">Sin número</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
     <!-- Modal edición de pago -->
     <teleport to="body">
       <transition name="fade">
@@ -214,19 +248,10 @@
             </div>
 
             <div class="modal-body">
+              <p v-if="pagoEnEdicion" class="edit-pasajero-label">
+                Pasajero: <strong>{{ nombreCompletoPago(pagoEnEdicion) }}</strong>
+              </p>
               <div class="modal-grid">
-                <div class="field">
-                  <label>Nombre</label>
-                  <input v-model="editForm.nombre" type="text" placeholder="Nombre" />
-                </div>
-                <div class="field">
-                  <label>Apellido</label>
-                  <input v-model="editForm.apellido" type="text" placeholder="Apellido" />
-                </div>
-                <div class="field">
-                  <label>DNI</label>
-                  <input v-model="editForm.dni" type="text" placeholder="DNI" />
-                </div>
                 <div class="field">
                   <label>Monto</label>
                   <input v-model="editForm.monto" type="text" placeholder="Ej: 15000.00" />
@@ -347,9 +372,22 @@ const editando = ref(false)
 const pagoEnEdicion = ref(null)
 const savingEdit = ref(false)
 const editError = ref("")
-const editForm = reactive({
-  viajeId: null, monto: "", nombre: "", apellido: "", dni: "", metodoPagoId: null, cobradorId: null,
-})
+const editForm = reactive({ viajeId: null, monto: "", pasajeroId: null, metodoPagoId: null, cobradorId: null })
+
+// ── WhatsApp ──────────────────────────────────────────────
+const modalWa = ref(false)
+const loadingWa = ref(false)
+const listadoWa = ref([])
+
+async function abrirWhatsApp() {
+  modalWa.value = true
+  loadingWa.value = true
+  try {
+    const res = await viajesPagosService.whatsappList(viajeId.value)
+    listadoWa.value = Array.isArray(res.data) ? res.data : []
+  } catch { listadoWa.value = [] }
+  finally { loadingWa.value = false }
+}
 
 function normalizePage(data) {
   const content = data?.data ?? data?.content ?? data?.items ?? []
@@ -417,7 +455,8 @@ function nuevoPago() { if (!viaje.value?.viajeBomboneraId) return; router.push(`
 function metodoNombre(id) { const item = metodosPago.value.find(m => Number(m.metodoPagoId) === Number(id)); return item?.nombre || `#${id}` }
 function cobradorNombre(id) { const item = cobradores.value.find(c => Number(c.cobradorId ?? c.cobradoresId ?? c.id) === Number(id)); return item?.nombre || `#${id}` }
 function nombreCompletoPago(p) {
-  const apellido = String(p?.apellido ?? "").trim(); const nombre = String(p?.nombre ?? "").trim()
+  const apellido = String(p?.pasajeroApellido ?? p?.apellido ?? "").trim()
+  const nombre   = String(p?.pasajeroNombre   ?? p?.nombre   ?? "").trim()
   if (apellido && nombre) return `${apellido}, ${nombre}`
   if (nombre) return nombre; if (apellido) return apellido; return "—"
 }
@@ -433,10 +472,13 @@ function formatearFecha(value) {
 function formatoMoneda(n) { return Number(n || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 function abrirEdicion(pago) {
-  editError.value = ""; pagoEnEdicion.value = pago
-  editForm.viajeId = pago.viajeId; editForm.monto = pago.monto; editForm.nombre = pago.nombre ?? ""
-  editForm.apellido = pago.apellido ?? ""; editForm.dni = pago.dni ?? ""
-  editForm.metodoPagoId = pago.metodoPagoId; editForm.cobradorId = pago.cobradorId
+  editError.value = ""
+  pagoEnEdicion.value = pago
+  editForm.viajeId      = pago.viajeId
+  editForm.monto        = pago.monto
+  editForm.pasajeroId   = pago.pasajeroId
+  editForm.metodoPagoId = pago.metodoPagoId
+  editForm.cobradorId   = pago.cobradorId
   editando.value = true
 }
 function cerrarEdicion() { editando.value = false; pagoEnEdicion.value = null; editError.value = "" }
@@ -447,7 +489,7 @@ async function guardarEdicion() {
     await viajesPagosService.actualizar(pagoEnEdicion.value.viajePagoId, { ...editForm })
     cerrarEdicion()
     await loadPagos()
-    await loadTodosPagos()   // 👈 esta línea faltaba
+    await loadTodosPagos()
   } catch (e) {
     editError.value = e?.response?.data?.message ?? "Error al guardar. Intentá de nuevo."
   } finally {
@@ -1009,6 +1051,36 @@ onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await
   font-size: 13px;
   margin: 12px 0 0;
 }
+
+.edit-pasajero-label {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* WhatsApp */
+.wa-empty { color: var(--text-muted); font-size: 13px; padding: 8px 0; }
+.wa-lista { display: flex; flex-direction: column; gap: 10px; }
+.wa-item {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: 10px; flex-wrap: wrap;
+}
+.wa-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wa-info strong { font-size: 14px; font-weight: 700; color: var(--primary); }
+.wa-tel { font-size: 12px; color: var(--text-muted); }
+.wa-sin-tel { font-size: 12px; color: #94a3b8; font-style: italic; }
+.btn-wa {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
+  text-decoration: none; white-space: nowrap; flex-shrink: 0;
+}
+.btn-wa:hover { background: #bbf7d0; }
+.btn-wa-disabled { background: #f1f5f9; color: #94a3b8; border-color: var(--border); cursor: default; }
 
 .btn-icon {
   background: none;

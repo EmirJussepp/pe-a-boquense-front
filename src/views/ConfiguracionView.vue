@@ -544,7 +544,7 @@ async function cargarTab(tab) {
 }
 async function cargarUsuariosCobrador() {
   loadingUsuarios.value = true
-  try { const { data } = await usuariosService.listar(); const lista = Array.isArray(data) ? data : []; usuariosCobrador.value = lista.filter(u => u.cobrador === true) }
+  try { const { data } = await usuariosService.listar(); const lista = Array.isArray(data) ? data : []; usuariosCobrador.value = lista.filter(u => u.activo !== false) }
   catch { usuariosCobrador.value = [] }
   finally { loadingUsuarios.value = false }
 }
