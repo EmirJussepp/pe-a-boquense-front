@@ -23,23 +23,18 @@
         <div class="tipo-selector">
           <label class="tipo-option" :class="{ active: tipoPasajero === 'socio' }">
             <input type="radio" v-model="tipoPasajero" value="socio" @change="resetPasajero" />
-            <span class="tipo-icon">🏟️</span>
+            <span class="tipo-icon"><UserCheck :size="20" /></span>
             <span class="tipo-label">Socio de la peña</span>
           </label>
           <label class="tipo-option" :class="{ active: tipoPasajero === 'familiar' }">
             <input type="radio" v-model="tipoPasajero" value="familiar" @change="resetPasajero" />
-            <span class="tipo-icon">👨‍👩‍👧</span>
+            <span class="tipo-icon"><Users :size="20" /></span>
             <span class="tipo-label">Familiar de un socio</span>
           </label>
-          <label class="tipo-option" :class="{ active: tipoPasajero === 'externo_conocido' }">
-            <input type="radio" v-model="tipoPasajero" value="externo_conocido" @change="resetPasajero" />
-            <span class="tipo-icon">🔍</span>
-            <span class="tipo-label">Pasajero externo</span>
-          </label>
-          <label class="tipo-option" :class="{ active: tipoPasajero === 'nuevo' }">
-            <input type="radio" v-model="tipoPasajero" value="nuevo" @change="resetPasajero" />
-            <span class="tipo-icon">➕</span>
-            <span class="tipo-label">Nuevo pasajero</span>
+          <label class="tipo-option" :class="{ active: tipoPasajero === 'externo' }">
+            <input type="radio" v-model="tipoPasajero" value="externo" @change="resetPasajero" />
+            <span class="tipo-icon"><UserPlus :size="20" /></span>
+            <span class="tipo-label">Persona externa</span>
           </label>
         </div>
 
@@ -78,7 +73,6 @@
 
         <!-- ── FAMILIAR DE SOCIO ──────────────────────────────── -->
         <div v-if="tipoPasajero === 'familiar'" class="search-block">
-          <!-- Búsqueda del socio titular -->
           <div v-if="!socioSeleccionado">
             <p class="hint-label">Primero buscá el socio al que pertenece el familiar:</p>
             <div class="search-wrap">
@@ -103,17 +97,14 @@
             </div>
           </div>
 
-          <!-- Socio seleccionado como titular -->
           <div v-if="socioSeleccionado" class="socio-titular-card">
             <span class="titular-label">Socio titular:</span>
             <span class="titular-nombre">{{ socioSeleccionado.apellido }}, {{ socioSeleccionado.nombre }}</span>
             <button class="btn-ghost-sm" @click="resetPasajero">Cambiar socio</button>
           </div>
 
-          <!-- Familiares existentes del socio -->
           <div v-if="socioSeleccionado && !nuevoFamiliarForm" class="familiares-block">
             <div v-if="loadingFamiliares" class="hint-label">Cargando familiares...</div>
-
             <template v-else>
               <div v-if="familiaresSocio.length" class="familiares-lista">
                 <p class="hint-label">Seleccioná un familiar ya registrado:</p>
@@ -129,14 +120,12 @@
                 </button>
               </div>
               <p v-else class="hint-label">No hay familiares registrados para este socio.</p>
-
               <button class="btn-agregar-familiar" @click="nuevoFamiliarForm = true">
                 + Agregar nuevo familiar
               </button>
             </template>
           </div>
 
-          <!-- Formulario nuevo familiar -->
           <div v-if="socioSeleccionado && nuevoFamiliarForm" class="nuevo-familiar-form">
             <p class="hint-label">Datos del nuevo familiar:</p>
             <div class="field-grid cols-2">
@@ -167,7 +156,6 @@
             <p class="hint-text">El familiar quedará guardado y lo podrás seleccionar en futuros viajes.</p>
           </div>
 
-          <!-- Familiar seleccionado confirmación -->
           <div v-if="familiarSeleccionado && !nuevoFamiliarForm" class="seleccionado-card">
             <div class="seleccionado-info">
               <span class="seleccionado-nombre">{{ familiarSeleccionado.apellido }}, {{ familiarSeleccionado.nombre }}</span>
@@ -177,60 +165,73 @@
           </div>
         </div>
 
-        <!-- ── EXTERNO CONOCIDO ────────────────────────────────── -->
-        <div v-if="tipoPasajero === 'externo_conocido'" class="search-block">
-          <div class="search-wrap">
-            <input
-              v-model="busquedaExterno"
-              type="text"
-              placeholder="Buscar por apellido, nombre o DNI..."
-              @input="buscarExternos"
-              autocomplete="off"
-            />
-            <div v-if="externosSugeridos.length" class="dropdown-lista">
-              <button
-                v-for="p in externosSugeridos"
-                :key="p.pasajeroId"
-                class="dropdown-item"
-                @click="seleccionarExterno(p)"
-              >
-                <strong>{{ p.apellido }}, {{ p.nombre }}</strong>
-                <span v-if="p.dni" class="chip">DNI {{ p.dni }}</span>
-                <span v-if="p.telefono" class="chip">📱 {{ p.telefono }}</span>
-              </button>
+        <!-- ── PERSONA EXTERNA (buscar o crear) ─────────────── -->
+        <div v-if="tipoPasajero === 'externo'" class="search-block">
+          <template v-if="!externoSeleccionado && !mostrarFormNuevo">
+            <div class="search-wrap">
+              <input
+                v-model="busquedaExterno"
+                type="text"
+                placeholder="Buscar por apellido, nombre o DNI..."
+                @input="buscarExternos"
+                autocomplete="off"
+              />
+              <div v-if="externosSugeridos.length" class="dropdown-lista">
+                <button
+                  v-for="p in externosSugeridos"
+                  :key="p.pasajeroId"
+                  class="dropdown-item"
+                  @click="seleccionarExterno(p)"
+                >
+                  <strong>{{ p.apellido }}, {{ p.nombre }}</strong>
+                  <span v-if="p.dni" class="chip">DNI {{ p.dni }}</span>
+                  <span v-if="p.telefono" class="chip"><Phone :size="11" style="margin-right:3px;vertical-align:-1px" />{{ p.telefono }}</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div v-if="externoSeleccionado" class="seleccionado-card">
+            <p v-if="busquedaExterno.trim().length >= 2 && !externosSugeridos.length && !buscandoExternos" class="hint-sin-resultados">
+              No hay resultados para "<strong>{{ busquedaExterno.trim() }}</strong>".
+            </p>
+
+            <button class="btn-registrar-nuevo" @click="mostrarFormNuevo = true">
+              <UserPlus :size="14" style="margin-right:6px;vertical-align:-2px" />Registrar nueva persona
+            </button>
+          </template>
+
+          <div v-if="externoSeleccionado && !mostrarFormNuevo" class="seleccionado-card">
             <div class="seleccionado-info">
               <span class="seleccionado-nombre">{{ externoSeleccionado.apellido }}, {{ externoSeleccionado.nombre }}</span>
               <span v-if="externoSeleccionado.dni" class="chip">DNI {{ externoSeleccionado.dni }}</span>
             </div>
             <button class="btn-ghost-sm" @click="resetPasajero">Cambiar</button>
           </div>
-        </div>
 
-        <!-- ── NUEVO PASAJERO ──────────────────────────────────── -->
-        <div v-if="tipoPasajero === 'nuevo'" class="nuevo-block">
-          <div class="field-grid cols-2">
-            <div class="field">
-              <label>Nombre <span class="required">*</span></label>
-              <input v-model="nuevoPasajero.nombre" type="text" placeholder="Ej. Juan" />
+          <div v-if="mostrarFormNuevo" class="nuevo-familiar-form">
+            <p class="hint-label">Datos de la nueva persona:</p>
+            <div class="field-grid cols-2">
+              <div class="field">
+                <label>Nombre <span class="required">*</span></label>
+                <input v-model="nuevoPasajero.nombre" type="text" placeholder="Ej. Juan" />
+              </div>
+              <div class="field">
+                <label>Apellido <span class="required">*</span></label>
+                <input v-model="nuevoPasajero.apellido" type="text" placeholder="Ej. Pérez" />
+              </div>
+              <div class="field">
+                <label>DNI</label>
+                <input v-model="nuevoPasajero.dni" type="text" placeholder="Ej. 32123456" />
+              </div>
+              <div class="field">
+                <label>Teléfono <span class="hint">(para WhatsApp)</span></label>
+                <input v-model="nuevoPasajero.telefono" type="text" placeholder="Ej. 5491123456789" />
+              </div>
             </div>
-            <div class="field">
-              <label>Apellido <span class="required">*</span></label>
-              <input v-model="nuevoPasajero.apellido" type="text" placeholder="Ej. Pérez" />
+            <div class="nuevo-familiar-actions">
+              <button class="btn-secondary" @click="cancelarNuevoPasajero">Cancelar</button>
             </div>
-            <div class="field">
-              <label>DNI</label>
-              <input v-model="nuevoPasajero.dni" type="text" placeholder="Ej. 32123456" />
-            </div>
-            <div class="field">
-              <label>Teléfono <span class="hint">(para WhatsApp)</span></label>
-              <input v-model="nuevoPasajero.telefono" type="text" placeholder="Ej. 5491123456789" />
-            </div>
+            <p class="hint-text">Esta persona quedará guardada y podrás seleccionarla en futuros viajes.</p>
           </div>
-          <p class="hint-text">Este pasajero quedará guardado y podrás seleccionarlo en futuros viajes.</p>
         </div>
       </section>
 
@@ -283,6 +284,7 @@ import { cobradoresService } from "../../services/cobradoresService"
 import { sociosService } from "../../services/sociosService"
 import { pasajerosService } from "../../services/pasajerosService"
 import { useToast } from "../../composables/useToast"
+import { UserCheck, Users, UserPlus, Phone } from "lucide-vue-next"
 
 const route  = useRoute()
 const router = useRouter()
@@ -298,9 +300,9 @@ const cobradores  = ref([])
 // ── Tipo de pasajero ──────────────────────────────────────
 const tipoPasajero = ref("socio")
 
-// ── Estado compartido (buscar socio) ─────────────────────
-const busquedaSocio    = ref("")
-const sociosSugeridos  = ref([])
+// ── Socio ─────────────────────────────────────────────────
+const busquedaSocio     = ref("")
+const sociosSugeridos   = ref([])
 const socioSeleccionado = ref(null)
 
 // ── Familiar de socio ─────────────────────────────────────
@@ -310,18 +312,18 @@ const familiarSeleccionado = ref(null)
 const nuevoFamiliarForm    = ref(false)
 const nuevoFamiliar        = reactive({ nombre: "", apellido: "", parentesco: "", telefono: "", dni: "" })
 
-// ── Búsqueda de externos ──────────────────────────────────
-const busquedaExterno  = ref("")
-const externosSugeridos = ref([])
+// ── Externo ───────────────────────────────────────────────
+const busquedaExterno     = ref("")
+const externosSugeridos   = ref([])
 const externoSeleccionado = ref(null)
-
-// ── Nuevo pasajero ────────────────────────────────────────
-const nuevoPasajero = reactive({ nombre: "", apellido: "", dni: "", telefono: "" })
+const buscandoExternos    = ref(false)
+const mostrarFormNuevo    = ref(false)
+const nuevoPasajero       = reactive({ nombre: "", apellido: "", dni: "", telefono: "" })
 
 // ── Formulario económico ──────────────────────────────────
 const form = reactive({ monto: "", metodoPagoId: null, cobradorId: null })
 
-// ── Computed: pasajero OK ─────────────────────────────────
+// ── Computed ──────────────────────────────────────────────
 const pasajeroListo = computed(() => {
   if (tipoPasajero.value === "socio")
     return !!socioSeleccionado.value
@@ -334,11 +336,11 @@ const pasajeroListo = computed(() => {
     return !!familiarSeleccionado.value
   }
 
-  if (tipoPasajero.value === "externo_conocido")
+  if (tipoPasajero.value === "externo") {
+    if (mostrarFormNuevo.value)
+      return nuevoPasajero.nombre.trim().length > 0 && nuevoPasajero.apellido.trim().length > 0
     return !!externoSeleccionado.value
-
-  if (tipoPasajero.value === "nuevo")
-    return nuevoPasajero.nombre.trim().length > 0 && nuevoPasajero.apellido.trim().length > 0
+  }
 
   return false
 })
@@ -364,12 +366,18 @@ function resetPasajero() {
   externoSeleccionado.value  = null
   externosSugeridos.value    = []
   busquedaExterno.value      = ""
+  mostrarFormNuevo.value     = false
   Object.assign(nuevoPasajero, { nombre: "", apellido: "", dni: "", telefono: "" })
 }
 
 function cancelarNuevoFamiliar() {
   nuevoFamiliarForm.value = false
   Object.assign(nuevoFamiliar, { nombre: "", apellido: "", parentesco: "", telefono: "", dni: "" })
+}
+
+function cancelarNuevoPasajero() {
+  mostrarFormNuevo.value = false
+  Object.assign(nuevoPasajero, { nombre: "", apellido: "", dni: "", telefono: "" })
 }
 
 function formatearFecha(value) {
@@ -400,25 +408,25 @@ function buscarSocios() {
 
 function buscarExternos() {
   clearTimeout(debounceTimer)
-  if (busquedaExterno.value.trim().length < 2) { externosSugeridos.value = []; return }
+  externosSugeridos.value = []
+  if (busquedaExterno.value.trim().length < 2) return
+  buscandoExternos.value = true
   debounceTimer = setTimeout(async () => {
     try {
       const res = await pasajerosService.listar({ search: busquedaExterno.value.trim(), pageSize: 8 })
       const arr = res.data?.data ?? res.data ?? []
-      // Solo pasajeros sin socio vinculado (externos puros)
       externosSugeridos.value = Array.isArray(arr) ? arr.filter(p => !p.socioId) : []
     } catch { externosSugeridos.value = [] }
+    finally { buscandoExternos.value = false }
   }, 350)
 }
 
-// ── Selección de socio (modo "Socio") ─────────────────────
 function seleccionarSocio(socio) {
   socioSeleccionado.value = socio
   sociosSugeridos.value   = []
   busquedaSocio.value     = `${socio.apellido}, ${socio.nombre}`
 }
 
-// ── Selección de socio (modo "Familiar") ─────────────────
 async function seleccionarSocioParaFamiliar(socio) {
   socioSeleccionado.value    = socio
   sociosSugeridos.value      = []
@@ -427,10 +435,8 @@ async function seleccionarSocioParaFamiliar(socio) {
   familiaresSocio.value      = []
   loadingFamiliares.value    = true
   try {
-    // Trae pasajeros vinculados a este socio (sus familiares registrados)
     const res = await pasajerosService.listar({ socioId: socio.socioId, pageSize: 50 })
     const arr = res.data?.data ?? res.data ?? []
-    // Excluye el pasajero "propio" del socio (sin parentesco)
     familiaresSocio.value = Array.isArray(arr) ? arr.filter(p => p.parentesco) : []
   } catch { familiaresSocio.value = [] }
   finally { loadingFamiliares.value = false }
@@ -454,12 +460,10 @@ async function guardar() {
     let pasajeroId = null
 
     if (tipoPasajero.value === "socio") {
-      // Buscar pasajero sin parentesco vinculado al socio, o crear uno
       const socio    = socioSeleccionado.value
       const busqueda = await pasajerosService.listar({ socioId: socio.socioId, pageSize: 20 })
       const arr      = busqueda.data?.data ?? busqueda.data ?? []
       const propio   = Array.isArray(arr) ? arr.find(p => !p.parentesco) : null
-
       if (propio) {
         pasajeroId = propio.pasajeroId
       } else {
@@ -473,7 +477,6 @@ async function guardar() {
 
     } else if (tipoPasajero.value === "familiar") {
       if (nuevoFamiliarForm.value) {
-        // Crear nuevo familiar como pasajero con parentesco
         const res = await pasajerosService.crear({
           nombre:     nuevoFamiliar.nombre.trim(),
           apellido:   nuevoFamiliar.apellido.trim(),
@@ -484,23 +487,22 @@ async function guardar() {
         })
         pasajeroId = res.data?.pasajeroId ?? null
       } else {
-        // Familiar ya registrado: usar su pasajeroId directamente
         pasajeroId = familiarSeleccionado.value.pasajeroId
       }
 
-    } else if (tipoPasajero.value === "externo_conocido") {
-      pasajeroId = externoSeleccionado.value.pasajeroId
-
     } else {
-      // Nuevo pasajero externo
-      const res = await pasajerosService.crear({
-        nombre:   nuevoPasajero.nombre.trim(),
-        apellido: nuevoPasajero.apellido.trim(),
-        dni:      nuevoPasajero.dni.trim()      || null,
-        telefono: nuevoPasajero.telefono.trim() || null,
-        socioId:  null, parentesco: null
-      })
-      pasajeroId = res.data?.pasajeroId ?? null
+      if (mostrarFormNuevo.value) {
+        const res = await pasajerosService.crear({
+          nombre:   nuevoPasajero.nombre.trim(),
+          apellido: nuevoPasajero.apellido.trim(),
+          dni:      nuevoPasajero.dni.trim()      || null,
+          telefono: nuevoPasajero.telefono.trim() || null,
+          socioId:  null, parentesco: null
+        })
+        pasajeroId = res.data?.pasajeroId ?? null
+      } else {
+        pasajeroId = externoSeleccionado.value.pasajeroId
+      }
     }
 
     await viajesPagosService.crear({
@@ -565,13 +567,13 @@ onMounted(async () => {
 .tipo-selector { display: flex; gap: 10px; flex-wrap: wrap; }
 .tipo-option {
   display: flex; align-items: center; gap: 8px;
-  padding: 10px 16px; border: 2px solid var(--border); border-radius: 10px;
+  padding: 12px 20px; border: 2px solid var(--border); border-radius: 10px;
   cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted);
-  transition: all 0.15s; flex: 1; min-width: 130px;
+  transition: all 0.15s; flex: 1; min-width: 150px;
 }
 .tipo-option input { display: none; }
 .tipo-option.active { border-color: var(--accent); background: var(--accent-soft, #eff6ff); color: var(--primary); }
-.tipo-icon { font-size: 18px; }
+.tipo-icon { font-size: 18px; display: flex; align-items: center; justify-content: center; }
 
 /* Search */
 .search-block { display: flex; flex-direction: column; gap: 12px; }
@@ -590,6 +592,20 @@ onMounted(async () => {
 }
 .dropdown-item:hover { background: #f1f5f9; }
 
+.hint-sin-resultados {
+  font-size: 13px; color: var(--text-muted); margin: 0;
+  padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);
+}
+
+.btn-registrar-nuevo {
+  align-self: flex-start; padding: 8px 18px;
+  border: 2px dashed var(--border); border-radius: 8px;
+  background: transparent; cursor: pointer; font-size: 13px; font-weight: 700;
+  color: var(--text-muted); transition: all 0.15s;
+  display: inline-flex; align-items: center;
+}
+.btn-registrar-nuevo:hover { border-color: var(--accent); color: var(--primary); background: var(--accent-soft, #eff6ff); }
+
 /* Seleccionado */
 .seleccionado-card {
   display: flex; align-items: center; justify-content: space-between;
@@ -599,7 +615,7 @@ onMounted(async () => {
 .seleccionado-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .seleccionado-nombre { font-weight: 700; font-size: 14px; color: var(--primary); }
 
-/* Socio titular (modo familiar) */
+/* Socio titular (familiar) */
 .socio-titular-card {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 8px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
@@ -627,7 +643,7 @@ onMounted(async () => {
 }
 .btn-agregar-familiar:hover { border-color: var(--accent); color: var(--primary); background: var(--accent-soft, #eff6ff); }
 
-/* Nuevo familiar inline */
+/* Formularios inline */
 .nuevo-familiar-form { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .nuevo-familiar-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
@@ -635,23 +651,20 @@ onMounted(async () => {
 .chip {
   padding: 2px 8px; border-radius: 20px;
   background: #e2e8f0; font-size: 11px; font-weight: 600; color: #475569;
-  white-space: nowrap;
+  white-space: nowrap; display: inline-flex; align-items: center;
 }
-.chip-green   { background: #dcfce7; color: #166534; }
+.chip-green    { background: #dcfce7; color: #166534; }
 .chip-familiar { background: #ede9fe; color: #5b21b6; }
 
-/* Nuevo pasajero externo */
-.nuevo-block { display: flex; flex-direction: column; gap: 14px; }
-.hint-text { margin: 0; font-size: 12px; color: var(--text-muted); font-style: italic; }
-.hint { font-size: 10px; font-weight: 400; color: var(--text-muted); }
-
-/* Grid */
+/* Grid / Fields */
 .field-grid { display: grid; gap: 16px; }
 .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .required { color: #dc2626; }
+.hint { font-size: 10px; font-weight: 400; color: var(--text-muted); }
+.hint-text { margin: 0; font-size: 12px; color: var(--text-muted); font-style: italic; }
 
 .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: white; }
 .input-prefix { padding: 0 12px; font-weight: 700; color: var(--text-muted); border-right: 1px solid var(--border); display: flex; align-items: center; background: #f8fafc; font-size: 13px; }

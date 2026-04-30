@@ -8,7 +8,7 @@
       </div>
 
       <div class="head-actions">
-        <button class="btn-secondary" type="button" @click="loadMovimientos" :disabled="loading">
+        <button class="btn-ghost" type="button" @click="loadMovimientos" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
         <button class="btn-secondary" type="button" @click="verReporte">

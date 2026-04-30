@@ -7,7 +7,7 @@
         <p class="page-subtitle">Gestión de reservas y alquileres de salones.</p>
       </div>
       <div class="head-actions">
-        <button class="btn-secondary" type="button" @click="loadAlquileres" :disabled="loading">
+        <button class="btn-ghost" type="button" @click="loadAlquileres" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
         <button class="btn-primary" type="button" @click="nuevoAlquiler">Nuevo alquiler</button>

@@ -10,7 +10,7 @@
       </div>
 
       <div class="head-actions">
-        <button class="btn-secondary" @click="loadViajes" :disabled="loading">
+        <button class="btn-ghost" @click="loadViajes" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
         <button class="btn-primary" @click="nuevoViaje">+ Nuevo viaje</button>
@@ -86,8 +86,15 @@
                 <td><strong class="date-text">{{ formatearFecha(v.fechaViaje) }}</strong></td>
                 <td>
                   <div class="row-actions">
-                    <button class="btn-detail" @click="verDetalle(v)">Ver detalle</button>
-                    <button class="table-btn" @click="editarViaje(v)">Editar</button>
+                    <button class="btn-detail" @click="agregarPasajero(v)" title="Registrar pasajero">
+                      <UserPlus :size="13" style="margin-right:4px;vertical-align:-2px" />+ Pasajero
+                    </button>
+                    <button class="btn-action-sm" @click="verDetalle(v)" title="Ver detalle del viaje">
+                      Ver detalle
+                    </button>
+                    <button class="btn-action-sm btn-edit" @click="editarViaje(v)" title="Editar viaje">
+                      <Pencil :size="13" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -108,8 +115,13 @@
               <span class="info-value">{{ formatearFecha(v.fechaViaje) }}</span>
             </div>
             <div class="viaje-card-actions">
-              <button class="btn-detail" @click="verDetalle(v)">Ver detalle</button>
-              <button class="table-btn" @click="editarViaje(v)">Editar</button>
+              <button class="btn-detail" @click="agregarPasajero(v)">
+                <UserPlus :size="13" style="margin-right:4px;vertical-align:-2px" />+ Pasajero
+              </button>
+              <button class="table-btn" @click="verDetalle(v)">Ver detalle</button>
+              <button class="table-btn btn-edit" @click="editarViaje(v)">
+                <Pencil :size="13" style="margin-right:4px;vertical-align:-2px" />Editar
+              </button>
             </div>
           </article>
         </div>
@@ -133,6 +145,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import { viajesBomboneraService } from "../../services/viajesBomboneraService"
 import { useToast } from "../../composables/useToast"
+import { UserPlus, Pencil } from "lucide-vue-next"
 
 const router = useRouter()
 const toast = useToast()
@@ -191,9 +204,10 @@ function prevPage()  { if (page.value > 1) { page.value--; loadViajes() } }
 function nextPage()  { if (page.value < totalPages.value) { page.value++; loadViajes() } }
 function goToFirst() { if (page.value !== 1) { page.value = 1; loadViajes() } }
 function goToLast()  { if (page.value !== totalPages.value) { page.value = totalPages.value; loadViajes() } }
-function nuevoViaje()   { router.push("/viajes/nuevo") }
-function editarViaje(v) { router.push(`/viajes/${v.viajeBomboneraId}/editar`) }
-function verDetalle(v)  { router.push(`/viajes/${v.viajeBomboneraId}`) }
+function nuevoViaje()        { router.push("/viajes/nuevo") }
+function editarViaje(v)     { router.push(`/viajes/${v.viajeBomboneraId}/editar`) }
+function verDetalle(v)      { router.push(`/viajes/${v.viajeBomboneraId}`) }
+function agregarPasajero(v) { router.push(`/viajes/${v.viajeBomboneraId}/pago`) }
 
 function formatearFecha(value) {
   if (!value) return "—"
@@ -252,11 +266,15 @@ onMounted(loadViajes)
 .date-text { color: var(--text-soft); font-size: 13px; }
 .th-actions { text-align: center; }
 .row-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-.table-btn, .btn-detail { min-height: 34px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.table-btn, .btn-detail, .btn-action-sm { min-height: 34px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; }
 .table-btn { background: white; color: var(--primary); }
 .table-btn:hover { background: var(--bg); }
-.btn-detail { background: rgba(0,59,122,0.07); color: var(--primary); border-color: rgba(0,59,122,0.15); }
-.btn-detail:hover { background: var(--primary); color: white; }
+.btn-detail { background: var(--primary); color: white; border-color: var(--primary); }
+.btn-detail:hover { background: #002a6e; }
+.btn-action-sm { background: white; color: var(--primary); }
+.btn-action-sm:hover { background: var(--bg); }
+.btn-edit { color: var(--text-muted); min-width: 34px; justify-content: center; padding: 7px 10px; }
+.btn-edit:hover { color: var(--primary); }
 .skeleton-wrap { display: flex; flex-direction: column; gap: 10px; }
 .skeleton-row { height: 64px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 10px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

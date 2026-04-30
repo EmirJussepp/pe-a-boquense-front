@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(find c:/Users/lavaro/Desktop/peñaBoquense_front/src/assets -name *.css)",
-      "Bash(find c:/Users/lavaro/Desktop/peñaBoquense_front -type f \\\\\\(-name *.css -o -name *.scss \\\\\\))"
+      "Bash(find c:/Users/lavaro/Desktop/peñaBoquense_front -type f \\\\\\(-name *.css -o -name *.scss \\\\\\))",
+      "Bash(find \"c:\\\\\\\\Users\\\\\\\\lavaro\\\\\\\\Desktop\\\\\\\\peñaBoquense_front\\\\\\\\src\" -maxdepth 1 -name \"*.css\" -type f)"
     ]
   }
 }

@@ -17,7 +17,9 @@
         <button v-if="viaje" class="btn-secondary" @click="editarViaje">
           <Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar
         </button>
-        <button v-if="viaje" class="btn-secondary" @click="abrirWhatsApp">📲 WhatsApp</button>
+        <button v-if="viaje" class="btn-secondary" @click="abrirWhatsApp">
+          <Smartphone :size="14" style="margin-right:5px;vertical-align:-2px" />WhatsApp
+        </button>
         <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pasajero</button>
       </div>
     </section>
@@ -134,7 +136,14 @@
               </thead>
               <tbody>
                 <tr v-for="p in rows" :key="p.viajePagoId">
-                  <td>{{ nombreCompletoPago(p) }}</td>
+                  <td>
+                    <div class="pasajero-cell">
+                      {{ nombreCompletoPago(p) }}
+                      <span v-if="p.pasajeroParentesco" class="familiar-hint">
+                        Familiar de {{ p.socioApellido }}, {{ p.socioNombre }}
+                      </span>
+                    </div>
+                  </td>
                   <td class="mono">{{ p.pasajeroDni || "—" }}</td>
                   <td>{{ metodoNombre(p.metodoPagoId) }}</td>
                   <td>{{ cobradorNombre(p.cobradorId) }}</td>
@@ -162,6 +171,9 @@
                 <div class="pasajero-info">
                   <strong>{{ nombreCompletoPago(p) }}</strong>
                   <span class="mono">{{ p.pasajeroDni || "—" }}</span>
+                  <span v-if="p.pasajeroParentesco" class="familiar-hint">
+                    Familiar de {{ p.socioApellido }}, {{ p.socioNombre }}
+                  </span>
                 </div>
                 <div class="pago-card-actions-head">
                   <button class="btn-action" @click="abrirEdicion(p)" title="Editar">
@@ -208,7 +220,7 @@
         <div v-if="modalWa" class="modal-backdrop" @click.self="modalWa = false">
           <div class="modal-box card">
             <div class="modal-head">
-              <h2>📲 Lista de pasajeros</h2>
+              <h2><Users :size="18" style="margin-right:8px;vertical-align:-3px" />Lista de pasajeros</h2>
               <button class="btn-icon close-btn" @click="modalWa = false"><X :size="16" /></button>
             </div>
             <div class="modal-body">
@@ -224,7 +236,7 @@
                     <span v-else class="wa-sin-tel">Sin teléfono</span>
                   </div>
                   <a v-if="p.whatsappLink" :href="p.whatsappLink" target="_blank" rel="noopener" class="btn-wa">
-                    💬 WhatsApp
+                    <MessageCircle :size="13" style="margin-right:4px;vertical-align:-2px" />WhatsApp
                   </a>
                   <span v-else class="btn-wa btn-wa-disabled">Sin número</span>
                 </div>
@@ -296,7 +308,7 @@ import { viajesPagosService } from "../../services/viajesPagosService"
 import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
-import { AlertTriangle, CreditCard, Bus, X, Pencil, Trash2 } from "lucide-vue-next"
+import { AlertTriangle, CreditCard, Bus, X, Pencil, Trash2, Smartphone, Users, MessageCircle } from "lucide-vue-next"
 
 const route = useRoute()
 const router = useRouter()
@@ -500,7 +512,7 @@ watch(pageSize, () => { page.value = 1; loadPagos() })
 let debounceTimer = null
 watch(search, () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { page.value = 1; loadPagos() }, 400) })
 onBeforeUnmount(() => clearTimeout(debounceTimer))
-onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await loadPagos(); loadTodosPagos() })
+onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await loadPagos(); await loadTodosPagos() })
 </script>
 
 <style scoped>
@@ -924,6 +936,18 @@ onMounted(async () => { await Promise.all([loadViaje(), loadCatalogos()]); await
   font-size: 14px;
   font-weight: 700;
   color: var(--primary);
+}
+
+.familiar-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.pasajero-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .pago-card-actions-head {

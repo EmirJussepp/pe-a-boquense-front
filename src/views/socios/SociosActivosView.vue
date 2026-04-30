@@ -12,7 +12,7 @@
       </div>
 
       <div class="head-actions">
-        <button class="btn-secondary" @click="refreshCurrentPage" :disabled="loading">
+        <button class="btn-ghost" @click="refreshCurrentPage" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
 
@@ -154,11 +154,11 @@
 
                 <td>
                   <div class="row-actions">
-                    <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
+                    <button class="btn-action" @click="verSocio(socio)" title="Ver detalle"><Eye :size="14" /></button>
                     <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
                       <Pencil :size="14" />
                     </button>
-                    <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
+                    <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja"><UserX :size="14" /></button>
                   </div>
                 </td>
               </tr>
@@ -177,11 +177,11 @@
                 </div>
               </div>
               <div class="row-actions">
-                <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
+                <button class="btn-action" @click="verSocio(socio)" title="Ver detalle"><Eye :size="14" /></button>
                 <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
                   <Pencil :size="14" />
                 </button>
-                <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
+                <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja"><UserX :size="14" /></button>
               </div>
             </div>
 
@@ -245,7 +245,7 @@ import { useToast } from "../../composables/useToast"
 import { useAuthStore } from "../../stores/auth"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
 import PaginadorComponent from "../../components/ui/PaginadorComponent.vue"
-import { AlertTriangle, FolderOpen, Pencil } from "lucide-vue-next"
+import { AlertTriangle, FolderOpen, Pencil, Eye, UserX } from "lucide-vue-next"
 
 const router = useRouter()
 const toast = useToast()

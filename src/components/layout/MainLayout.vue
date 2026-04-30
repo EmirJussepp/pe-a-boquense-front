@@ -97,7 +97,7 @@
           <!-- Viajes -->
           <RouterLink v-if="auth.puedeVerViajes" to="/viajes" class="nav-item" @click="mobileOpen = false">
             <div class="nav-item-left">
-              <div class="nav-icon-box"><Plane :size="20" /></div>
+              <div class="nav-icon-box"><Bus :size="20" /></div>
               <span class="nav-text" v-if="!sidebarCollapsed || mobileOpen">Viajes</span>
             </div>
           </RouterLink>
@@ -176,7 +176,7 @@ import {
   ArrowLeftRight,
   Key,
   Gift,
-  Plane,
+  Bus,
   ChevronDown,
   LogOut,
   Settings,

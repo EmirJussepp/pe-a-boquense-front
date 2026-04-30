@@ -7,7 +7,7 @@
         <p class="page-subtitle">Socios activos con beneficio otorgado por cumplir condiciones de pago.</p>
       </div>
       <div class="head-actions">
-        <button class="btn-secondary" @click="cargarDatos" :disabled="loading">
+        <button class="btn-ghost" @click="cargarDatos" :disabled="loading">
           {{ loading ? "Cargando..." : "Actualizar" }}
         </button>
         <button class="btn-primary" @click="recalcularTodos" :disabled="recalculando">

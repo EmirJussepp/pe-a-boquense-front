@@ -57,7 +57,7 @@
 
       <div class="metric-card card" @click="$router.push('/viajes')">
         <div class="metric-icon" style="background:#eff6ff; color:#1d4ed8">
-          <Plane :size="22" />
+          <Bus :size="22" />
         </div>
         <div class="metric-info">
           <p class="metric-label">Viajes</p>
@@ -128,7 +128,7 @@
 import { computed, onMounted, ref } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { http } from "../services/http"
-import { Users, UserX, Star, Plane, Building2, ArrowLeftRight, ChevronRight } from "lucide-vue-next"
+import { Users, UserX, Star, Bus, Building2, ArrowLeftRight, ChevronRight } from "lucide-vue-next"
 
 import sociosImg   from "../assets/sociospeña.jpg"
 import cuotasImg   from "../assets/cuotaspeña.jpg"
