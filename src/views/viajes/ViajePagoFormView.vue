@@ -20,6 +20,12 @@
       <form v-else @submit.prevent="guardar" class="form-shell">
         <div class="form-section">
           <h3 class="form-section-title">Datos del Pasajero</h3>
+
+          <div class="field">
+            <label>Buscar socio <span class="hint">(opcional — dejá vacío si es anónimo)</span></label>
+            <SocioBuscador @select="onSocioSelect" @clear="onSocioClear" />
+          </div>
+
           <div class="field-grid cols-3">
             <div class="field">
               <label>Nombre</label>
@@ -96,6 +102,7 @@ import { viajesPagosService } from "../../services/viajesPagosService"
 import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
+import SocioBuscador from "../../components/SocioBuscador.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -109,7 +116,18 @@ const viaje = ref(null)
 const metodosPago = ref([])
 const cobradores = ref([])
 
-const form = reactive({ nombre: "", apellido: "", dni: "", monto: "", metodoPagoId: null, cobradorId: null })
+const form = reactive({ nombre: "", apellido: "", dni: "", socioId: null, monto: "", metodoPagoId: null, cobradorId: null })
+
+function onSocioSelect(socio) {
+  form.socioId = socio.socioId
+  form.nombre = socio.nombre ?? ""
+  form.apellido = socio.apellido ?? ""
+  form.dni = socio.dni ?? ""
+}
+
+function onSocioClear() {
+  form.socioId = null
+}
 
 const canSubmit = computed(() =>
   Number(viajeId) > 0 && Number(form.monto) > 0 &&
@@ -145,7 +163,7 @@ async function guardar() {
   const error = validarFormulario(); if (error) { toast.error(error); return }
   saving.value = true
   try {
-    await viajesPagosService.crear({ viajeId, nombre: String(form.nombre ?? "").trim() || null, apellido: String(form.apellido ?? "").trim() || null, dni: String(form.dni ?? "").trim() || null, monto: String(form.monto), metodoPagoId: Number(form.metodoPagoId), cobradorId: Number(form.cobradorId) })
+    await viajesPagosService.crear({ viajeId, nombre: String(form.nombre ?? "").trim() || null, apellido: String(form.apellido ?? "").trim() || null, dni: String(form.dni ?? "").trim() || null, socioId: form.socioId ?? null, monto: String(form.monto), metodoPagoId: Number(form.metodoPagoId), cobradorId: Number(form.cobradorId) })
     toast.success("Pago registrado correctamente."); router.push(`/viajes/${viajeId}`)
   } catch (err) { console.error("Error guardando pago:", err); toast.error("No se pudo registrar el pago.") }
   finally { saving.value = false }
@@ -190,6 +208,7 @@ onMounted(async () => {
 
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.field label .hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
 .required { color: #dc2626; }
 
 .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: white; }

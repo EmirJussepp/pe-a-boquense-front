@@ -13,6 +13,10 @@ export const sociosService = {
     return http.get("/socios")
   },
 
+  buscar(q, limit = 10) {
+    return http.get("/socios/buscar", { params: { q, limit } })
+  },
+
   porId(id) {
     return http.get(`/socios/${id}`)
   },

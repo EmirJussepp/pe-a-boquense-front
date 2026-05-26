@@ -19,4 +19,8 @@ export const viajesPagosService = {
     return http.delete(`/viajes-pagos/${id}`)
   },
 
+  descargarPdfPasajeros(viajeId) {
+    return http.get(`/viajes-pagos/viaje/${viajeId}/pdf`, { responseType: "blob" })
+  },
+
 }

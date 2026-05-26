@@ -17,6 +17,16 @@
         <button v-if="viaje" class="btn-secondary" @click="editarViaje">
           <Pencil :size="14" style="margin-right:5px;vertical-align:-2px" /> Editar
         </button>
+        <button
+          v-if="viaje"
+          class="btn-secondary"
+          :disabled="descargandoPdf || total === 0"
+          @click="imprimirPasajeros"
+          :title="total === 0 ? 'No hay pasajeros para imprimir' : 'Descargar lista en PDF'"
+        >
+          <Printer :size="14" style="margin-right:5px;vertical-align:-2px" />
+          {{ descargandoPdf ? "Generando..." : "Imprimir lista" }}
+        </button>
         <button v-if="viaje" class="btn-primary" @click="nuevoPago">+ Registrar pago</button>
       </div>
     </section>
@@ -271,7 +281,7 @@ import { viajesPagosService } from "../../services/viajesPagosService"
 import { metodosPagoService } from "../../services/metodosPagoService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
-import { AlertTriangle, CreditCard, Bus, X, Pencil, Trash2 } from "lucide-vue-next"
+import { AlertTriangle, CreditCard, Bus, X, Pencil, Trash2, Printer } from "lucide-vue-next"
 
 const route = useRoute()
 const router = useRouter()
@@ -300,6 +310,38 @@ const todosPagos = ref([])
 
 // --- Soft delete ---
 const eliminandoId = ref(null)
+
+// --- Descarga PDF de pasajeros ---
+const descargandoPdf = ref(false)
+
+async function imprimirPasajeros() {
+  if (!(viajeId.value > 0)) return
+  descargandoPdf.value = true
+  try {
+    const res = await viajesPagosService.descargarPdfPasajeros(viajeId.value)
+    const blob = new Blob([res.data], { type: "application/pdf" })
+
+    // Sacar nombre del header si vino, sino armarlo desde el destino + fecha
+    let filename = `pasajeros-viaje-${viajeId.value}.pdf`
+    const disp = res.headers?.["content-disposition"] || res.headers?.["Content-Disposition"]
+    const match = disp && /filename\s*=\s*"?([^";]+)"?/i.exec(disp)
+    if (match?.[1]) filename = match[1]
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error("Error generando PDF:", err)
+    toast.error("No se pudo generar el PDF.")
+  } finally {
+    descargandoPdf.value = false
+  }
+}
 
 async function eliminarPago(pago) {
   const confirmado = confirm(`¿Eliminar el pago de ${nombreCompletoPago(pago)}?`)
