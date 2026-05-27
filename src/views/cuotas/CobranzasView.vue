@@ -50,6 +50,33 @@
 
         </section>
 
+        <section v-if="adelantable" class="card adelantable-card">
+          <div class="adelantable-icon">
+            <CalendarPlus :size="22" />
+          </div>
+          <div class="adelantable-body">
+            <p class="adelantable-eyebrow">Socio al día</p>
+            <p class="adelantable-name">
+              {{ adelantable.socio.apellido }}, {{ adelantable.socio.nombre }}
+              <span class="adelantable-dni">— DNI {{ adelantable.socio.dni }}</span>
+            </p>
+            <p class="adelantable-hint">
+              No tiene cuotas pendientes. Puede pagar adelantado el próximo período:
+              <strong>{{ adelantable.periodoLabel }}</strong> · <strong>$ {{ formatMoney(adelantable.monto) }}</strong>
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-adelantar"
+            :disabled="pagandoAdelantado || !metodoPagoId"
+            @click="pagarAdelantado"
+            :title="!metodoPagoId ? 'Elegí un método de pago en el panel derecho' : 'Pagar adelantado'"
+          >
+            <Loader v-if="pagandoAdelantado" :size="14" class="cupon-spinner" />
+            {{ pagandoAdelantado ? "Procesando..." : "Pagar adelantado" }}
+          </button>
+        </section>
+
         <section class="card table-card">
           <div class="table-card-header">
             <h2>Cuotas encontradas</h2>
@@ -199,7 +226,7 @@ import { useToast } from "../../composables/useToast"
 import ConfirmModal from "../../components/ui/ConfirmModal.vue"
 import PaginadorComponent from "../../components/ui/PaginadorComponent.vue"
 import { useCuponPrinting } from "../../composables/useCuponPrinting"
-import { AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Banknote, Building2, CreditCard, Smartphone, QrCode, Wallet, Loader } from "lucide-vue-next"
+import { AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Banknote, Building2, CreditCard, Smartphone, QrCode, Wallet, Loader, CalendarPlus } from "lucide-vue-next"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -225,6 +252,11 @@ const cobradorSeleccionadoId = ref(null)
 const paginacion = ref({ total: 0, page: 1, pageSize: 10, totalPages: 1 })
 
 const descargandoSocio = ref(null)
+
+// --- Pago adelantado ---
+const adelantable = ref(null)          // { socio, proximoPeriodo, monto, periodoLabel } | null
+const loadingAdelantable = ref(false)
+const pagandoAdelantado = ref(false)
 
 const { ensureLogoDataUrl, buildCuponHTML, printHTML, wrapCuponesHTML } = useCuponPrinting()
 
@@ -342,18 +374,71 @@ async function cargarMetodosPago() {
 
 async function buscarCuotas() {
   loading.value = true; error.value = null; selectedIds.value = []; buscado.value = true
+  adelantable.value = null
   try {
     const termino = filtroBusqueda.value.trim()
     const params = { page: paginacion.value.page, pageSize: paginacion.value.pageSize }
     if (auth.isCobrador && !auth.isAdmin && auth.cobradorId) params.cobradorId = auth.cobradorId
     if (auth.isAdmin && cobradorSeleccionadoId.value) params.cobradorId = cobradorSeleccionadoId.value
-    if (/^\d+$/.test(termino)) params.dni = termino
+    const esDni = /^\d+$/.test(termino)
+    if (esDni) params.dni = termino
     else if (termino) params.search = termino
     const { data } = await cuotasService.listarCobranzas(params)
     cuotas.value = Array.isArray(data.data) ? data.data.map(normalizeCuota).filter(item => item.id > 0) : []
     paginacion.value = { total: data.total, page: data.page, pageSize: data.pageSize, totalPages: data.totalPages }
+
+    // Si buscó por DNI exacto y el socio no tiene cuotas pendientes, ofrecemos el pago adelantado.
+    if (esDni && cuotas.value.length === 0) {
+      cargarAdelantable(termino)
+    }
   } catch { error.value = "No se pudieron cargar las cuotas. Intentá de nuevo."; cuotas.value = [] }
   finally { loading.value = false }
+}
+
+async function cargarAdelantable(dni) {
+  loadingAdelantable.value = true
+  try {
+    const { data } = await cuotasService.obtenerProximoAdelantable(dni)
+    adelantable.value = data
+  } catch (err) {
+    // 404 = socio inexistente, 409 = vitalicio o tiene pendientes que no aparecieron acá.
+    // En cualquier caso, no es un error que mostrar al usuario: simplemente no ofrecemos adelantar.
+    adelantable.value = null
+  } finally {
+    loadingAdelantable.value = false
+  }
+}
+
+async function pagarAdelantado() {
+  if (!adelantable.value || !metodoPagoId.value) return
+  const { socio, proximoPeriodo, monto, periodoLabel } = adelantable.value
+  const metodo = metodosPago.value.find(m => m.id === metodoPagoId.value)
+  const nombreMetodo = metodo?.nombre ?? "método seleccionado"
+
+  const ok = await confirmModal.value.open({
+    title: "Confirmar pago adelantado",
+    message: `¿Cobrar a ${socio.apellido}, ${socio.nombre} la cuota de ${periodoLabel} por $ ${formatMoney(monto)} via ${nombreMetodo}?`,
+    confirmLabel: "Confirmar pago",
+    variant: "success",
+  })
+  if (!ok) return
+
+  pagandoAdelantado.value = true
+  try {
+    await cuotasService.adelantar({
+      socioId: socio.socioId,
+      periodo: proximoPeriodo,
+      metodoPagoId: Number(metodoPagoId.value),
+    })
+    toast.success(`Cuota de ${periodoLabel} cobrada por adelantado.`)
+    // Refresco: re-busco la lista (sigue vacía) y vuelvo a calcular el próximo adelantable.
+    await buscarCuotas()
+  } catch (err) {
+    const msg = err?.response?.data?.error ?? "No se pudo registrar el pago adelantado."
+    toast.error(msg)
+  } finally {
+    pagandoAdelantado.value = false
+  }
 }
 
 function cambiarPagina(nuevaPagina) { paginacion.value.page = nuevaPagina; buscarCuotas() }
@@ -560,6 +645,51 @@ onMounted(async () => {
 .btn-confirmar:not(:disabled) { background: var(--accent); color: var(--primary); cursor: pointer; }
 .footer-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px; }
 
+/* ── Card de pago adelantado ─────────────────── */
+.adelantable-card {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(90deg, rgba(241,180,76,0.06) 0%, white 60%);
+}
+.adelantable-icon {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(241,180,76,0.15);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.adelantable-body { flex: 1; min-width: 0; }
+.adelantable-eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.8px;
+  color: #166534; text-transform: uppercase;
+}
+.adelantable-name {
+  margin: 0 0 4px;
+  font-size: 15px; font-weight: 800; color: var(--primary);
+}
+.adelantable-dni { font-weight: 500; color: var(--text-muted); font-size: 12px; margin-left: 4px; }
+.adelantable-hint {
+  margin: 0;
+  font-size: 13px; color: var(--text-soft); line-height: 1.5;
+}
+.adelantable-hint strong { color: var(--primary); }
+.btn-adelantar {
+  flex-shrink: 0;
+  background: var(--accent); color: var(--primary);
+  border: none; border-radius: 10px;
+  padding: 12px 18px; font-weight: 800; font-size: 13px;
+  cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: transform 0.15s, filter 0.15s;
+}
+.btn-adelantar:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-adelantar:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .paginador { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 16px 0 4px; flex-wrap: wrap; }
 .btn-pag { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-weight: 700; cursor: pointer; color: var(--primary); }
 .btn-pag:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -578,6 +708,10 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .cobranzas-page { padding: 16px; }
   .page-header h1 { font-size: 1.6rem; }
+
+  /* Card de adelantado: apilar en mobile */
+  .adelantable-card { flex-direction: column; align-items: stretch; }
+  .btn-adelantar { width: 100%; justify-content: center; }
 
   /* Búsqueda: input full width, botones en fila */
   .input-action-group { grid-template-columns: 1fr 1fr; }

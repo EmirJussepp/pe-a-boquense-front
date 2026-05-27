@@ -34,4 +34,13 @@ listarCuponesPeriodo(periodo, cobradorId = null) {
   if (cobradorId) params.cobradorId = cobradorId
   return http.get(`/cupones/periodo/${periodo}`, { params })
 },
+
+obtenerProximoAdelantable(dni) {
+  return http.get("/cuotas/proximo-adelantable", { params: { dni } })
+},
+
+adelantar(payload) {
+  // payload: { socioId, periodo, metodoPagoId }
+  return http.post("/cuotas/adelantar", payload)
+},
 }

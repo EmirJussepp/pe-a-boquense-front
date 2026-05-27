@@ -83,7 +83,17 @@
         <section class="card table-card">
           <div class="table-card-header">
             <h2>Ranking de Socios Deudores</h2>
-            <span class="badge-count">{{ deudores.length }} socios</span>
+            <div class="table-header-right">
+              <span class="badge-count">{{ deudores.length }} socios</span>
+              <button
+                class="btn-export-mini"
+                :disabled="!deudoresOrdenados.length"
+                @click="exportarDeudores"
+                title="Exportar solo el ranking de deudores"
+              >
+                <FileSpreadsheet :size="14" /> Exportar deudores
+              </button>
+            </div>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -94,6 +104,7 @@
                     SOCIO <component :is="sortIcon('apellido')" :size="12" class="sort-icon" />
                   </th>
                   <th>DNI</th>
+                  <th>CONTACTO</th>
                   <th>COBRADOR</th>
                   <th @click="ordenarDeudores('cuotasPendientes')" class="sortable">
                     PEND. <component :is="sortIcon('cuotasPendientes')" :size="12" class="sort-icon" />
@@ -108,10 +119,10 @@
               </thead>
               <tbody>
                 <tr v-if="loadingDeudores" v-for="n in 5" :key="`sk-${n}`" class="skeleton-row">
-                  <td colspan="7"></td>
+                  <td colspan="8"></td>
                 </tr>
                 <tr v-else-if="deudoresOrdenados.length === 0">
-                  <td colspan="7" class="empty-state">No hay deudores en el período seleccionado.</td>
+                  <td colspan="8" class="empty-state">No hay deudores en el período seleccionado.</td>
                 </tr>
                 <tr v-else v-for="(deudor, index) in deudoresOrdenados" :key="deudor.id">
                   <td class="rank-cell">
@@ -121,6 +132,20 @@
                     <span class="socio-name">{{ deudor.apellido }}, {{ deudor.nombre }}</span>
                   </td>
                   <td class="mono">{{ deudor.dni || "—" }}</td>
+                  <td class="contacto-cell">
+                    <div v-if="deudor.telefono" class="contacto-wrap">
+                      <span class="contacto-num">{{ deudor.telefono }}</span>
+                      <button
+                        v-if="tieneWhatsApp(deudor)"
+                        class="btn-wa"
+                        @click="abrirWhatsApp(deudor)"
+                        :title="`Escribir a ${deudor.nombre} por WhatsApp`"
+                      >
+                        <MessageCircle :size="14" />
+                      </button>
+                    </div>
+                    <span v-else class="text-muted">—</span>
+                  </td>
                   <td class="text-muted">{{ deudor.cobradorNombre || "—" }}</td>
                   <td>
                     <span v-if="deudor.cuotasPendientes > 0" class="pill warn">{{ deudor.cuotasPendientes }}</span>
@@ -180,7 +205,7 @@ import { reportesService } from "../../services/reportesService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import * as XLSX from "xlsx"
-import { AlertTriangle, X, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-vue-next"
+import { AlertTriangle, X, Download, ArrowUpDown, ArrowUp, ArrowDown, MessageCircle, FileSpreadsheet } from "lucide-vue-next"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -212,11 +237,51 @@ function normalizeDeudor(item) {
   return {
     id: Number(item?.socioId ?? item?.id ?? 0),
     nombre: String(item?.nombre ?? ""), apellido: String(item?.apellido ?? ""),
-    dni: String(item?.dni ?? ""), cobradorNombre: String(item?.cobradorNombre ?? ""),
+    dni: String(item?.dni ?? ""),
+    telefono: String(item?.telefono ?? "").trim(),
+    cobradorNombre: String(item?.cobradorNombre ?? ""),
     cuotasPendientes: Number(item?.cuotasPendientes ?? 0),
     cuotasVencidas: Number(item?.cuotasVencidas ?? 0),
     deudaEmitidaTotal: Number(item?.deudaEmitidaTotal ?? 0),
   }
+}
+
+// Limpia un teléfono argentino y lo deja en formato internacional para wa.me.
+// Casos típicos:
+//   "011 4567-8901"     -> "541145678901"
+//   "+54 9 11 4567 8901" -> "5491145678901"
+//   "15-4567-8901"      -> "541545678901" (no perfecto, pero abre WhatsApp y el usuario corrige)
+//   "1145678901"        -> "541145678901"
+//   ""                  -> ""
+function normalizarTelefonoWa(raw) {
+  if (!raw) return ""
+  let digits = String(raw).replace(/\D+/g, "")
+  if (!digits) return ""
+  // Saca un 0 inicial (ej. 011 → 11)
+  if (digits.startsWith("0")) digits = digits.replace(/^0+/, "")
+  // Si ya empieza con 54, listo
+  if (digits.startsWith("54")) return digits
+  // Si no, le anteponemos 54 (Argentina)
+  return "54" + digits
+}
+
+function tieneWhatsApp(deudor) {
+  return normalizarTelefonoWa(deudor?.telefono).length >= 10
+}
+
+function mensajeWhatsApp(deudor) {
+  const cant = Number(deudor.cuotasPendientes || 0) + Number(deudor.cuotasVencidas || 0)
+  const monto = formatMoney(deudor.deudaEmitidaTotal)
+  const nombre = String(deudor.nombre || "").trim() || String(deudor.apellido || "").trim() || "socio/a"
+  return `Hola ${nombre}, te escribo de la Peña Boquense. Tenés ${cant} cuota${cant === 1 ? "" : "s"} pendiente${cant === 1 ? "" : "s"} por un total de $ ${monto}. Cualquier consulta o para coordinar el pago, decime. ¡Gracias!`
+}
+
+function abrirWhatsApp(deudor) {
+  const numero = normalizarTelefonoWa(deudor.telefono)
+  if (!numero) { toast.warning("Este socio no tiene teléfono cargado."); return }
+  const texto = encodeURIComponent(mensajeWhatsApp(deudor))
+  const url = `https://wa.me/${numero}?text=${texto}`
+  window.open(url, "_blank", "noopener,noreferrer")
 }
 function normalizePorCobrador(item) {
   return {
@@ -313,8 +378,8 @@ function exportarExcel() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumenData), "Resumen")
   }
   if (deudoresOrdenados.value.length) {
-    const headers = ["#","Apellido","Nombre","DNI","Cobrador","Cuotas Pendientes","Cuotas Vencidas","Deuda Total"]
-    const rows = deudoresOrdenados.value.map((item,index) => [index+1,item.apellido,item.nombre,item.dni,item.cobradorNombre,item.cuotasPendientes,item.cuotasVencidas,Number(item.deudaEmitidaTotal)])
+    const headers = ["#","Apellido","Nombre","DNI","Teléfono","Cobrador","Cuotas Pendientes","Cuotas Vencidas","Deuda Total"]
+    const rows = deudoresOrdenados.value.map((item,index) => [index+1,item.apellido,item.nombre,item.dni,item.telefono || "",item.cobradorNombre,item.cuotasPendientes,item.cuotasVencidas,Number(item.deudaEmitidaTotal)])
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers,...rows]), "Ranking Deudores")
   }
   if (porCobrador.value.length) {
@@ -325,6 +390,30 @@ function exportarExcel() {
   const fecha = new Date().toISOString().slice(0,10)
   XLSX.writeFile(wb, `reporte_cuotas_${fecha}.xlsx`)
   toast.success("Excel exportado correctamente.")
+}
+
+function exportarDeudores() {
+  if (!deudoresOrdenados.value.length) {
+    toast.warning("No hay deudores para exportar.")
+    return
+  }
+  const wb = XLSX.utils.book_new()
+  const headers = ["#", "Apellido", "Nombre", "DNI", "Teléfono", "Cobrador", "Cuotas Pendientes", "Cuotas Vencidas", "Deuda Total"]
+  const rows = deudoresOrdenados.value.map((item, index) => [
+    index + 1,
+    item.apellido,
+    item.nombre,
+    item.dni,
+    item.telefono || "",
+    item.cobradorNombre,
+    item.cuotasPendientes,
+    item.cuotasVencidas,
+    Number(item.deudaEmitidaTotal),
+  ])
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers, ...rows]), "Deudores")
+  const fecha = new Date().toISOString().slice(0, 10)
+  XLSX.writeFile(wb, `deudores_${fecha}.xlsx`)
+  toast.success(`${deudoresOrdenados.value.length} deudor(es) exportado(s).`)
 }
 
 async function cargarCobradores() {
@@ -430,7 +519,31 @@ onMounted(async () => { await cargarCobradores(); await cargarTodo() })
 
 .table-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
 .table-card-header h2 { font-size: 18px; color: var(--primary); font-weight: 800; margin: 0; }
+.table-header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .badge-count { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.btn-export-mini {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: white; color: var(--primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 12px; font-weight: 700; font-size: 12px; cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-export-mini:hover:not(:disabled) { background: var(--bg); border-color: var(--primary); }
+.btn-export-mini:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Celda de contacto + botón WhatsApp */
+.contacto-cell { min-width: 160px; }
+.contacto-wrap { display: inline-flex; align-items: center; gap: 8px; }
+.contacto-num { font-family: monospace; font-size: 12px; color: var(--text-soft); }
+.btn-wa {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: #25d366; color: white; border: none; cursor: pointer;
+  transition: transform 0.12s, filter 0.12s;
+  box-shadow: 0 1px 4px rgba(37, 211, 102, 0.35);
+}
+.btn-wa:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-wa:active { transform: translateY(0); }
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .data-table { width: 100%; min-width: 700px; border-collapse: collapse; }
