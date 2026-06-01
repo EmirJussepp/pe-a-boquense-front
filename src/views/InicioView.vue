@@ -167,18 +167,35 @@ async function cargarMetricas() {
       http.get("/movimientos"),
     ])
 
+    // Socios activos y baja → paginados, leer .total
     if (sociosActRes.status === "fulfilled")
-      stats.value.sociosActivos = sociosActRes.value.data?.total ?? sociosActRes.value.data?.length ?? "—"
+      stats.value.sociosActivos = sociosActRes.value.data?.total ?? "—"
     if (sociosBajaRes.status === "fulfilled")
-      stats.value.sociosBaja = sociosBajaRes.value.data?.total ?? sociosBajaRes.value.data?.length ?? "—"
-    if (beneficiosRes.status === "fulfilled")
-      stats.value.beneficios = Array.isArray(beneficiosRes.value.data) ? beneficiosRes.value.data.length : "—"
-    if (viajesRes.status === "fulfilled")
-      stats.value.viajes = Array.isArray(viajesRes.value.data) ? viajesRes.value.data.length : "—"
-    if (alquileresRes.status === "fulfilled")
-      stats.value.alquileres = Array.isArray(alquileresRes.value.data) ? alquileresRes.value.data.length : "—"
-    if (movimientosRes.status === "fulfilled")
-      stats.value.movimientos = Array.isArray(movimientosRes.value.data) ? movimientosRes.value.data.length : "—"
+      stats.value.sociosBaja = sociosBajaRes.value.data?.total ?? "—"
+
+    // Beneficios → paginado, leer .total
+    if (beneficiosRes.status === "fulfilled") {
+      const d = beneficiosRes.value.data
+      stats.value.beneficios = d?.total ?? (Array.isArray(d) ? d.length : "—")
+    }
+
+    // Viajes → paginado, leer .total
+    if (viajesRes.status === "fulfilled") {
+      const d = viajesRes.value.data
+      stats.value.viajes = d?.total ?? (Array.isArray(d) ? d.length : "—")
+    }
+
+    // Alquileres → array plano, leer .length
+    if (alquileresRes.status === "fulfilled") {
+      const d = alquileresRes.value.data
+      stats.value.alquileres = Array.isArray(d) ? d.length : (d?.total ?? "—")
+    }
+
+    // Movimientos → array plano, leer .length
+    if (movimientosRes.status === "fulfilled") {
+      const d = movimientosRes.value.data
+      stats.value.movimientos = Array.isArray(d) ? d.length : (d?.total ?? "—")
+    }
   } finally {
     loadingMetrics.value = false
   }
