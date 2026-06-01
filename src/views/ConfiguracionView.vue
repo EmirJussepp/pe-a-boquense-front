@@ -493,16 +493,16 @@ async function guardarUsuario() {
   error.value = null; const f = usuarioModal.form
   if (!String(f.nombre ?? "").trim()) { error.value = "El nombre es obligatorio."; return }
   if (!String(f.email ?? "").trim() || !f.email.includes("@")) { error.value = "Ingresá un email válido."; return }
-  if (!usuarioModal.editando && (!f.password || f.password.length < 6)) { error.value = "La contraseña debe tener al menos 6 caracteres."; return }
-  if (!usuarioModal.editando && (!f.password || f.password.length < 6)) {
-  error.value = "La contraseña debe tener al menos 6 caracteres."
-  return
-}
-// 👈 agregar esto
-if (!usuarioModal.editando && f.password !== f.confirmPassword) {
-  error.value = "Las contraseñas no coinciden."
-  return
-}
+  if (!usuarioModal.editando) {
+    if (!f.password || f.password.length < 6) {
+      error.value = "La contraseña debe tener al menos 6 caracteres."
+      return
+    }
+    if (f.password !== f.confirmPassword) {
+      error.value = "Las contraseñas no coinciden."
+      return
+    }
+  }
   usuarioModal.saving = true
   try {
     if (usuarioModal.editando) {

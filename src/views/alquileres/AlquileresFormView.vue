@@ -222,6 +222,15 @@ async function cargarAlquiler() {
 }
 
 async function guardar() {
+  // No permitir fechas pasadas al crear un alquiler nuevo
+  if (!esEdicion.value && form.fecha) {
+    const fechaElegida = new Date(form.fecha)
+    if (fechaElegida < new Date()) {
+      toast.error("No podés registrar un alquiler con fecha pasada.")
+      return
+    }
+  }
+
   saving.value = true
   try {
     const payload = {

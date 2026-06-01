@@ -139,7 +139,14 @@ function cerrar() {
 }
 
 function onBlur() {
-  setTimeout(() => { abierto.value = false }, 150)
+  setTimeout(() => {
+    abierto.value = false
+    // Si el input quedó vacío sin haber seleccionado nada, limpiamos el valor
+    if (!query.value.trim() && !valorSeleccionado.value) {
+      emit("update:modelValue", null)
+      emit("clear")
+    }
+  }, 150)
 }
 
 function seleccionarActivo() {

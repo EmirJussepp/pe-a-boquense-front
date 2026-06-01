@@ -204,8 +204,18 @@ async function cargarSocio() {
 }
 
 async function guardar() {
-  loading.value = true
   error.value = null
+
+  // Validaciones cliente
+  if (form.email && form.email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email.trim())) {
+      error.value = "El email ingresado no es válido."
+      return
+    }
+  }
+
+  loading.value = true
   try {
     if (isEdit.value) {
       await sociosService.editar(route.params.id, form)
