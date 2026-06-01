@@ -80,9 +80,9 @@
         <h2>Información del socio</h2>
         <div class="form-grid">
           <div class="field">
-            <label>Cobrador <span class="required">*</span></label>
-            <select v-model.number="form.cobradorId" required>
-              <option :value="null" disabled>— Seleccioná un cobrador —</option>
+            <label>Cobrador</label>
+            <select v-model.number="form.cobradorId">
+              <option :value="null">— Sin cobrador —</option>
               <option v-for="c in cobradores" :key="c.cobradoresId" :value="c.cobradoresId">
                 {{ c.nombre }} — {{ c.zona }}
               </option>

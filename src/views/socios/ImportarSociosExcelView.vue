@@ -33,7 +33,7 @@
             <li><strong>dni</strong> *</li>
             <li><strong>tipoSocioPena</strong> * — ej: ACTIVO, VITALICIO</li>
             <li>localidad — nombre de localidad existente</li>
-            <li><strong>cobrador</strong> * — nombre exacto del cobrador</li>
+            <li>cobrador — nombre exacto del cobrador (opcional)</li>
             <li>tipoSocioBoca — ej: ADHERENTE, ACTIVO, No Socio</li>
             <li>alias</li>
             <li>email</li>

@@ -294,6 +294,7 @@ const previewTop = computed(() => previewItems.value.slice(0, 8))
 
 function getMontoCuota(item) {
   return Number(
+    item?.montoAPagar ??
     item?.monto ??
     item?.montoCuota ??
     item?.importe ??
