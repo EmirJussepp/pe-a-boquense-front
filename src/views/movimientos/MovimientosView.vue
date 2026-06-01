@@ -20,6 +20,28 @@
       </div>
     </section>
 
+    <!-- TOTALES RÁPIDOS -->
+    <div class="kpi-strip">
+      <div class="kpi-item">
+        <span class="kpi-label">Ingresos</span>
+        <strong class="kpi-val text-success">$ {{ formatoMoneda(totalIngresos) }}</strong>
+      </div>
+      <div class="kpi-item">
+        <span class="kpi-label">Egresos</span>
+        <strong class="kpi-val text-danger">$ {{ formatoMoneda(totalEgresos) }}</strong>
+      </div>
+      <div class="kpi-item">
+        <span class="kpi-label">Balance</span>
+        <strong class="kpi-val" :class="balanceNeto >= 0 ? 'text-success' : 'text-danger'">
+          $ {{ formatoMoneda(balanceNeto) }}
+        </strong>
+      </div>
+      <div class="kpi-item">
+        <span class="kpi-label">Movimientos</span>
+        <strong class="kpi-val">{{ rowsFiltrados.length }}</strong>
+      </div>
+    </div>
+
     <section class="filters card">
       <div class="filters-top">
         <div class="field field-grow">
@@ -41,8 +63,17 @@
           </select>
         </div>
 
+        <div class="field field-sm">
+          <label>Desde</label>
+          <input v-model="fechaDesde" type="date" />
+        </div>
+
+        <div class="field field-sm">
+          <label>Hasta</label>
+          <input v-model="fechaHasta" type="date" />
+        </div>
+
         <div class="filters-actions">
-          <button class="btn-primary" type="button" @click="applyFilters">Buscar</button>
           <button class="btn-secondary" type="button" @click="clearFilters" :disabled="!hasActiveFilters">Limpiar</button>
         </div>
       </div>
@@ -103,6 +134,9 @@
                 <td>{{ movimiento.metodoPagoNombre || "—" }}</td>
                 <td>
                   <div class="row-actions">
+                    <button class="table-btn" type="button" @click="editarMovimiento(movimiento)">
+                      Editar
+                    </button>
                     <button class="table-btn danger" type="button" @click="confirmarEliminar(movimiento)">
                       Eliminar
                     </button>
@@ -136,9 +170,8 @@
               <span class="info-value">{{ movimiento.metodoPagoNombre || "—" }}</span>
             </div>
             <div class="mov-card-actions">
-              <button class="table-btn danger" type="button" @click="confirmarEliminar(movimiento)">
-                Eliminar
-              </button>
+              <button class="table-btn" type="button" @click="editarMovimiento(movimiento)">Editar</button>
+              <button class="table-btn danger" type="button" @click="confirmarEliminar(movimiento)">Eliminar</button>
             </div>
           </article>
         </div>
@@ -189,6 +222,8 @@ const errorMsg = ref("")
 const rows = ref([])
 const search = ref("")
 const tipo = ref("")
+const fechaDesde = ref("")
+const fechaHasta = ref("")
 
 const modalEliminar = reactive({
   abierto: false,
@@ -196,7 +231,9 @@ const modalEliminar = reactive({
   movimiento: null,
 })
 
-const hasActiveFilters = computed(() => !!search.value.trim() || !!tipo.value)
+const hasActiveFilters = computed(() =>
+  !!search.value.trim() || !!tipo.value || !!fechaDesde.value || !!fechaHasta.value
+)
 
 function normalizeMovimiento(item) {
   return {
@@ -228,6 +265,22 @@ const rowsFiltrados = computed(() => {
     result = result.filter((item) => item.tipo === tipo.value)
   }
 
+  if (fechaDesde.value) {
+    const desde = new Date(`${fechaDesde.value}T00:00:00`).getTime()
+    result = result.filter((item) => {
+      const t = new Date(item.fecha).getTime()
+      return !Number.isNaN(t) && t >= desde
+    })
+  }
+
+  if (fechaHasta.value) {
+    const hasta = new Date(`${fechaHasta.value}T23:59:59`).getTime()
+    result = result.filter((item) => {
+      const t = new Date(item.fecha).getTime()
+      return !Number.isNaN(t) && t <= hasta
+    })
+  }
+
   result.sort((a, b) => {
     const fechaA = new Date(a.fecha).getTime() || 0
     const fechaB = new Date(b.fecha).getTime() || 0
@@ -254,15 +307,29 @@ async function loadMovimientos() {
   }
 }
 
+const totalIngresos = computed(() =>
+  rowsFiltrados.value.filter(i => i.tipo === "INGRESO").reduce((a, i) => a + Number(i.monto || 0), 0)
+)
+const totalEgresos = computed(() =>
+  rowsFiltrados.value.filter(i => i.tipo === "EGRESO").reduce((a, i) => a + Number(i.monto || 0), 0)
+)
+const balanceNeto = computed(() => totalIngresos.value - totalEgresos.value)
+
 function applyFilters() { /* filtros client-side reactivos */ }
 
 function clearFilters() {
   search.value = ""
   tipo.value = ""
+  fechaDesde.value = ""
+  fechaHasta.value = ""
 }
 
 function nuevoMovimiento() {
   router.push("/movimientos/nuevo")
+}
+
+function editarMovimiento(movimiento) {
+  router.push(`/movimientos/${movimiento.id}/editar`)
 }
 
 function verReporte() {
@@ -326,8 +393,27 @@ onMounted(loadMovimientos)
 .page-subtitle { margin: 0; color: var(--text-muted); font-size: 14px; }
 .head-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.kpi-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kpi-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-val { font-size: 1.3rem; font-weight: 900; color: var(--primary); }
+.text-success { color: #15803d; }
+.text-danger  { color: #b91c1c; }
+
 .filters { padding: 20px; }
-.filters-top { display: grid; grid-template-columns: minmax(0, 1fr) 160px auto; gap: 12px; align-items: end; }
+.filters-top { display: grid; grid-template-columns: minmax(0, 1fr) 140px 130px 130px auto; gap: 12px; align-items: end; }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field label { font-size: 12px; font-weight: 700; color: var(--text-muted); }
 .field input, .field select { width: 100%; }
@@ -403,7 +489,8 @@ onMounted(loadMovimientos)
 @media (max-width: 980px) {
   .page-head { flex-direction: column; align-items: stretch; }
   .head-actions { justify-content: stretch; }
-  .filters-top { grid-template-columns: 1fr; }
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .filters-top { grid-template-columns: 1fr 1fr; }
   .filters-actions { width: 100%; }
   .filters-actions button { flex: 1; }
 }

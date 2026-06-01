@@ -9,6 +9,9 @@
 
       <div class="head-actions">
         <button class="btn-secondary" type="button" @click="volverListado">Ver movimientos</button>
+        <button class="btn-secondary" type="button" @click="exportarCSV" :disabled="!movimientosFiltrados.length">
+          Exportar CSV
+        </button>
         <button class="btn-primary" type="button" @click="loadMovimientos" :disabled="loading">
           {{ loading ? "Actualizando..." : "Actualizar" }}
         </button>
@@ -172,6 +175,29 @@
         </section>
 
         <section class="card side-gap">
+          <h2 class="section-title">Por mes</h2>
+          <div v-if="!resumenPorMes.length" class="empty-state small"><p>Sin datos.</p></div>
+          <div v-else class="resume-list">
+            <div v-for="item in resumenPorMes" :key="item.mes" class="resume-item">
+              <div class="resume-top">
+                <span class="resume-name">{{ item.mes }}</span>
+                <span class="resume-count">{{ item.cantidad }} mov.</span>
+              </div>
+              <div class="resume-sub">
+                <span class="text-success">+ $ {{ formatMoney(item.ingresos) }}</span>
+                <span class="text-danger">- $ {{ formatMoney(item.egresos) }}</span>
+              </div>
+              <div class="resume-balance">
+                Balance:
+                <strong :class="item.balance >= 0 ? 'text-success' : 'text-danger'">
+                  $ {{ formatMoney(item.balance) }}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card side-gap">
           <h2 class="section-title">Últimos movimientos</h2>
           <div v-if="!ultimosMovimientos.length" class="empty-state small"><p>Sin datos.</p></div>
           <div v-else class="last-list">
@@ -313,6 +339,44 @@ const resumenPorMetodo = computed(() => {
 })
 
 const ultimosMovimientos = computed(() => movimientosFiltrados.value.slice(0, 5))
+
+const resumenPorMes = computed(() => {
+  const map = new Map()
+  for (const item of movimientosFiltrados.value) {
+    if (!item.fecha) continue
+    const d = new Date(item.fecha)
+    if (Number.isNaN(d.getTime())) continue
+    const key = `${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`
+    if (!map.has(key)) map.set(key, { mes: key, cantidad: 0, ingresos: 0, egresos: 0, balance: 0, ts: d.getTime() })
+    const cur = map.get(key)
+    cur.cantidad++
+    if (item.tipo === "INGRESO") cur.ingresos += Number(item.monto || 0)
+    else if (item.tipo === "EGRESO") cur.egresos += Number(item.monto || 0)
+    cur.balance = cur.ingresos - cur.egresos
+  }
+  return [...map.values()].sort((a, b) => b.ts - a.ts)
+})
+
+function exportarCSV() {
+  const headers = ["Fecha", "Descripción", "Tipo", "Método de Pago", "Monto"]
+  const rows = movimientosFiltrados.value.map((m) => [
+    formatDate(m.fecha),
+    `"${(m.descripcion || "").replace(/"/g, '""')}"`,
+    m.tipo,
+    m.metodoPagoNombre || "",
+    Number(m.monto || 0).toFixed(2),
+  ])
+
+  const csv = [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\n")
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  const fecha = new Date().toISOString().slice(0, 10)
+  a.href = url
+  a.download = `movimientos_${fecha}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 async function loadMovimientos() {
   loading.value = true
