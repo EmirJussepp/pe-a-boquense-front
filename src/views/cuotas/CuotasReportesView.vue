@@ -84,12 +84,31 @@
           <div class="table-card-header">
             <h2>Ranking de Socios Deudores</h2>
             <div class="table-header-right">
-              <span class="badge-count">{{ deudores.length }} socios</span>
+              <div class="search-wrap">
+                <Search :size="14" class="search-icon" />
+                <input
+                  v-model="searchDeudor"
+                  type="text"
+                  class="search-input"
+                  placeholder="Buscar por nombre, apellido o DNI..."
+                />
+                <button
+                  v-if="searchDeudor"
+                  class="search-clear"
+                  @click="searchDeudor = ''"
+                  title="Limpiar búsqueda"
+                >
+                  <X :size="12" />
+                </button>
+              </div>
+              <span class="badge-count">
+                {{ deudoresOrdenados.length }}<span v-if="searchDeudor"> de {{ deudores.length }}</span> socios
+              </span>
               <button
                 class="btn-export-mini"
                 :disabled="!deudoresOrdenados.length"
                 @click="exportarDeudores"
-                title="Exportar solo el ranking de deudores"
+                title="Exportar el ranking visible"
               >
                 <FileSpreadsheet :size="14" /> Exportar deudores
               </button>
@@ -122,7 +141,9 @@
                   <td colspan="8"></td>
                 </tr>
                 <tr v-else-if="deudoresOrdenados.length === 0">
-                  <td colspan="8" class="empty-state">No hay deudores en el período seleccionado.</td>
+                  <td colspan="8" class="empty-state">
+                    {{ searchDeudor ? `Sin resultados para "${searchDeudor}".` : "No hay deudores en el período seleccionado." }}
+                  </td>
                 </tr>
                 <tr v-else v-for="(deudor, index) in deudoresOrdenados" :key="deudor.id">
                   <td class="rank-cell">
@@ -205,7 +226,7 @@ import { reportesService } from "../../services/reportesService"
 import { cobradoresService } from "../../services/cobradoresService"
 import { useToast } from "../../composables/useToast"
 import * as XLSX from "xlsx"
-import { AlertTriangle, X, Download, ArrowUpDown, ArrowUp, ArrowDown, MessageCircle, FileSpreadsheet } from "lucide-vue-next"
+import { AlertTriangle, X, Download, ArrowUpDown, ArrowUp, ArrowDown, MessageCircle, FileSpreadsheet, Search } from "lucide-vue-next"
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -225,6 +246,7 @@ const loadingCobrador = ref(false)
 
 const ordenCol = ref("deudaEmitidaTotal")
 const ordenDir = ref("desc")
+const searchDeudor = ref("")
 
 const loadingAny = computed(() =>
   loadingResumen.value || loadingEstado.value || loadingDeudores.value || loadingCobrador.value
@@ -294,7 +316,15 @@ function normalizePorCobrador(item) {
 }
 
 const deudoresOrdenados = computed(() => {
-  const arr = [...deudores.value]
+  const q = searchDeudor.value.trim().toLowerCase()
+  let arr = [...deudores.value]
+  if (q) {
+    arr = arr.filter(d =>
+      d.nombre.toLowerCase().includes(q) ||
+      d.apellido.toLowerCase().includes(q) ||
+      d.dni.toLowerCase().includes(q)
+    )
+  }
   arr.sort((a, b) => {
     let valorA = a[ordenCol.value], valorB = b[ordenCol.value]
     if (typeof valorA === "string") valorA = valorA.toLowerCase()
@@ -530,6 +560,52 @@ onMounted(async () => { await cargarCobradores(); await cargarTodo() })
 }
 .btn-export-mini:hover:not(:disabled) { background: var(--bg); border-color: var(--primary); }
 .btn-export-mini:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search-input {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 28px 7px 30px;
+  font-size: 13px;
+  color: var(--text-main);
+  width: 240px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+.search-clear {
+  position: absolute;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: none;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.search-clear:hover { background: #e2e8f0; color: var(--text-main); }
+@media (max-width: 600px) {
+  .search-input { width: 100%; }
+  .search-wrap { width: 100%; }
+}
 
 /* Celda de contacto + botón WhatsApp */
 .contacto-cell { min-width: 160px; }
