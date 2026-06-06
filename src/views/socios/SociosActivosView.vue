@@ -20,7 +20,7 @@
           Importar Excel
         </button>
 
-        <button v-if="auth.isAdmin" class="btn-primary" @click="nuevoSocio">
+        <button v-if="auth.can('socios:gestionar')" class="btn-primary" @click="nuevoSocio">
           + Nuevo socio
         </button>
       </div>
@@ -155,10 +155,10 @@
                 <td>
                   <div class="row-actions">
                     <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
-                    <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
+                    <button v-if="auth.can('socios:gestionar')" class="btn-action" @click="editarSocio(socio)" title="Editar">
                       <Pencil :size="14" />
                     </button>
-                    <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
+                    <button v-if="auth.can('socios:gestionar')" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
                   </div>
                 </td>
               </tr>
@@ -178,10 +178,10 @@
               </div>
               <div class="row-actions">
                 <button class="btn-action" @click="verSocio(socio)" title="Ver detalle">👁️</button>
-                <button v-if="auth.isAdmin" class="btn-action" @click="editarSocio(socio)" title="Editar">
+                <button v-if="auth.can('socios:gestionar')" class="btn-action" @click="editarSocio(socio)" title="Editar">
                   <Pencil :size="14" />
                 </button>
-                <button v-if="auth.isAdmin" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
+                <button v-if="auth.can('socios:gestionar')" class="btn-action danger" @click="darDeBaja(socio)" title="Dar de baja">⛔</button>
               </div>
             </div>
 
@@ -322,12 +322,12 @@ function nuevoSocio() { router.push("/socios/nuevo") }
 function verSocio(socio) { router.push(`/socios/${socio.socioId}`) }
 
 function editarSocio(socio) {
-  if (!auth.isAdmin) { toast.warning("No tenés permiso para editar socios."); return }
+  if (!auth.can("socios:gestionar")) { toast.warning("No tenés permiso para editar socios."); return }
   router.push(`/socios/${socio.socioId}/editar`)
 }
 
 async function darDeBaja(socio) {
-  if (!auth.isAdmin) { toast.warning("No tenés permiso para dar de baja socios."); return }
+  if (!auth.can("socios:gestionar")) { toast.warning("No tenés permiso para dar de baja socios."); return }
 
   const ok = await confirmModal.value.open({
     title: "Dar de baja",
