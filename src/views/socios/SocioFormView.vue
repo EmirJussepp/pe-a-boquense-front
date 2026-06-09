@@ -127,6 +127,7 @@ import { http } from "../../services/http"
 import { useToast } from "../../composables/useToast"
 import LocalidadBuscador from "../../components/LocalidadBuscador.vue"
 import { AlertTriangle, X } from "lucide-vue-next"
+import { cleanPayload } from "../../utils/cleanPayload"
 
 const router = useRouter()
 const route = useRoute()
@@ -217,11 +218,12 @@ async function guardar() {
 
   loading.value = true
   try {
+    const payload = cleanPayload(form)
     if (isEdit.value) {
-      await sociosService.editar(route.params.id, form)
+      await sociosService.editar(route.params.id, payload)
       toast.success("Socio actualizado correctamente.")
     } else {
-      await sociosService.crear(form)
+      await sociosService.crear(payload)
       toast.success("Socio creado correctamente.")
     }
     router.push("/socios/activos")
