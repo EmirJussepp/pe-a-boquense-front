@@ -17,6 +17,10 @@ export const sociosService = {
     return http.get("/socios/buscar", { params: { q, limit } })
   },
 
+  cumpleanios(dias = 7) {
+    return http.get("/socios/cumpleanios", { params: { dias } })
+  },
+
   porId(id) {
     return http.get(`/socios/${id}`)
   },

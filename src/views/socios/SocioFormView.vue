@@ -48,6 +48,10 @@
             <label>Fecha de Antigüedad</label>
             <input v-model="form.fechaAntiguedad" type="date" />
           </div>
+          <div class="field">
+            <label>Fecha de Nacimiento</label>
+            <input v-model="form.fechaNacimiento" type="date" :max="hoyISO" placeholder="Opcional" />
+          </div>
         </div>
       </div>
 
@@ -151,11 +155,14 @@ const form = reactive({
   direccion: null,
   numSocioBoca: null,
   fechaAntiguedad: null,
+  fechaNacimiento: null,
   localidadId: null,
   cobradorId: null,
   tipoSocioPenaId: null,
   tipoSocioBocaId: null,
 })
+
+const hoyISO = new Date().toISOString().slice(0, 10)
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -188,6 +195,7 @@ async function cargarSocio() {
       direccion: data.direccion,
       numSocioBoca: data.numSocioBoca,
       fechaAntiguedad: data.fechaAntiguedad ? data.fechaAntiguedad.slice(0, 10) : null,
+      fechaNacimiento: data.fechaNacimiento ? data.fechaNacimiento.slice(0, 10) : null,
       localidadId: data.localidadId,
       cobradorId: data.cobradorId,
       tipoSocioPenaId: data.tipoSocioPenaId,

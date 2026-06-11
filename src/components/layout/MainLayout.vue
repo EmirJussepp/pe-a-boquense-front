@@ -155,6 +155,7 @@
           <span /><span /><span />
         </button>
         <div class="topbar-end">
+          <BirthdayBell v-if="auth.puedeVerSocios" />
           <NotificationBell v-if="auth.puedeVerCuotas" />
         </div>
       </div>
@@ -182,6 +183,7 @@ import {
   Settings,
 } from "lucide-vue-next"
 import NotificationBell from "../notifications/NotificationBell.vue"
+import BirthdayBell from "../notifications/BirthdayBell.vue"
 
 const auth = useAuthStore()
 const route = useRoute()

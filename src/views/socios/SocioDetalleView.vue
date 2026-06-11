@@ -66,6 +66,13 @@
             <label>Fecha de Antigüedad</label>
             <strong>{{ formatFecha(socio.fechaAntiguedad) }}</strong>
           </div>
+          <div class="detalle-item">
+            <label>Fecha de Nacimiento</label>
+            <strong>
+              {{ formatFecha(socio.fechaNacimiento) }}
+              <span v-if="edadActual !== null" class="muted">({{ edadActual }} años)</span>
+            </strong>
+          </div>
           <div v-if="socio.fechaDeBaja" class="detalle-item">
             <label>Fecha de Baja</label>
             <strong class="text-danger">{{ formatFecha(socio.fechaDeBaja) }}</strong>
@@ -153,6 +160,17 @@ const localidadLabel = computed(() => {
   return socio.value.localidadProvincia
     ? `${capitalize(socio.value.localidadNombre)}, ${capitalize(socio.value.localidadProvincia)}`
     : capitalize(socio.value.localidadNombre)
+})
+
+const edadActual = computed(() => {
+  if (!socio.value?.fechaNacimiento) return null
+  const nac = new Date(socio.value.fechaNacimiento)
+  if (isNaN(nac.getTime())) return null
+  const hoy = new Date()
+  let edad = hoy.getFullYear() - nac.getFullYear()
+  const m = hoy.getMonth() - nac.getMonth()
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--
+  return edad
 })
 
 function formatFecha(v) {
