@@ -56,6 +56,17 @@
                 <p class="item-nombre">{{ c.apellido }}, {{ c.nombre }}</p>
                 <p class="item-detalle">{{ textoCumple(c) }} · cumple {{ c.edad }}</p>
               </div>
+              <a
+                v-if="whatsappUrl(c)"
+                :href="whatsappUrl(c)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="wa-btn"
+                @click.stop
+                title="Enviar saludo por WhatsApp"
+              >
+                <MessageCircle :size="15" />
+              </a>
               <span class="item-badge" :class="badgeClass(c.diasParaCumple)">
                 {{ c.diasParaCumple === 0 ? "🎂" : c.diasParaCumple }}
               </span>
@@ -79,7 +90,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
-import { Cake, PartyPopper, RefreshCw } from "lucide-vue-next"
+import { Cake, PartyPopper, RefreshCw, MessageCircle } from "lucide-vue-next"
 import { useAuthStore } from "../../stores/auth"
 import { sociosService } from "../../services/sociosService"
 
@@ -112,6 +123,28 @@ function badgeClass(dias) {
   if (dias === 0) return "badge-today"
   if (dias <= 2) return "badge-soon"
   return "badge-week"
+}
+
+function normalizarTelefono(tel) {
+  if (!tel) return null
+  let n = tel.replace(/\D/g, "")
+  if (!n) return null
+  if (n.startsWith("0")) n = n.slice(1)
+  if (n.startsWith("15")) n = n.slice(2)
+  if (n.startsWith("54")) {
+    if (!n.startsWith("549")) n = "549" + n.slice(2)
+  } else {
+    n = "549" + n
+  }
+  return n
+}
+
+function whatsappUrl(c) {
+  const tel = normalizarTelefono(c.telefono)
+  if (!tel) return null
+  const nombre = (c.nombre || "").trim()
+  const mensaje = `🎉 ¡Feliz cumpleaños, ${nombre}! Desde la Peña Boquense San Francisco te deseamos un día hermoso. 💙💛`
+  return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`
 }
 
 function toggleDropdown() {
@@ -356,6 +389,24 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.wa-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: transform 0.12s, background 0.12s;
+}
+.wa-btn:hover {
+  background: #1ebe5d;
+  transform: scale(1.08);
 }
 
 .item-badge {
