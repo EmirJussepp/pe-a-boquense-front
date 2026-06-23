@@ -456,9 +456,10 @@ async function pagarSeleccionadas() {
     await pagosService.pagarMasivo({ cuotaIds: selectedIds.value, metodoPagoId: Number(metodoPagoId.value) })
     toast.success(`${selectedIds.value.length} cuota(s) pagada(s) correctamente.`)
     selectedIds.value = []; await buscarCuotas()
-  } catch {
-    toast.error("No se pudo procesar el pago. Verificá la conexión e intentá de nuevo.")
-    error.value = "No se pudo procesar el pago. Verificá la conexión e intentá de nuevo."
+  } catch (err) {
+    const msg = err?.response?.data?.error ?? "No se pudo procesar el pago. Verificá la conexión e intentá de nuevo."
+    toast.error(msg)
+    error.value = msg
   } finally { paying.value = false }
 }
 
