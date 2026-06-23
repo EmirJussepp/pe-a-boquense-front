@@ -85,7 +85,6 @@
             <div class="field">
               <label>Método de pago</label>
               <select v-model="form.metodoPagoId">
-                <option :value="null">Sin especificar</option>
                 <option v-for="metodo in metodosPago" :key="metodo.id" :value="metodo.id">
                   {{ metodo.nombre }}
                 </option>
@@ -163,7 +162,7 @@ async function guardar() {
       tipo: form.tipo,
       monto: String(form.monto),
       descripcion: form.descripcion.trim() || null,
-      metodoPagoId: form.metodoPagoId ? Number(form.metodoPagoId) : null,
+      metodoPagoId: form.metodoPagoId ? Number(form.metodoPagoId) : (metodosPago.value[0]?.id ?? 1),
       fecha: form.fecha || null,
     }
 
@@ -190,6 +189,9 @@ async function cargarMetodosPago() {
     metodosPago.value = Array.isArray(data)
       ? data.map(normalizeMetodoPago).filter((item) => item.id > 0)
       : []
+    if (!form.metodoPagoId && metodosPago.value.length > 0) {
+      form.metodoPagoId = metodosPago.value[0].id
+    }
   } catch (err) {
     console.error("Error cargando métodos de pago", err)
     metodosPago.value = []
