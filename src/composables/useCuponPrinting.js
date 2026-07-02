@@ -1,113 +1,41 @@
 import { ref } from "vue"
 import LogoPena from "../assets/Boca_escudo.png"
 
-const THEME = { blue: '#003a70', yellow: '#f6c011', text: '#0b3c5d' }
-const CLUB = {
-  nombreLinea1: 'ASOCIACIÓN CIVIL',
-  nombreLinea2: 'PEÑA BOQUENSE SAN FRANCISCO',
-  nombreLinea3: 'ANTONIO UBALDO RATTÍN',
-}
-
+// El papel es un MEMBRETE pre-impreso de 210x100mm (apaisado) con el diseño de
+// Boca (escudo, nombre, dirección) ya impreso en la FRANJA INFERIOR (~28mm) y un
+// TROQUEL a 70mm del borde derecho (la copia del socio). El sistema imprime SOLO
+// los datos en la zona blanca de arriba, sin repetir escudo/encabezado.
+// Calibración: si todo sale corrido, ajustar --shift-x / --shift-y (en mm).
 const CUPON_STYLES = `
   *{box-sizing:border-box}
-  :root{ --blue:${THEME.blue}; --yellow:${THEME.yellow}; --text:${THEME.text}; }
-  @page{ size: A4 landscape; margin: 10mm }
-  html,body{
-    width:210mm;max-width:210mm;margin:0 auto;color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
-    background:#f7f9fc;
-  }
-  .ticket{
-    max-width:740px;
-    margin:0 auto 20px;
-    border:2px solid var(--blue);
-    border-radius:10px;
-    overflow:hidden;
-    background:#fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
-    page-break-inside:avoid;
-  }
-  .hdr{display:grid;grid-template-columns:auto 1fr;position:relative}
-  .hdr-left{display:flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:10px 14px}
-  .escudo{width:60px;height:auto;flex-shrink:0;background:none;border:none;border-radius:0;display:grid;place-items:center;overflow:visible;}
-  .escudo img{width:60px;height:auto;display:block;object-fit:contain}
-  .club{line-height:1.1;text-transform:uppercase}
-  .club .l1{display:block;font-weight:700;opacity:.95;font-size:.7rem}
-  .club .l2{display:block;font-weight:1000;letter-spacing:.4px;font-size:.9rem}
-  .club .l3{display:block;font-weight:800;opacity:.95;font-size:.8rem}
-  .hdr-right{display:flex;align-items:center;justify-content:flex-end;padding:8px 12px;background:#f8fafc;gap:10px}
-  .comprob span{display:block;font-size:.7rem;color:#475569;font-weight:800}
-  .comprob strong{display:block;font-size:1rem;color:var(--blue);letter-spacing:.5px}
-  .faja{position:absolute;left:0;right:0;bottom:-1px;height:5px;background:var(--yellow)}
-  .hdr-stub{display:block;background:var(--blue);color:#fff;padding:12px 8px;text-align:center;position:relative;}
-  .hdr-stub .escudo img{width:45px;margin-bottom:4px}
-  .hdr-stub .club .l1{font-size:.6rem}
-  .hdr-stub .club .l2{font-size:.8rem;letter-spacing:.25px}
-  .hdr-stub .club .l3{font-size:.7rem}
-  .hdr-stub .pill{display:inline-block;background:var(--yellow);color:var(--blue);font-weight:1000;border-radius:999px;padding:3px 10px;font-size:.7rem;margin:6px 0 3px;}
-  .hdr-stub .sub{font-size:.8rem;font-weight:900;letter-spacing:.2px;margin-top:2px;color:#dbeafe}
-  .hdr-stub .faja{position:absolute;left:0;right:0;bottom:-1px;height:4px;background:var(--yellow)}
-  .cup-body{display:flex;align-items:stretch;gap:4px}
-  .lado-cobrador{flex:2;min-width:0}
-  .lado-socio{flex:0.8;min-width:190px;background:#fcfdff;border-left:1px dashed #cbd5e1}
-  .body{padding:12px 16px}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 14px;margin-bottom:10px}
-  .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #e6e9f2}
-  .lbl{color:#64748b;font-weight:900;font-size:.9rem}
-  .val{font-weight:900;font-size:.9rem}
-  .mono{font-variant-numeric:tabular-nums}
-  .importe .lbl{color:var(--blue)}
-  .importe .val{font-size:1.1rem;color:var(--blue)}
-  .firmas{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:20px 0 6px;padding-top:6px;}
-  .firma-box .linea{height:1.3px;background:#475569;margin:28px 0 8px}
-  .firma-box .label{font-size:.85rem;color:#475569;text-align:center}
-  .stub{padding:10px 12px}
-  .stub .kvg{display:grid;gap:8px}
-  .stub .kv{display:flex;justify-content:space-between;gap:6px}
-  .stub .kv .k{font-size:.78rem;color:#64748b;font-weight:900}
-  .stub .kv .v{font-weight:1000;font-size:.85rem}
-  .stub .monto{font-size:.95rem;color:var(--blue)}
-  @media print{
-    html,body{width:auto;max-width:none;margin:0;background:#fff}
-    .ticket{max-width:none;width:100%;min-height:186mm;margin:0;border:2px solid var(--blue);border-radius:0;box-shadow:none;display:flex;overflow:hidden;page-break-inside:avoid;break-inside:avoid;page-break-after:always;break-after:page}
-    .ticket:last-child{page-break-after:auto;break-after:auto}
-    .cup-body{flex:1;gap:0;min-width:0}
-    .lado-cobrador{display:flex;flex-direction:column;min-width:0}
-    .lado-cobrador .body{flex:1;display:flex;flex-direction:column;padding:34px 44px}
-    .escudo img{width:92px}
-    .club .l1{font-size:1.05rem}
-    .club .l2{font-size:1.55rem}
-    .club .l3{font-size:1.2rem}
-    .hdr-left{padding:20px 26px;gap:18px}
-    .hdr-right{padding:18px 24px}
-    .comprob span{font-size:1rem}
-    .comprob strong{font-size:1.7rem}
-    .faja{height:8px}
-    .grid{gap:22px 34px;margin-bottom:30px}
-    .row{padding:14px 0;min-width:0}
-    .lbl{font-size:1.25rem}
-    .val{font-size:1.35rem}
-    .val.mono{white-space:nowrap}
-    .importe .lbl{font-size:1.4rem}
-    .importe .val{font-size:2rem;white-space:nowrap}
-    .firmas{margin-top:auto;gap:80px;padding-top:24px}
-    .firma-box .linea{margin:70px 0 16px}
-    .firma-box .label{font-size:1.2rem}
-    .lado-socio{min-width:220px;flex:0.7}
-    .hdr-stub{padding:22px 12px}
-    .hdr-stub .escudo img{width:72px}
-    .hdr-stub .club .l1{font-size:.82rem}
-    .hdr-stub .club .l2{font-size:1.1rem}
-    .hdr-stub .club .l3{font-size:.95rem}
-    .hdr-stub .pill{font-size:.95rem;padding:6px 14px}
-    .hdr-stub .sub{font-size:1.1rem}
-    .stub{padding:20px 18px}
-    .stub .kvg{gap:18px}
-    .stub .kv{min-width:0}
-    .stub .kv .k{font-size:1.1rem}
-    .stub .kv .v{font-size:1.3rem;white-space:nowrap}
-    .stub .monto{font-size:1.5rem}
-  }
+  :root{ --ink:#242450; --muted:#5b5b74; --line:#8b90a6; --shift-x:0mm; --shift-y:0mm; }
+  @page{ size: 210mm 100mm; margin:0 }
+  html,body{ margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--ink); background:#fff; }
+  .ticket{ position:relative; width:210mm; height:100mm; overflow:hidden; page-break-after:always; break-after:page; }
+  .ticket:last-child{ page-break-after:auto; break-after:auto; }
+  .divisor{ position:absolute; left:140mm; top:6mm; height:58mm; border-left:1px dashed #cdd1dd; transform:translate(var(--shift-x),var(--shift-y)); }
+  .lado-cobrador{ position:absolute; left:0; top:0; width:140mm; height:72mm; padding:7mm 8mm 0 11mm; transform:translate(var(--shift-x),var(--shift-y)); }
+  .lado-socio{ position:absolute; left:140mm; top:0; width:70mm; height:72mm; padding:7mm 7mm 0 8mm; transform:translate(var(--shift-x),var(--shift-y)); }
+  .comprobante{ position:absolute; top:6mm; right:8mm; font-size:8.5pt; color:var(--muted); text-align:right; text-transform:uppercase; letter-spacing:.3px; }
+  .comprobante strong{ display:block; color:var(--ink); font-size:13pt; letter-spacing:.5px; }
+  .campos{ margin-top:8mm; display:grid; grid-template-columns:1fr 1fr; gap:5mm 8mm; width:112mm; }
+  .campo{ display:flex; flex-direction:column; min-width:0; }
+  .campo.full{ grid-column:1 / -1; }
+  .lbl{ font-size:7.5pt; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; font-weight:700; margin-bottom:1mm; }
+  .val{ font-size:12pt; font-weight:800; line-height:1.1; }
+  .mono{ font-variant-numeric:tabular-nums; }
+  .campo.total{ grid-column:2 / 3; }
+  .campo.total .lbl{ font-size:8.5pt; }
+  .campo.total .val{ font-size:15pt; color:var(--ink); white-space:nowrap; }
+  .firmas{ position:absolute; left:11mm; right:12mm; bottom:5mm; display:flex; gap:12mm; }
+  .firma{ flex:1; text-align:center; }
+  .firma .linea{ display:block; border-top:1px solid var(--line); margin-bottom:1.5mm; }
+  .firma .fl{ font-size:7.5pt; color:var(--muted); }
+  .lado-socio .titulo{ font-size:7.5pt; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:800; margin-bottom:1mm; }
+  .lado-socio .campo{ margin-top:5mm; }
+  .lado-socio .val{ font-size:11pt; }
+  .lado-socio .campo.total{ grid-column:auto; }
+  .lado-socio .campo.total .val{ font-size:15pt; }
 `
 
 export function useCuponPrinting() {
@@ -147,65 +75,34 @@ export function useCuponPrinting() {
     new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value || 0))
 
   function buildCuponHTML(cuota) {
-    const LOGO = logoDataUrl.value || LogoPena
-    const header = `
-      <div class="hdr">
-        <div class="hdr-left">
-          <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
-          <div class="club">
-            <span class="l1">${safe(CLUB.nombreLinea1)}</span>
-            <span class="l2">${safe(CLUB.nombreLinea2)}</span>
-            <span class="l3">${safe(CLUB.nombreLinea3)}</span>
-          </div>
-        </div>
-        <div class="hdr-right">
-          <div class="comprob">
-            <span>COMPROBANTE</span>
-            <strong>#${String(cuota.id).padStart(8, '0')}</strong>
-          </div>
-        </div>
-        <div class="faja"></div>
-      </div>`
-    const headerStub = `
-      <div class="hdr-stub">
-        <div class="escudo"><img src="${LOGO}" alt="Peña" /></div>
-        <div class="club">
-          <span class="l1">${safe(CLUB.nombreLinea1)}</span>
-          <span class="l2">${safe(CLUB.nombreLinea2)}</span>
-          <span class="l3">${safe(CLUB.nombreLinea3)}</span>
-        </div>
-        <div class="pill">RECIBO PARA EL SOCIO</div>
-        <div class="sub">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</div>
-        <div class="faja"></div>
-      </div>`
+    const nro = String(cuota.id).padStart(8, '0')
+    const socio = `${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}`
+    const periodo = formatoPeriodoCupon(cuota.periodo)
+    const venc = fechaCorta(cuota.fechaVencimiento)
+    const monto = `$ ${formatMoney(cuota.montoAPagar)}`
     return `
     <section class="ticket">
-      <div class="cup-body">
-        <div class="lado-cobrador">
-          ${header}
-          <div class="body">
-            <div class="grid">
-              <div class="row"><span class="lbl">Socio</span><span class="val">${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}</span></div>
-              <div class="row"><span class="lbl">DNI</span><span class="val mono">${safe(cuota.socioDni)}</span></div>
-              <div class="row"><span class="lbl">Período</span><span class="val">${formatoPeriodoCupon(cuota.periodo)}</span></div>
-              <div class="row"><span class="lbl">Vencimiento</span><span class="val mono">${fechaCorta(cuota.fechaVencimiento)}</span></div>
-              <div class="row importe"><span class="lbl">TOTAL</span><span class="val mono">$ ${formatMoney(cuota.montoAPagar)}</span></div>
-            </div>
-            <div class="firmas">
-              <div class="firma-box"><div class="linea"></div><div class="label">Firma del socio</div></div>
-              <div class="firma-box"><div class="linea"></div><div class="label">Firma del cobrador</div></div>
-            </div>
-          </div>
+      <div class="divisor"></div>
+      <div class="lado-cobrador">
+        <div class="comprobante">Comprobante N°<strong>${nro}</strong></div>
+        <div class="campos">
+          <div class="campo full"><span class="lbl">Socio</span><span class="val">${socio}</span></div>
+          <div class="campo"><span class="lbl">DNI</span><span class="val mono">${safe(cuota.socioDni)}</span></div>
+          <div class="campo"><span class="lbl">Período</span><span class="val">${periodo}</span></div>
+          <div class="campo"><span class="lbl">Vencimiento</span><span class="val mono">${venc}</span></div>
+          <div class="campo total"><span class="lbl">Total a pagar</span><span class="val mono">${monto}</span></div>
         </div>
-        <div class="lado-socio">
-          ${headerStub}
-          <div class="stub">
-            <div class="kvg">
-              <div class="kv"><span class="k">Período</span><span class="v">${formatoPeriodoCupon(cuota.periodo)}</span></div>
-              <div class="kv"><span class="k">Monto</span><span class="v mono monto">$ ${formatMoney(cuota.montoAPagar)}</span></div>
-            </div>
-          </div>
+        <div class="firmas">
+          <div class="firma"><span class="linea"></span><span class="fl">Firma del socio</span></div>
+          <div class="firma"><span class="linea"></span><span class="fl">Firma del cobrador</span></div>
         </div>
+      </div>
+      <div class="lado-socio">
+        <div class="comprobante">N°<strong>${nro}</strong></div>
+        <div class="titulo">Recibo del socio</div>
+        <div class="campo full"><span class="lbl">Socio</span><span class="val">${socio}</span></div>
+        <div class="campo"><span class="lbl">Período</span><span class="val">${periodo}</span></div>
+        <div class="campo total"><span class="lbl">Monto</span><span class="val mono">${monto}</span></div>
       </div>
     </section>`
   }
