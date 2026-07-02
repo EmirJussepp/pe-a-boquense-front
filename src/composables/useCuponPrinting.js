@@ -11,7 +11,7 @@ const CLUB = {
 const CUPON_STYLES = `
   *{box-sizing:border-box}
   :root{ --blue:${THEME.blue}; --yellow:${THEME.yellow}; --text:${THEME.text}; }
-  @page{ size: A4 portrait; margin: 8mm }
+  @page{ size: A4 landscape; margin: 10mm }
   html,body{
     width:210mm;max-width:210mm;margin:0 auto;color:var(--text);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif;
@@ -67,7 +67,47 @@ const CUPON_STYLES = `
   .stub .kv .k{font-size:.78rem;color:#64748b;font-weight:900}
   .stub .kv .v{font-weight:1000;font-size:.85rem}
   .stub .monto{font-size:.95rem;color:var(--blue)}
-  @media print{body{margin:0;zoom:100%;}.ticket{border:none;border-radius:0;page-break-inside:avoid;break-inside:avoid;page-break-after:always;break-after:page;}.ticket:last-child{page-break-after:auto;break-after:auto;}}
+  @media print{
+    html,body{width:auto;max-width:none;margin:0;background:#fff}
+    .ticket{max-width:none;width:100%;min-height:186mm;margin:0;border:2px solid var(--blue);border-radius:0;box-shadow:none;display:flex;overflow:hidden;page-break-inside:avoid;break-inside:avoid;page-break-after:always;break-after:page}
+    .ticket:last-child{page-break-after:auto;break-after:auto}
+    .cup-body{flex:1;gap:0;min-width:0}
+    .lado-cobrador{display:flex;flex-direction:column;min-width:0}
+    .lado-cobrador .body{flex:1;display:flex;flex-direction:column;padding:34px 44px}
+    .escudo img{width:92px}
+    .club .l1{font-size:1.05rem}
+    .club .l2{font-size:1.55rem}
+    .club .l3{font-size:1.2rem}
+    .hdr-left{padding:20px 26px;gap:18px}
+    .hdr-right{padding:18px 24px}
+    .comprob span{font-size:1rem}
+    .comprob strong{font-size:1.7rem}
+    .faja{height:8px}
+    .grid{gap:22px 34px;margin-bottom:30px}
+    .row{padding:14px 0;min-width:0}
+    .lbl{font-size:1.25rem}
+    .val{font-size:1.35rem}
+    .val.mono{white-space:nowrap}
+    .importe .lbl{font-size:1.4rem}
+    .importe .val{font-size:2rem;white-space:nowrap}
+    .firmas{margin-top:auto;gap:80px;padding-top:24px}
+    .firma-box .linea{margin:70px 0 16px}
+    .firma-box .label{font-size:1.2rem}
+    .lado-socio{min-width:220px;flex:0.7}
+    .hdr-stub{padding:22px 12px}
+    .hdr-stub .escudo img{width:72px}
+    .hdr-stub .club .l1{font-size:.82rem}
+    .hdr-stub .club .l2{font-size:1.1rem}
+    .hdr-stub .club .l3{font-size:.95rem}
+    .hdr-stub .pill{font-size:.95rem;padding:6px 14px}
+    .hdr-stub .sub{font-size:1.1rem}
+    .stub{padding:20px 18px}
+    .stub .kvg{gap:18px}
+    .stub .kv{min-width:0}
+    .stub .kv .k{font-size:1.1rem}
+    .stub .kv .v{font-size:1.3rem;white-space:nowrap}
+    .stub .monto{font-size:1.5rem}
+  }
 `
 
 export function useCuponPrinting() {
