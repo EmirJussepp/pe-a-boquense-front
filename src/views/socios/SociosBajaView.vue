@@ -25,7 +25,7 @@
           <input
             v-model="search"
             type="text"
-            placeholder="Nombre, apellido, DNI, email o teléfono..."
+            placeholder="Nombre, apellido, alias, DNI o teléfono..."
             @keyup.enter="applyFilters"
           />
         </div>

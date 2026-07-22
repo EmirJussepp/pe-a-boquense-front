@@ -35,7 +35,7 @@
             </div>
 
             <div class="field-container">
-              <label class="field-label">DNI o nombre del socio</label>
+              <label class="field-label">DNI, nombre o alias del socio</label>
               <div class="input-action-group">
                 <input v-model.trim="filtroBusqueda" type="text" placeholder="Ej. 32123456" class="dark-input" />
                 <button type="submit" class="btn-buscar" :disabled="loading">

@@ -33,7 +33,7 @@
           <input
             v-model="search"
             type="text"
-            placeholder="Nombre, apellido, DNI, teléfono..."
+            placeholder="Nombre, apellido, alias, DNI, teléfono..."
           />
         </div>
 
