@@ -514,5 +514,17 @@ function handleGroupClick(menu) {
 
   /* El main ocupa todo el ancho */
   .main-wrapper { width: 100vw; }
+
+  /* iOS Safari: 100vh incluye la barra URL, usar dvh para el area visible real */
+  .sidebar {
+    height: 100dvh;
+  }
+  .main-wrapper {
+    height: 100dvh;
+  }
+  .sidebar-inner {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 </style>
