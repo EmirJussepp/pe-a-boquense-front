@@ -447,7 +447,9 @@ function handleGroupClick(menu) {
 
 .content-viewport {
   flex-grow: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transition: all 0.3s ease;
 }
 
