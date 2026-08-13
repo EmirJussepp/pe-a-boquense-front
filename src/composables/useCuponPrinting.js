@@ -18,16 +18,16 @@ const CUPON_STYLES = `
   .lado-socio{ position:absolute; left:140mm; top:0; width:70mm; height:72mm; padding:7mm 7mm 0 8mm; transform:translate(var(--shift-x),var(--shift-y)); }
   .comprobante{ position:absolute; top:6mm; right:8mm; font-size:8.5pt; color:var(--muted); text-align:right; text-transform:uppercase; letter-spacing:.3px; }
   .comprobante strong{ display:block; color:var(--ink); font-size:13pt; letter-spacing:.5px; }
-  .campos{ margin-top:8mm; display:grid; grid-template-columns:1fr 1fr; gap:5mm 8mm; width:112mm; }
+  .campos{ margin-top:5mm; display:grid; grid-template-columns:1fr 1fr; gap:3.5mm 8mm; width:112mm; }
   .campo{ display:flex; flex-direction:column; min-width:0; }
   .campo.full{ grid-column:1 / -1; }
   .lbl{ font-size:7.5pt; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; font-weight:700; margin-bottom:1mm; }
-  .val{ font-size:12pt; font-weight:800; line-height:1.1; }
+  .val{ font-size:11pt; font-weight:800; line-height:1.1; }
   .mono{ font-variant-numeric:tabular-nums; }
   .campo.total{ grid-column:2 / 3; }
   .campo.total .lbl{ font-size:8.5pt; }
-  .campo.total .val{ font-size:15pt; color:var(--ink); white-space:nowrap; }
-  .firmas{ position:absolute; left:11mm; right:12mm; bottom:5mm; display:flex; gap:12mm; }
+  .campo.total .val{ font-size:14pt; color:var(--ink); white-space:nowrap; }
+  .firmas{ position:absolute; left:11mm; right:12mm; bottom:4mm; display:flex; gap:12mm; }
   .firma{ flex:1; text-align:center; }
   .firma .linea{ display:block; border-top:1px solid var(--line); margin-bottom:1.5mm; }
   .firma .fl{ font-size:7.5pt; color:var(--muted); }
@@ -77,6 +77,7 @@ export function useCuponPrinting() {
   function buildCuponHTML(cuota) {
     const nro = String(cuota.id).padStart(8, '0')
     const socio = `${safe(cuota.socioApellido)}, ${safe(cuota.socioNombre)}`
+    const direccion = safe(cuota.direccion) || '—'
     const periodo = formatoPeriodoCupon(cuota.periodo)
     const venc = fechaCorta(cuota.fechaVencimiento)
     const monto = `$ ${formatMoney(cuota.montoAPagar)}`
@@ -87,6 +88,7 @@ export function useCuponPrinting() {
         <div class="comprobante">Comprobante N°<strong>${nro}</strong></div>
         <div class="campos">
           <div class="campo full"><span class="lbl">Socio</span><span class="val">${socio}</span></div>
+          <div class="campo full"><span class="lbl">Dirección</span><span class="val">${direccion}</span></div>
           <div class="campo"><span class="lbl">DNI</span><span class="val mono">${safe(cuota.socioDni)}</span></div>
           <div class="campo"><span class="lbl">Período</span><span class="val">${periodo}</span></div>
           <div class="campo"><span class="lbl">Vencimiento</span><span class="val mono">${venc}</span></div>
@@ -147,6 +149,7 @@ export function normalizeCuotaParaImprimir(item) {
     socioNombre: String(item?.socioNombre ?? ''),
     socioApellido: String(item?.socioApellido ?? ''),
     socioDni: String(item?.socioDni ?? ''),
+    direccion: String(item?.socioDireccion ?? ''),
     periodo: item?.periodo ?? '',
     fechaVencimiento: item?.fechaVencimiento ?? null,
     montoAPagar: Number(item?.montoAPagar ?? 0),

@@ -273,6 +273,7 @@ function normalizeCuota(item) {
     socioNombre: String(item?.socioNombre ?? ""),
     socioApellido: String(item?.socioApellido ?? ""),
     socioDni: String(item?.socioDni ?? ""),
+    direccion: String(item?.socioDireccion ?? ""),
     periodo: item?.periodo ?? "",
     fechaVencimiento: item?.fechaVencimiento ?? null,
     montoAPagar: Number(item?.montoAPagar ?? 0),
