@@ -44,6 +44,10 @@
 
         <div class="form-section">
           <h3 class="form-section-title">Socio Locatario</h3>
+          <div class="field" style="margin-bottom: 12px;">
+            <label>Buscar socio <span class="hint">(opcional — dejá vacío si es externo)</span></label>
+            <SocioBuscador @select="onSocioSelect" @clear="onSocioClear" />
+          </div>
           <div class="field-grid cols-3">
             <div class="field">
               <label>Nombre <span class="required">*</span></label>
@@ -123,6 +127,7 @@ import { alquileresService } from "../../services/alquileresService"
 import { salonesService } from "../../services/salonesService"
 import { metodosPagoService } from "../../services/metodosPagoService"
 import { useToast } from "../../composables/useToast"
+import SocioBuscador from "../../components/SocioBuscador.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -180,6 +185,18 @@ watch(() => form.monto, () => {
   const salon = salones.value.find(item => item.id === Number(form.salonId))
   if (salon && Number(form.monto) !== Number(salon.precio)) montoAutocompletado.value = false
 })
+
+function onSocioSelect(socio) {
+  form.nombre = `${socio.nombre} ${socio.apellido}`.trim()
+  form.dni = socio.dni ?? ""
+  form.telefono = socio.telefono ?? ""
+}
+
+function onSocioClear() {
+  form.nombre = ""
+  form.dni = ""
+  form.telefono = ""
+}
 
 function volver() { router.push("/alquileres") }
 
