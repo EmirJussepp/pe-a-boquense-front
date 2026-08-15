@@ -43,7 +43,7 @@
         <div class="form-divider"></div>
 
         <div class="form-section">
-          <h3 class="form-section-title">Datos del cliente</h3>
+          <h3 class="form-section-title">Socio Locatario</h3>
           <div class="field-grid cols-3">
             <div class="field">
               <label>Nombre <span class="required">*</span></label>
